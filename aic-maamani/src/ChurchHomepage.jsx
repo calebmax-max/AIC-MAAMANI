@@ -159,7 +159,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
           }}>
             <span style={{ display: "inline-block", width: "6px", height: "6px", background: COPPER, borderRadius: "50%" }} />
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, letterSpacing: "0.2em", fontSize: "0.68rem", textTransform: "uppercase", color: COPPER }}>
-              KITUI, Kenya · Est. 1998
+              KITUI, KENYA · Est. 1998
             </span>
           </div>
 
@@ -226,7 +226,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
         {[
           { icon: "◷", label: "Sunday Service", detail: "7:30 AM · 10:00 AM · 6:00 PM" },
           { icon: "◈", label: "Wednesday Bible Study", detail: "6:30 PM" },
-          { icon: "⊕", label: "Location", detail: "Upper Hill, Nairobi" },
+          { icon: "⊕", label: "Location", detail: "KITUI, KENYA" },
         ].map(({ icon, label, detail }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
             <span style={{ fontSize: "1.3rem", color: CHARCOAL, opacity: 0.6 }}>{icon}</span>
@@ -250,7 +250,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
               fontSize: "4.5rem", color: MID
             }}>◈</div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.05rem", color: CHARCOAL }}>Rev. Samuel Waweru</div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.05rem", color: CHARCOAL }}>Rev. Daniel Mutinda</div>
               <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER, marginTop: "0.3rem" }}>Senior Pastor</div>
             </div>
           </div>
@@ -268,7 +268,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID }}>
               Come hungry. Come tired. Come curious. Just come.
             </p>
-            <div style={{ marginTop: "1.5rem", fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: COPPER }}>— Rev. Samuel Waweru</div>
+            <div style={{ marginTop: "1.5rem", fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: COPPER }}>— Rev. Daniel Mutinda</div>
           </div>
         </div>
       </section>
