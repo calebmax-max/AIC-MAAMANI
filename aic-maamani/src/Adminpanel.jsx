@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const API = process.env.REACT_APP_API_BASE_URL || "";
+const API = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
 const AUTH_KEY = "aicMaamaniAdminToken";
 
 const COPPER = "#EF9F27";

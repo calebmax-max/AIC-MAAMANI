@@ -1,8 +1,9 @@
-from datetime import date
+﻿from datetime import date
 
 from sqlalchemy.orm import Session
 
 from models import (
+    AdminUser,
     BlogPost,
     ContactMessage,
     Event,
@@ -13,12 +14,25 @@ from models import (
     TeamMember,
 )
 
-
 def _has_rows(db: Session, model) -> bool:
     return db.query(model).first() is not None
 
 
 def seed_database(db: Session) -> None:
+    if not _has_rows(db, AdminUser):
+        from admin_security import create_password_record
+
+        salt, password_hash = create_password_record("admin123")
+        db.add(
+            AdminUser(
+                username="admin",
+                password_salt=salt,
+                password_hash=password_hash,
+                role="full_admin",
+                is_active=True,
+            )
+        )
+
     if not _has_rows(db, SermonSeries):
         db.add(
             SermonSeries(
@@ -129,3 +143,4 @@ def seed_database(db: Session) -> None:
         )
 
     db.commit()
+

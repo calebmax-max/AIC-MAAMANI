@@ -1,4 +1,4 @@
-from datetime import date, datetime
+﻿from datetime import date, datetime
 from sqlalchemy import (
     Boolean, Column, DateTime, ForeignKey, Integer,
     String, Text, Date, JSON
@@ -6,6 +6,18 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from database import Base
 
+
+class AdminUser(Base):
+    __tablename__ = "admin_users"
+
+    id            = Column(Integer, primary_key=True, index=True)
+    username      = Column(String, nullable=False, unique=True, index=True)
+    password_salt = Column(String, nullable=False)
+    password_hash = Column(String, nullable=False)
+    role          = Column(String, nullable=False, default="full_admin")
+    is_active     = Column(Boolean, default=True)
+    created_at    = Column(DateTime, default=datetime.utcnow)
+    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 # ─── Sermons ────────────────────────────────────────────────────────────────
 
@@ -158,3 +170,4 @@ class TeamMember(Base):
     bio      = Column(Text)
     photo    = Column(String)
     order    = Column(Integer, default=0)                   # display order
+
