@@ -6,3 +6,4 @@ pymysql>=1.1
 pydantic>=2.7
 python-dotenv>=1.0
 itsdangerous>=2.1
+python-multipart>=0.0.6
