@@ -497,6 +497,37 @@ export default function ChurchHomepage({ showNav = true } = {}) {
               onMouseLeave={e => { e.target.style.color = "rgba(242, 236, 236, 0.96)"; }}
             >{label}</a>
           ))}
+          <a
+            href="#admin"
+            aria-label="Admin panel"
+            title="Admin panel"
+            style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "50%",
+              border: "1px solid rgba(239,159,39,0.28)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "rgba(242, 236, 236, 0.96)",
+              textDecoration: "none",
+              transition: "all 0.2s",
+              marginLeft: "0.25rem",
+              fontSize: "0.82rem",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.color = COPPER;
+              e.currentTarget.style.borderColor = COPPER;
+              e.currentTarget.style.background = "rgba(239,159,39,0.08)";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.color = "rgba(242, 236, 236, 0.96)";
+              e.currentTarget.style.borderColor = "rgba(239,159,39,0.28)";
+              e.currentTarget.style.background = "transparent";
+            }}
+          >
+            ◈
+          </a>
         </div>
         <div style={{ marginTop: "2rem", fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "12px", letterSpacing: "0.1em", color: "rgba(231, 225, 225, 0.93)" }}>
           © 2025 AIC MAAMANI Church. Built with faith & care.

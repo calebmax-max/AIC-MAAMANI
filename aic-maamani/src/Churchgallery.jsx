@@ -24,16 +24,6 @@ function mockPhoto(w, h, bg, label, icon) {
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
 }
 
-function mockVideoThumb(label, icon) {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='480' height='270'>
-    <rect width='480' height='270' fill='#1a1a18'/>
-    <rect x='0' y='0' width='480' height='270' fill='%232C2C2A' opacity='0.85'/>
-    <text x='50%' y='44%' font-family='Georgia,serif' font-size='40' fill='%23EF9F27' opacity='0.7' text-anchor='middle' dominant-baseline='middle'>${icon}</text>
-    <text x='50%' y='64%' font-family='Georgia,serif' font-size='14' fill='white' opacity='0.45' text-anchor='middle' dominant-baseline='middle'>${label}</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
 const PHOTO_STYLES = [
   { bg: "%234A3728", icon: "✝", label: "Sunday worship service" },
   { bg: "%23285A3E", icon: "☀", label: "Youth group gathering" },
@@ -65,10 +55,10 @@ const fallbackPhotos = PHOTO_STYLES.map((s, i) => ({
 }));
 
 const fallbackVideos = [
-  { id: 1, title: "Sunday Message — Walking in Faith", thumb: mockVideoThumb("Sunday Message", "✝"), youtubeId: null, date: "June 2, 2024" },
-  { id: 2, title: "Youth Night Highlights — Spring 2024", thumb: mockVideoThumb("Youth Night", "☀"), youtubeId: null, date: "May 18, 2024" },
-  { id: 3, title: "Outreach 2024 — Community Impact Reel", thumb: mockVideoThumb("Outreach Reel", "🤝"), youtubeId: null, date: "April 30, 2024" },
-  { id: 4, title: "Christmas Cantata 2023", thumb: mockVideoThumb("Christmas Cantata", "★"), youtubeId: null, date: "December 24, 2023" },
+  { id: 1, title: "Sunday Message — Walking in Faith", videoUrl: null, date: "June 2, 2024" },
+  { id: 2, title: "Youth Night Highlights — Spring 2024", videoUrl: null, date: "May 18, 2024" },
+  { id: 3, title: "Outreach 2024 — Community Impact Reel", videoUrl: null, date: "April 30, 2024" },
+  { id: 4, title: "Christmas Cantata 2023", videoUrl: null, date: "December 24, 2023" },
 ];
 
 function MasonryGrid({ photos, onPhotoClick }) {
@@ -266,6 +256,7 @@ function navBtnStyle(side) {
 function VideoCard({ video }) {
   const [playing, setPlaying] = useState(false);
   const [hovered, setHovered] = useState(false);
+  const hasLocalVideo = Boolean(video.videoUrl);
 
   return (
     <div
@@ -281,40 +272,53 @@ function VideoCard({ video }) {
       onMouseLeave={() => setHovered(false)}
     >
       <div style={{ position: "relative", paddingBottom: "56.25%", background: "#000" }}>
-        {playing ? (
-          <div style={{
-            position: "absolute", inset: 0,
-            background: "#1a1a18",
-            display: "flex", flexDirection: "column",
-            alignItems: "center", justifyContent: "center", gap: "10px",
-          }}>
-            <span style={{ fontSize: "36px", color: PALETTE.accent }}>▶</span>
-            <p style={{ margin: 0, color: "rgba(255,255,255,0.5)", fontSize: "12px", fontFamily: "'DM Sans',sans-serif" }}>Video would play here</p>
-          </div>
+        {playing && hasLocalVideo ? (
+          <video
+            controls
+            autoPlay
+            src={video.videoUrl}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          />
         ) : (
           <>
-            <img
-              src={video.thumb}
-              alt={video.title}
-              style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-            />
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(135deg, rgba(44,44,42,0.98), rgba(95,94,90,0.88))",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              padding: "20px", textAlign: "center",
+            }}>
+              <div style={{
+                width: "66px", height: "66px", borderRadius: "50%",
+                background: "rgba(239,159,39,0.16)",
+                border: "1px solid rgba(239,159,39,0.35)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                marginBottom: "14px",
+              }}>
+                <span style={{ fontSize: "24px", color: PALETTE.accent, marginLeft: "3px" }}>Play</span>
+              </div>
+              <p style={{ margin: 0, color: "#fff", fontSize: "15px", fontWeight: 600, lineHeight: 1.4 }}>{video.title}</p>
+              <p style={{ margin: "6px 0 0", color: "rgba(255,255,255,0.55)", fontSize: "12px", fontFamily: "'DM Sans',sans-serif" }}>
+                {hasLocalVideo ? "Tap to play" : "Uploaded video coming soon"}
+              </p>
+            </div>
             <div
               style={{
                 position: "absolute", inset: 0,
                 background: "rgba(44,44,42,0.3)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer",
+                cursor: hasLocalVideo ? "pointer" : "default",
               }}
-              onClick={() => setPlaying(true)}
+              onClick={hasLocalVideo ? () => setPlaying(true) : undefined}
             >
               <div style={{
                 width: "56px", height: "56px", borderRadius: "50%",
                 background: PALETTE.accent,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "transform 0.2s",
-                transform: hovered ? "scale(1.1)" : "scale(1)",
+                transform: hovered && hasLocalVideo ? "scale(1.1)" : "scale(1)",
               }}>
-                <span style={{ fontSize: "22px", color: "#fff", marginLeft: "3px" }}>▶</span>
+                <span style={{ fontSize: "22px", color: "#fff", marginLeft: "3px" }}>Play</span>
               </div>
             </div>
           </>
@@ -363,8 +367,7 @@ export default function ChurchGallery() {
           data.map((video) => ({
             id: video.id,
             title: video.title,
-            thumb: video.thumb,
-            youtubeId: video.youtube_id,
+            videoUrl: video.video_url || null,
             date: video.date || "",
           }))
         );
@@ -541,3 +544,4 @@ export default function ChurchGallery() {
     </div>
   );
 }
+

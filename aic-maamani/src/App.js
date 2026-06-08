@@ -21,7 +21,6 @@ const NAV_ITEMS = [
   { id: "blog", label: "Blog" },
   { id: "gallery", label: "Gallery" },
   { id: "contact", label: "Contact Us" },
-  { id: "admin", label: "Admin" },
 ];
 
 const ROUTES = {

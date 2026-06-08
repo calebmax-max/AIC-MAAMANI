@@ -1,0 +1,81 @@
+previews:
+  generation: automatic
+
+services:
+  - type: pserv
+    name: aic-maamani-mysql
+    runtime: docker
+    repo: https://github.com/render-examples/mysql.git
+    branch: master
+    plan: starter
+    envVars:
+      - key: MYSQL_DATABASE
+        value: aic_maamani
+      - key: MYSQL_USER
+        value: aic_maamani
+      - key: MYSQL_PASSWORD
+        generateValue: true
+      - key: MYSQL_ROOT_PASSWORD
+        generateValue: true
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 10
+
+  - type: web
+    name: aic-maamani-api
+    runtime: python
+    rootDir: aic-maamani/backend
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    disk:
+      name: uploads
+      mountPath: /opt/render/project/src/aic-maamani/backend/uploads
+      sizeGB: 1
+    envVars:
+      - key: MYSQL_HOST
+        fromService:
+          name: aic-maamani-mysql
+          type: pserv
+          property: host
+      - key: MYSQL_PORT
+        fromService:
+          name: aic-maamani-mysql
+          type: pserv
+          property: port
+      - key: MYSQL_USER
+        fromService:
+          name: aic-maamani-mysql
+          type: pserv
+          envVarKey: MYSQL_USER
+      - key: MYSQL_PASSWORD
+        fromService:
+          name: aic-maamani-mysql
+          type: pserv
+          envVarKey: MYSQL_PASSWORD
+      - key: MYSQL_DATABASE
+        fromService:
+          name: aic-maamani-mysql
+          type: pserv
+          envVarKey: MYSQL_DATABASE
+      - key: AIC_MAAMANI_CORS_ORIGINS
+        value: https://aic-maamani-web.onrender.com
+      - key: AIC_MAAMANI_SESSION_SECRET
+        generateValue: true
+      - key: AIC_MAAMANI_SESSION_SECURE
+        value: "true"
+      - key: AIC_MAAMANI_SESSION_SAMESITE
+        value: lax
+      - key: AIC_MAAMANI_SESSION_MAX_AGE_SECONDS
+        value: "28800"
+
+  - type: web
+    name: aic-maamani-web
+    runtime: static
+    rootDir: aic-maamani
+    buildCommand: npm ci && npm run build
+    staticPublishPath: aic-maamani/build
+    envVars:
+      - key: REACT_APP_API_BASE_URL
+        value: https://aic-maamani-api.onrender.com

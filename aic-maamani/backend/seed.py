@@ -14,6 +14,17 @@ from models import (
     TeamMember,
 )
 
+
+GALLERY_PLACEHOLDER_SRC = (
+    "data:image/svg+xml;charset=UTF-8,"
+    "%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%221200%22%20height%3D%22800%22%20viewBox%3D%220%200%201200%20800%22%3E"
+    "%3Crect%20width%3D%221200%22%20height%3D%22800%22%20fill%3D%22%232C2C2A%22/%3E"
+    "%3Crect%20x%3D%2264%22%20y%3D%2264%22%20width%3D%221072%22%20height%3D%22672%22%20fill%3D%22none%22%20stroke%3D%22%23EF9F27%22%20stroke-opacity%3D%220.35%22%20stroke-width%3D%223%22/%3E"
+    "%3Ctext%20x%3D%22600%22%20y%3D%22390%22%20fill%3D%22%23F2F1EF%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2256%22%20text-anchor%3D%22middle%22%3EAIC%20Maamani%20Gallery%3C/text%3E"
+    "%3Ctext%20x%3D%22600%22%20y%3D%22455%22%20fill%3D%22%23EF9F27%22%20font-family%3D%22Arial%2Csans-serif%22%20font-size%3D%2224%22%20text-anchor%3D%22middle%22%3EChurch%20worship%20gathering%3C/text%3E"
+    "%3C/svg%3E"
+)
+
 def _has_rows(db: Session, model) -> bool:
     return db.query(model).first() is not None
 
@@ -136,10 +147,15 @@ def seed_database(db: Session) -> None:
         db.add(
             GalleryPhoto(
                 album="Worship",
-                src="https://via.placeholder.com/1200x800?text=AIC+Maamani+Gallery",
+                src=GALLERY_PLACEHOLDER_SRC,
                 alt="Church worship gathering",
                 height=800,
             )
+        )
+    else:
+        db.query(GalleryPhoto).filter(GalleryPhoto.src.contains("via.placeholder.com")).update(
+            {GalleryPhoto.src: GALLERY_PLACEHOLDER_SRC},
+            synchronize_session=False,
         )
 
     db.commit()

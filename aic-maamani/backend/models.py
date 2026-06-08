@@ -46,6 +46,8 @@ class Sermon(Base):
     series_id   = Column(String, ForeignKey("sermon_series.id"))
     thumbnail   = Column(String)
     video_url   = Column(String)
+    audio_url   = Column(String)
+    document_url = Column(String)
     has_notes   = Column(Boolean, default=False)
     featured    = Column(Boolean, default=False)
 
@@ -139,8 +141,7 @@ class GalleryVideo(Base):
 
     id         = Column(Integer, primary_key=True, index=True)
     title      = Column(String, nullable=False)
-    thumb      = Column(String)
-    youtube_id = Column(String, nullable=True)
+    video_url  = Column(String)
     date       = Column(String)                              # human-readable
 
 

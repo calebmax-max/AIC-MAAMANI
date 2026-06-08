@@ -518,8 +518,19 @@ function AudioPlayer({ duration }) {
 }
 
 // ─── Video Embed ──────────────────────────────────────────────────────────────
+function isVideoFile(url) {
+  return /\.(mp4|webm|mov|m4v)(\?|$)/i.test(url || "");
+}
+
+function isAudioFile(url) {
+  return /\.(mp3|wav|m4a|ogg|aac)(\?|$)/i.test(url || "");
+}
+
 function VideoEmbed({ url }) {
   const [loaded, setLoaded] = useState(false);
+  if (isVideoFile(url)) {
+    return <video controls autoPlay src={url} style={{ width: "100%", borderRadius: 10, background: "#1a1a1a" }} />;
+  }
   return (
     <div style={{ position: "relative", paddingBottom: "56.25%", height: 0, borderRadius: 10, overflow: "hidden", background: "#1a1a1a" }}>
       {!loaded && (
@@ -536,6 +547,26 @@ function VideoEmbed({ url }) {
 }
 
 // ─── Featured Sermon ──────────────────────────────────────────────────────────
+function SermonMedia({ sermon }) {
+  if (sermon.videoUrl) {
+    return <VideoEmbed url={sermon.videoUrl} />;
+  }
+  if (sermon.audioUrl) {
+    if (isAudioFile(sermon.audioUrl)) {
+      return <audio controls src={sermon.audioUrl} style={{ width: "100%" }} />;
+    }
+    return <AudioPlayer duration={sermon.duration} />;
+  }
+  if (sermon.documentUrl) {
+    return (
+      <a href={sermon.documentUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: COPPER, textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
+        <DownloadIcon size={14} /> Download document
+      </a>
+    );
+  }
+  return <AudioPlayer duration={sermon.duration} />;
+}
+
 function FeaturedSermon({ sermon, seriesData, onReadNotes }) {
   return (
     <div style={{ background: CHARCOAL, borderRadius: 16, overflow: "hidden", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginBottom: 56 }}>
@@ -559,16 +590,22 @@ function FeaturedSermon({ sermon, seriesData, onReadNotes }) {
             <span style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.65)" }}>{sermon.duration}</span>
           </div>
-          {sermon.videoUrl ? <VideoEmbed url={sermon.videoUrl} /> : <AudioPlayer duration={sermon.duration} />}
+          <SermonMedia sermon={sermon} />
         </div>
         {sermon.hasNotes && (
           <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
             <button onClick={() => onReadNotes(sermon)} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: COPPER, color: CHARCOAL, border: "none", borderRadius: 8, padding: "10px 18px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.opacity = "0.9"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
               <BookIcon size={15} /> Read Notes
             </button>
-            <button style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", borderRadius: 8, padding: "10px 18px", cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = COPPER; e.currentTarget.style.color = COPPER; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "rgba(255,255,255,0.8)"; }}>
-              <DownloadIcon size={15} /> Download PDF
-            </button>
+            {sermon.documentUrl ? (
+              <a href={sermon.documentUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", borderRadius: 8, padding: "10px 18px", cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s", textDecoration: "none" }} onMouseEnter={e => { e.currentTarget.style.borderColor = COPPER; e.currentTarget.style.color = COPPER; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "rgba(255,255,255,0.8)"; }}>
+                <DownloadIcon size={15} /> Download document
+              </a>
+            ) : (
+              <button disabled style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.35)", borderRadius: 8, padding: "10px 18px", fontSize: 13, fontFamily: "'DM Sans', sans-serif", cursor: "not-allowed" }}>
+                <DownloadIcon size={15} /> No document
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -596,7 +633,7 @@ function SermonCard({ sermon, onReadNotes }) {
         <div style={{ fontSize: 11, color: COPPER, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>{sermon.scripture}</div>
         <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600, color: CHARCOAL, lineHeight: 1.4, marginBottom: 8, minHeight: 44 }}>{sermon.title}</h3>
         <div style={{ fontSize: 12, color: MID_GRAY, marginBottom: 14 }}>{sermon.speaker} · {dateStr}</div>
-        {showPlayer && <div style={{ marginBottom: 14 }}><AudioPlayer duration={sermon.duration} /></div>}
+        {showPlayer && <div style={{ marginBottom: 14 }}><SermonMedia sermon={sermon} /></div>}
         <div style={{ display: "flex", gap: 8 }}>
           <button onClick={() => setShowPlayer(!showPlayer)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: showPlayer ? COPPER : CHARCOAL, color: "white", border: "none", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }}>
             <PlayIcon size={13} /> {showPlayer ? "Playing" : "Listen"}
@@ -711,6 +748,8 @@ export default function SermonsPage() {
             series: item.series_id || "",
             thumbnail: item.thumbnail || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80",
             videoUrl: item.video_url || null,
+            audioUrl: item.audio_url || null,
+            documentUrl: item.document_url || null,
             hasNotes: Boolean(item.has_notes),
             featured: Boolean(item.featured),
           }));

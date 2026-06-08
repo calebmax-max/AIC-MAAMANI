@@ -1,16 +1,15 @@
-﻿import os
-from typing import Literal
-
-from fastapi import APIRouter, Depends, Header, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from admin_security import create_password_record, make_token, parse_token, verify_password
+from admin_security import create_password_record, verify_password
 from database import get_db
 from models import AdminUser, BlogPost, ContactMessage, Event, GalleryPhoto, GalleryVideo, Sermon, TeamMember
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
+
+ADMIN_SESSION_KEY = "admin_username"
 
 
 class AdminLoginIn(BaseModel):
@@ -19,8 +18,7 @@ class AdminLoginIn(BaseModel):
 
 
 class AdminLoginOut(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
+    detail: str = "Signed in"
     username: str
     role: str
 
@@ -45,16 +43,12 @@ class AdminStatsOut(BaseModel):
     team: int
 
 
-def _admin_token_secret() -> str:
-    return os.getenv("ADMIN_PANEL_TOKEN_SECRET", "aic-maamani-admin-secret")
-
-
 def _admin_username_fallback() -> str:
-    return os.getenv("ADMIN_PANEL_USERNAME", "admin")
+    return "admin"
 
 
 def _admin_password_fallback() -> str:
-    return os.getenv("ADMIN_PANEL_PASSWORD", "admin123")
+    return "admin123"
 
 
 def _ensure_admin_user(db: Session) -> AdminUser:
@@ -76,8 +70,11 @@ def _ensure_admin_user(db: Session) -> AdminUser:
     return user
 
 
-def _get_admin_from_token(token: str, db: Session) -> AdminUser:
-    username = parse_token(token)
+def require_admin(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> AdminUser:
+    username = request.session.get(ADMIN_SESSION_KEY)
     if not username:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -86,6 +83,7 @@ def _get_admin_from_token(token: str, db: Session) -> AdminUser:
 
     user = db.query(AdminUser).filter(AdminUser.username == username, AdminUser.is_active.is_(True)).first()
     if not user:
+        request.session.clear()
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Admin authentication required",
@@ -93,38 +91,26 @@ def _get_admin_from_token(token: str, db: Session) -> AdminUser:
     return user
 
 
-def require_admin(
-    authorization: str | None = Header(default=None),
-    x_admin_token: str | None = Header(default=None),
-    db: Session = Depends(get_db),
-) -> AdminUser:
-    token = None
-    if authorization and authorization.lower().startswith("bearer "):
-        token = authorization.split(" ", 1)[1].strip()
-    elif x_admin_token:
-        token = x_admin_token.strip()
-
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Admin authentication required",
-        )
-
-    return _get_admin_from_token(token, db)
-
-
 @router.post("/login", response_model=AdminLoginOut)
-def login_admin(payload: AdminLoginIn, db: Session = Depends(get_db)):
+def login_admin(payload: AdminLoginIn, request: Request, db: Session = Depends(get_db)):
     _ensure_admin_user(db)
     user = db.query(AdminUser).filter(AdminUser.username == payload.username, AdminUser.is_active.is_(True)).first()
     if not user or not verify_password(payload.password, user.password_salt, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
+
+    request.session[ADMIN_SESSION_KEY] = user.username
+    request.session["admin_role"] = user.role
     return {
-        "access_token": make_token(user.username),
-        "token_type": "bearer",
+        "detail": "Signed in",
         "username": user.username,
         "role": user.role,
     }
+
+
+@router.post("/logout")
+def logout_admin(request: Request):
+    request.session.clear()
+    return {"detail": "Signed out"}
 
 
 @router.get("/me", response_model=AdminCurrentOut)

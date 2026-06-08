@@ -1,5 +1,9 @@
+import os
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from database import Base, engine, SessionLocal
 import models  # noqa: F401  Ensures SQLAlchemy models are registered
@@ -10,6 +14,8 @@ from events import router as events_router
 from gallery import router as gallery_router
 from sermons import router as sermons_router
 from about import router as about_router
+from migrations import ensure_media_columns
+from storage import UPLOADS_DIR, ensure_upload_dirs
 from seed import seed_database
 
 app = FastAPI(
@@ -18,13 +24,34 @@ app = FastAPI(
     version="1.0.0",
 )
 
+frontend_origins = [
+    origin.strip()
+    for origin in os.getenv(
+        "AIC_MAAMANI_CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],          # restrict to your frontend domain in production
+    allow_origins=frontend_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=os.getenv("AIC_MAAMANI_SESSION_SECRET", "aic-maamani-admin-session-secret"),
+    session_cookie="aic_maamani_admin_session",
+    same_site=os.getenv("AIC_MAAMANI_SESSION_SAMESITE", "lax"),
+    https_only=os.getenv("AIC_MAAMANI_SESSION_SECURE", "false").lower() in {"1", "true", "yes"},
+    max_age=int(os.getenv("AIC_MAAMANI_SESSION_MAX_AGE_SECONDS", "28800")),
+)
+
+ensure_upload_dirs()
+app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
 
 app.include_router(sermons_router,  prefix="/api/sermons",  tags=["Sermons"])
 app.include_router(events_router,    prefix="/api/events",   tags=["Events"])
@@ -38,6 +65,7 @@ app.include_router(admin_router)
 @app.on_event("startup")
 def startup() -> None:
     Base.metadata.create_all(bind=engine)
+    ensure_media_columns()
     with SessionLocal() as db:
         seed_database(db)
 

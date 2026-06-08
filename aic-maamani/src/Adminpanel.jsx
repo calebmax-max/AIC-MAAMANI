@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 
-const API = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
-const AUTH_KEY = "aicMaamaniAdminToken";
+const API = `${process.env.REACT_APP_API_BASE_URL || "http://localhost:8000"}/api`;
 
 const COPPER = "#EF9F27";
 const COPPER2 = "#BA7517";
@@ -70,22 +69,36 @@ tr:hover td { background: #FAF8F5; }
 // ─── API helpers ───────────────────────────────────────────────────────────────
 
 async function apiFetch(path, opts = {}) {
-  const token = localStorage.getItem(AUTH_KEY);
+  const isFormData = typeof FormData !== "undefined" && opts.body instanceof FormData;
+  const { headers: customHeaders, ...restOpts } = opts;
+  const hasJsonBody = !isFormData && restOpts.body !== undefined && restOpts.body !== null;
   const res = await fetch(`${API}${path}`, {
+    ...restOpts,
+    credentials: "include",
     headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...opts.headers,
+      ...(hasJsonBody ? { "Content-Type": "application/json" } : {}),
+      ...customHeaders,
     },
-    ...opts,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
-    if (res.status === 401 && token) localStorage.removeItem(AUTH_KEY);
     throw new Error(err.detail || "Request failed");
   }
   if (res.status === 204) return null;
   return res.json();
+}
+
+function buildFormData(fields) {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (value instanceof File) {
+      if (value.name) formData.append(key, value);
+      return;
+    }
+    formData.append(key, String(value));
+  });
+  return formData;
 }
 
 // ─── Toast ────────────────────────────────────────────────────────────────────
@@ -132,7 +145,7 @@ function Confirm({ message, onConfirm, onCancel }) {
 
 // ─── Dashboard ───────────────────────────────────────────────────────────────
 
-function LoginGate({ onLogin, loading, error, password, setPassword }) {
+function LoginGate({ onLogin, loading, error, username, setUsername, password, setPassword }) {
   return (
     <div style={{
       minHeight: "100vh",
@@ -156,6 +169,16 @@ function LoginGate({ onLogin, loading, error, password, setPassword }) {
         <p style={{ fontSize: "0.9rem", color: MID, lineHeight: 1.7, marginBottom: "1.5rem" }}>
           Sign in to manage sermons, events, messages, team members, blog posts, and gallery content.
         </p>
+        <div className="form-row">
+          <label>Username</label>
+          <input
+            type="text"
+            value={username}
+            onChange={e => setUsername(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") onLogin(); }}
+            placeholder="Enter admin username"
+          />
+        </div>
         <div className="form-row">
           <label>Admin Password</label>
           <input
@@ -213,14 +236,66 @@ function Dashboard({ stats }) {
 
 // ─── Sermons ─────────────────────────────────────────────────────────────────
 
-const emptySermon = { title: "", speaker: "", date: "", duration: "", scripture: "", topic: "", series_id: "", thumbnail: "", video_url: "", has_notes: false, featured: false };
+const emptySermon = {
+  title: "",
+  speaker: "",
+  date: "",
+  duration: "",
+  scripture: "",
+  topic: "",
+  series_id: "",
+  video_file: null,
+  audio_file: null,
+  document_file: null,
+  has_notes: false,
+  featured: false,
+};
 const emptySermonNotes = {
-  outline: "[]",
-  key_scriptures: "[]",
-  sections: "[]",
-  reflection_questions: "[]",
+  outline: [{ ref: "", point: "", subText: "" }],
+  keyScriptures: [{ ref: "", text: "" }],
+  sections: [{ heading: "", body: "" }],
+  reflectionQuestions: "",
   prayer: "",
 };
+
+const cloneEmptyNotes = () => ({
+  outline: [{ ref: "", point: "", subText: "" }],
+  keyScriptures: [{ ref: "", text: "" }],
+  sections: [{ heading: "", body: "" }],
+  reflectionQuestions: "",
+  prayer: "",
+});
+
+const normalizeOutlineItems = (items) => {
+  const source = Array.isArray(items) && items.length ? items : [{ ref: "", point: "", subText: "" }];
+  return source.map((item) => ({
+    ref: item?.ref || "",
+    point: item?.point || "",
+    subText: Array.isArray(item?.sub) ? item.sub.join("\n") : "",
+  }));
+};
+
+const normalizeKeyScriptures = (items) => {
+  const source = Array.isArray(items) && items.length ? items : [{ ref: "", text: "" }];
+  return source.map((item) => ({
+    ref: item?.ref || "",
+    text: item?.text || "",
+  }));
+};
+
+const normalizeSections = (items) => {
+  const source = Array.isArray(items) && items.length ? items : [{ heading: "", body: "" }];
+  return source.map((item) => ({
+    heading: item?.heading || "",
+    body: item?.body || "",
+  }));
+};
+
+const rowsFromText = (value) =>
+  String(value || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
 
 function SermonsPanel({ toast }) {
   const [sermons, setSermons] = useState([]);
@@ -245,7 +320,18 @@ function SermonsPanel({ toast }) {
 
   const openNew = () => { setForm(emptySermon); setModal("new"); };
   const openEdit = (s) => {
-    setForm({ ...s, date: s.date?.slice(0, 10) || "", series_id: s.series_id || "", thumbnail: s.thumbnail || "", video_url: s.video_url || "", scripture: s.scripture || "", topic: s.topic || "", duration: s.duration || "" });
+    setForm({
+      ...emptySermon,
+      ...s,
+      date: s.date?.slice(0, 10) || "",
+      series_id: s.series_id || "",
+      scripture: s.scripture || "",
+      topic: s.topic || "",
+      duration: s.duration || "",
+      video_file: null,
+      audio_file: null,
+      document_file: null,
+    });
     setModal("edit");
   };
 
@@ -253,25 +339,39 @@ function SermonsPanel({ toast }) {
     try {
       const notes = await apiFetch(`/sermons/${s.id}/notes`);
       setNotesForm({
-        outline: JSON.stringify(notes.outline || [], null, 2),
-        key_scriptures: JSON.stringify(notes.key_scriptures || [], null, 2),
-        sections: JSON.stringify(notes.sections || [], null, 2),
-        reflection_questions: JSON.stringify(notes.reflection_questions || [], null, 2),
+        outline: normalizeOutlineItems(notes.outline),
+        keyScriptures: normalizeKeyScriptures(notes.key_scriptures),
+        sections: normalizeSections(notes.sections),
+        reflectionQuestions: Array.isArray(notes.reflection_questions) ? notes.reflection_questions.join("\n") : "",
         prayer: notes.prayer || "",
       });
     } catch {
-      setNotesForm(emptySermonNotes);
+      setNotesForm(cloneEmptyNotes());
     }
     setNotesModal(s);
   };
 
   const save = async () => {
     try {
+      const payload = buildFormData({
+        title: form.title,
+        speaker: form.speaker,
+        date: form.date,
+        duration: form.duration,
+        scripture: form.scripture,
+        topic: form.topic,
+        series_id: form.series_id,
+        has_notes: form.has_notes,
+        featured: form.featured,
+        video_file: form.video_file,
+        audio_file: form.audio_file,
+        document_file: form.document_file,
+      });
       if (modal === "new") {
-        await apiFetch("/sermons", { method: "POST", body: JSON.stringify({ ...form }) });
+        await apiFetch("/sermons", { method: "POST", body: payload });
         toast("Sermon created");
       } else {
-        await apiFetch(`/sermons/${form.id}`, { method: "PUT", body: JSON.stringify({ ...form }) });
+        await apiFetch(`/sermons/${form.id}`, { method: "PUT", body: payload });
         toast("Sermon updated");
       }
       setModal(null); load();
@@ -289,11 +389,27 @@ function SermonsPanel({ toast }) {
     try {
       const payload = {
         sermon_id: notesModal.id,
-        outline: JSON.parse(notesForm.outline || "[]"),
-        key_scriptures: JSON.parse(notesForm.key_scriptures || "[]"),
-        sections: JSON.parse(notesForm.sections || "[]"),
-        reflection_questions: JSON.parse(notesForm.reflection_questions || "[]"),
-        prayer: notesForm.prayer,
+        outline: notesForm.outline
+          .filter((item) => item.ref || item.point || item.subText)
+          .map((item) => ({
+            ref: item.ref.trim(),
+            point: item.point.trim(),
+            sub: rowsFromText(item.subText),
+          })),
+        key_scriptures: notesForm.keyScriptures
+          .filter((item) => item.ref || item.text)
+          .map((item) => ({
+            ref: item.ref.trim(),
+            text: item.text.trim(),
+          })),
+        sections: notesForm.sections
+          .filter((item) => item.heading || item.body)
+          .map((item) => ({
+            heading: item.heading.trim(),
+            body: item.body.trim(),
+          })),
+        reflection_questions: rowsFromText(notesForm.reflectionQuestions),
+        prayer: notesForm.prayer.trim(),
       };
       try {
         await apiFetch(`/sermons/${notesModal.id}/notes`, { method: "PUT", body: JSON.stringify(payload) });
@@ -304,7 +420,7 @@ function SermonsPanel({ toast }) {
       setNotesModal(null);
       load();
     } catch (e) {
-      toast("Notes must be valid JSON arrays");
+      toast(e.message || "Unable to save notes");
     }
   };
 
@@ -344,12 +460,24 @@ function SermonsPanel({ toast }) {
 
       {modal && (
         <Modal title={modal === "new" ? "New Sermon" : "Edit Sermon"} onClose={() => setModal(null)}>
-          {[["title", "Title *"], ["speaker", "Speaker *"], ["date", "Date *"], ["duration", "Duration"], ["scripture", "Scripture"], ["topic", "Topic"], ["thumbnail", "Thumbnail URL"], ["video_url", "Video URL"]].map(([k, label]) => (
+          {[["title", "Title *"], ["speaker", "Speaker *"], ["date", "Date *"], ["duration", "Duration"], ["scripture", "Scripture"], ["topic", "Topic"]].map(([k, label]) => (
             <div className="form-row" key={k}>
               <label>{label}</label>
               <input type={k === "date" ? "date" : "text"} value={form[k] || ""} onChange={e => F(k, e.target.value)} />
             </div>
           ))}
+          <div className="form-row">
+            <label>Video File</label>
+            <input type="file" accept="video/*" onChange={e => F("video_file", e.target.files?.[0] || null)} />
+          </div>
+          <div className="form-row">
+            <label>Audio File</label>
+            <input type="file" accept="audio/*" onChange={e => F("audio_file", e.target.files?.[0] || null)} />
+          </div>
+          <div className="form-row">
+            <label>Document File</label>
+            <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => F("document_file", e.target.files?.[0] || null)} />
+          </div>
           <div className="form-row">
             <label>Series</label>
             <select value={form.series_id || ""} onChange={e => F("series_id", e.target.value)}>
@@ -375,21 +503,130 @@ function SermonsPanel({ toast }) {
 
       {notesModal && (
         <Modal title={`Notes: ${notesModal.title}`} onClose={() => setNotesModal(null)}>
-          {[
-            ["outline", "Outline JSON"],
-            ["key_scriptures", "Key Scriptures JSON"],
-            ["sections", "Sections JSON"],
-            ["reflection_questions", "Reflection Questions JSON"],
-          ].map(([k, label]) => (
-            <div className="form-row" key={k}>
-              <label>{label}</label>
-              <textarea
-                value={notesForm[k]}
-                onChange={(e) => setNotesForm((f) => ({ ...f, [k]: e.target.value }))}
-                style={{ minHeight: 110, fontFamily: "monospace", fontSize: "0.8rem" }}
-              />
-            </div>
-          ))}
+          <div className="form-row">
+            <label>Outline</label>
+            {notesForm.outline.map((item, index) => (
+              <div key={`outline-${index}`} style={{ display: "grid", gap: 8, marginBottom: 10 }}>
+                <input
+                  type="text"
+                  placeholder="Reference"
+                  value={item.ref}
+                  onChange={(e) => setNotesForm((f) => {
+                    const outline = [...f.outline];
+                    outline[index] = { ...outline[index], ref: e.target.value };
+                    return { ...f, outline };
+                  })}
+                />
+                <input
+                  type="text"
+                  placeholder="Point"
+                  value={item.point}
+                  onChange={(e) => setNotesForm((f) => {
+                    const outline = [...f.outline];
+                    outline[index] = { ...outline[index], point: e.target.value };
+                    return { ...f, outline };
+                  })}
+                />
+                <textarea
+                  placeholder="Subpoints, one per line"
+                  value={item.subText}
+                  onChange={(e) => setNotesForm((f) => {
+                    const outline = [...f.outline];
+                    outline[index] = { ...outline[index], subText: e.target.value };
+                    return { ...f, outline };
+                  })}
+                  style={{ minHeight: 80 }}
+                />
+              </div>
+            ))}
+            <button
+              className="btn btn-ghost"
+              type="button"
+              onClick={() => setNotesForm((f) => ({ ...f, outline: [...f.outline, { ref: "", point: "", subText: "" }] }))}
+              style={{ marginBottom: 12 }}
+            >
+              + Add outline item
+            </button>
+          </div>
+          <div className="form-row">
+            <label>Key Scriptures</label>
+            {notesForm.keyScriptures.map((item, index) => (
+              <div key={`scripture-${index}`} style={{ display: "grid", gap: 8, marginBottom: 10 }}>
+                <input
+                  type="text"
+                  placeholder="Reference"
+                  value={item.ref}
+                  onChange={(e) => setNotesForm((f) => {
+                    const keyScriptures = [...f.keyScriptures];
+                    keyScriptures[index] = { ...keyScriptures[index], ref: e.target.value };
+                    return { ...f, keyScriptures };
+                  })}
+                />
+                <textarea
+                  placeholder="Scripture text"
+                  value={item.text}
+                  onChange={(e) => setNotesForm((f) => {
+                    const keyScriptures = [...f.keyScriptures];
+                    keyScriptures[index] = { ...keyScriptures[index], text: e.target.value };
+                    return { ...f, keyScriptures };
+                  })}
+                  style={{ minHeight: 80 }}
+                />
+              </div>
+            ))}
+            <button
+              className="btn btn-ghost"
+              type="button"
+              onClick={() => setNotesForm((f) => ({ ...f, keyScriptures: [...f.keyScriptures, { ref: "", text: "" }] }))}
+              style={{ marginBottom: 12 }}
+            >
+              + Add scripture
+            </button>
+          </div>
+          <div className="form-row">
+            <label>Sections</label>
+            {notesForm.sections.map((item, index) => (
+              <div key={`section-${index}`} style={{ display: "grid", gap: 8, marginBottom: 10 }}>
+                <input
+                  type="text"
+                  placeholder="Heading"
+                  value={item.heading}
+                  onChange={(e) => setNotesForm((f) => {
+                    const sections = [...f.sections];
+                    sections[index] = { ...sections[index], heading: e.target.value };
+                    return { ...f, sections };
+                  })}
+                />
+                <textarea
+                  placeholder="Body"
+                  value={item.body}
+                  onChange={(e) => setNotesForm((f) => {
+                    const sections = [...f.sections];
+                    sections[index] = { ...sections[index], body: e.target.value };
+                    return { ...f, sections };
+                  })}
+                  style={{ minHeight: 110 }}
+                />
+              </div>
+            ))}
+            <button
+              className="btn btn-ghost"
+              type="button"
+              onClick={() => setNotesForm((f) => ({ ...f, sections: [...f.sections, { heading: "", body: "" }] }))}
+              style={{ marginBottom: 12 }}
+            >
+              + Add section
+            </button>
+          </div>
+          <div className="form-row">
+            <label>Reflection Questions</label>
+            <textarea
+              value={notesForm.reflectionQuestions}
+              onChange={(e) => setNotesForm((f) => ({ ...f, reflectionQuestions: e.target.value }))}
+              placeholder="One question per line"
+              style={{ minHeight: 100 }}
+            />
+          </div>
           <div className="form-row">
             <label>Prayer</label>
             <textarea
@@ -405,6 +642,30 @@ function SermonsPanel({ toast }) {
         </Modal>
       )}
     </div>
+  );
+}
+
+function PasswordModal({ onClose, onSave, loading, error, currentPassword, setCurrentPassword, newPassword, setNewPassword, confirmPassword, setConfirmPassword }) {
+  return (
+    <Modal title="Change Password" onClose={onClose}>
+      <div className="form-row">
+        <label>Current Password</label>
+        <input type="password" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+      </div>
+      <div className="form-row">
+        <label>New Password</label>
+        <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+      </div>
+      <div className="form-row">
+        <label>Confirm New Password</label>
+        <input type="password" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+      </div>
+      {error && <div style={{ fontSize: "0.82rem", color: DANGER, marginBottom: "1rem" }}>{error}</div>}
+      <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary" onClick={onSave} disabled={loading}>{loading ? "Saving..." : "Update Password"}</button>
+      </div>
+    </Modal>
   );
 }
 
@@ -663,7 +924,7 @@ function GalleryPanel({ toast }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ src: "", alt: "", album: "Worship", height: 800 });
+  const [form, setForm] = useState({ alt: "", album: "Worship", height: 800, image_file: null });
   const [confirm, setConfirm] = useState(null);
   const albums = ["Worship", "Youth", "Outreach 2024", "Community", "Missions"];
 
@@ -678,7 +939,17 @@ function GalleryPanel({ toast }) {
 
   const save = async () => {
     try {
-      await apiFetch("/gallery/photos", { method: "POST", body: JSON.stringify({ ...form, height: Number(form.height) }) });
+      if (!form.image_file) {
+        toast("Upload a photo from your device");
+        return;
+      }
+      const payload = buildFormData({
+        album: form.album,
+        alt: form.alt,
+        height: Number(form.height),
+        image_file: form.image_file,
+      });
+      await apiFetch("/gallery/photos", { method: "POST", body: payload });
       toast("Photo added"); setModal(false); load();
     } catch (e) { toast(e.message); }
   };
@@ -694,7 +965,7 @@ function GalleryPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery</h1>
-        <button className="btn btn-primary" onClick={() => { setForm({ src: "", alt: "", album: "Worship", height: 800 }); setModal(true); }}>+ Add Photo</button>
+        <button className="btn btn-primary" onClick={() => { setForm({ alt: "", album: "Worship", height: 800, image_file: null }); setModal(true); }}>+ Add Photo</button>
       </div>
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : photos.length === 0 ? <div className="empty">No photos yet.</div> : (
@@ -719,7 +990,7 @@ function GalleryPanel({ toast }) {
 
       {modal && (
         <Modal title="Add Photo" onClose={() => setModal(false)}>
-          <div className="form-row"><label>Image URL *</label><input type="text" value={form.src} onChange={e => F("src", e.target.value)} /></div>
+          <div className="form-row"><label>Upload From Device *</label><input type="file" accept="image/*" onChange={e => F("image_file", e.target.files?.[0] || null)} /></div>
           <div className="form-row"><label>Alt Text</label><input type="text" value={form.alt} onChange={e => F("alt", e.target.value)} /></div>
           <div className="form-row">
             <label>Album</label>
@@ -746,7 +1017,7 @@ function VideosPanel({ toast }) {
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ title: "", thumb: "", youtube_id: "", date: "" });
+  const [form, setForm] = useState({ title: "", date: "", video_file: null });
   const [confirm, setConfirm] = useState(null);
 
   const load = useCallback(async () => {
@@ -760,7 +1031,16 @@ function VideosPanel({ toast }) {
 
   const save = async () => {
     try {
-      await apiFetch("/gallery/videos", { method: "POST", body: JSON.stringify({ ...form }) });
+      if (!form.video_file) {
+        toast("Upload a video from your device");
+        return;
+      }
+      const payload = buildFormData({
+        title: form.title,
+        date: form.date,
+        video_file: form.video_file,
+      });
+      await apiFetch("/gallery/videos", { method: "POST", body: payload });
       toast("Video added");
       setModal(false);
       load();
@@ -786,29 +1066,17 @@ function VideosPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery Videos</h1>
-        <button className="btn btn-primary" onClick={() => { setForm({ title: "", thumb: "", youtube_id: "", date: "" }); setModal(true); }}>+ Add Video</button>
+        <button className="btn btn-primary" onClick={() => { setForm({ title: "", date: "", video_file: null }); setModal(true); }}>+ Add Video</button>
       </div>
       <div className="card" style={{ overflowX: "auto" }}>
-        {loading ? <div className="empty">Loadingâ€¦</div> : videos.length === 0 ? <div className="empty">No videos yet.</div> : (
+        {loading ? <div className="empty">Loading…</div> : videos.length === 0 ? <div className="empty">No videos yet.</div> : (
           <table>
-            <thead><tr><th>Preview</th><th>Title</th><th>YouTube ID</th><th>Date</th><th></th></tr></thead>
+            <thead><tr><th>Title</th><th>Media</th><th>Date</th><th></th></tr></thead>
             <tbody>
               {videos.map(v => (
                 <tr key={v.id}>
-                  <td>
-                    {v.thumb ? (
-                      <img
-                        src={v.thumb}
-                        alt={v.title || ""}
-                        style={{ width: 100, height: 60, objectFit: "cover", border: "1px solid #E0DDD8" }}
-                        onError={e => { e.target.style.display = "none"; }}
-                      />
-                    ) : (
-                      <span className="badge badge-gray">No thumbnail</span>
-                    )}
-                  </td>
                   <td><strong style={{ fontWeight: 500 }}>{v.title}</strong></td>
-                  <td style={{ fontSize: "0.8rem", color: MID }}>{v.youtube_id || "—"}</td>
+                  <td style={{ fontSize: "0.8rem", color: MID }}>{v.video_url ? "Uploaded file" : "—"}</td>
                   <td>{v.date || "—"}</td>
                   <td><button className="btn btn-danger" onClick={() => setConfirm(v.id)}>Delete</button></td>
                 </tr>
@@ -821,8 +1089,7 @@ function VideosPanel({ toast }) {
       {modal && (
         <Modal title="Add Video" onClose={() => setModal(false)}>
           <div className="form-row"><label>Title *</label><input type="text" value={form.title} onChange={e => F("title", e.target.value)} /></div>
-          <div className="form-row"><label>Thumbnail URL</label><input type="text" value={form.thumb} onChange={e => F("thumb", e.target.value)} /></div>
-          <div className="form-row"><label>YouTube ID</label><input type="text" value={form.youtube_id} onChange={e => F("youtube_id", e.target.value)} /></div>
+          <div className="form-row"><label>Upload Video From Device *</label><input type="file" accept="video/*" onChange={e => F("video_file", e.target.files?.[0] || null)} /></div>
           <div className="form-row"><label>Date</label><input type="text" value={form.date} onChange={e => F("date", e.target.value)} /></div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             <button className="btn btn-ghost" onClick={() => setModal(false)}>Cancel</button>
@@ -1022,25 +1289,73 @@ export default function AdminPanel() {
   const [page, setPage] = useState("dashboard");
   const [toast, setToast] = useState(null);
   const [stats, setStats] = useState({});
-  const [authed, setAuthed] = useState(() => Boolean(localStorage.getItem(AUTH_KEY)));
+  const [authed, setAuthed] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
+  const [username, setUsername] = useState("admin");
   const [password, setPassword] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [currentUser, setCurrentUser] = useState(null);
+  const [passwordModal, setPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordSaving, setPasswordSaving] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
 
   const showToast = useCallback((msg) => setToast(msg), []);
-  const logout = useCallback(() => {
-    localStorage.removeItem(AUTH_KEY);
+  const logout = useCallback(async () => {
+    try {
+      await fetch(`${API}/admin/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch {
+      // Best effort only; local state still clears.
+    }
     setAuthed(false);
+    setCurrentUser(null);
     setPassword("");
+    setUsername("admin");
     setStats({});
     setPage("dashboard");
+  }, []);
+
+  const backToSite = useCallback(() => {
+    logout();
+    window.location.hash = "#home";
+  }, [logout]);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const me = await apiFetch("/admin/me");
+        if (!active) return;
+        const data = await apiFetch("/admin/stats");
+        if (!active) return;
+        setAuthed(true);
+        setCurrentUser(me);
+        setStats(data);
+        setUsername(me.username || "admin");
+      } catch {
+        if (!active) return;
+        setAuthed(false);
+      } finally {
+        if (active) setAuthReady(true);
+      }
+    })();
+    return () => {
+      active = false;
+    };
   }, []);
 
   useEffect(() => {
     if (!authed) return;
     (async () => {
       try {
-        const data = await apiFetch("/admin/stats");
+        const [me, data] = await Promise.all([apiFetch("/admin/me"), apiFetch("/admin/stats")]);
+        setCurrentUser(me);
         setStats(data);
       } catch (e) {
         if (String(e.message || "").includes("Admin authentication required")) {
@@ -1054,21 +1369,46 @@ export default function AdminPanel() {
     setAuthLoading(true);
     setAuthError("");
     try {
-      const res = await fetch(`${API}/api/admin/login`, {
+      const data = await apiFetch("/admin/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify({ username, password }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data.detail || "Login failed");
-      localStorage.setItem(AUTH_KEY, data.access_token);
       setAuthed(true);
+      setCurrentUser({ username: data.username || username, role: data.role || "full_admin" });
       setPassword("");
+      setUsername(data.username || username);
       showToast("Signed in to admin panel");
     } catch (e) {
       setAuthError(e.message || "Login failed");
     } finally {
       setAuthLoading(false);
+    }
+  };
+
+  const savePassword = async () => {
+    setPasswordError("");
+    if (newPassword !== confirmPassword) {
+      setPasswordError("New passwords do not match");
+      return;
+    }
+    setPasswordSaving(true);
+    try {
+      await apiFetch("/admin/password", {
+        method: "PUT",
+        body: JSON.stringify({
+          current_password: currentPassword,
+          new_password: newPassword,
+        }),
+      });
+      showToast("Password updated");
+      setPasswordModal(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (e) {
+      setPasswordError(e.message || "Unable to update password");
+    } finally {
+      setPasswordSaving(false);
     }
   };
 
@@ -1083,6 +1423,27 @@ export default function AdminPanel() {
     team: <TeamPanel toast={showToast} />,
   };
 
+  if (!authReady) {
+    return (
+      <>
+        <style>{fonts}</style>
+        <style>{css}</style>
+        <div style={{
+          minHeight: "100vh",
+          display: "grid",
+          placeItems: "center",
+          padding: "2rem",
+          background: "linear-gradient(135deg, #f6f1e8 0%, #ece6dd 50%, #f8f4ee 100%)",
+          color: CHARCOAL,
+          fontFamily: "'DM Sans', sans-serif",
+          letterSpacing: "0.04em",
+        }}>
+          Checking admin session...
+        </div>
+      </>
+    );
+  }
+
   if (!authed) {
     return (
       <>
@@ -1092,6 +1453,8 @@ export default function AdminPanel() {
           onLogin={login}
           loading={authLoading}
           error={authError}
+          username={username}
+          setUsername={setUsername}
           password={password}
           setPassword={setPassword}
         />
@@ -1110,7 +1473,9 @@ export default function AdminPanel() {
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.15rem", color: WHITE, display: "flex", alignItems: "center", gap: "0.4rem" }}>
               <span style={{ color: COPPER }}>◈</span> AIC MAAMANI
             </div>
-            <div style={{ fontSize: "0.62rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginTop: "0.25rem" }}>Admin Panel</div>
+            <div style={{ fontSize: "0.62rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)", marginTop: "0.25rem" }}>
+              Admin Panel{currentUser ? ` · ${currentUser.username}` : ""}
+            </div>
           </div>
           <nav style={{ flex: 1, padding: "0.75rem 0" }}>
             {NAV.map(({ id, label, icon }) => {
@@ -1123,8 +1488,10 @@ export default function AdminPanel() {
                     width: "100%", display: "flex", alignItems: "center", gap: "0.7rem",
                     padding: "0.65rem 1.4rem",
                     background: active ? "rgba(239,159,39,0.12)" : "transparent",
-                    borderLeft: active ? "3px solid " + COPPER : "3px solid transparent",
-                    border: "none", cursor: "pointer",
+                    borderWidth: "0 0 0 3px",
+                    borderStyle: "solid",
+                    borderColor: active ? COPPER : "transparent",
+                    cursor: "pointer",
                     color: active ? COPPER : "rgba(255,255,255,0.55)",
                     fontFamily: "'DM Sans', sans-serif", fontSize: "0.84rem", fontWeight: active ? 500 : 400,
                     textAlign: "left", transition: "all 0.15s",
@@ -1143,6 +1510,20 @@ export default function AdminPanel() {
           <div style={{ padding: "0 1.4rem 1.2rem" }}>
             <button
               className="btn btn-ghost"
+              onClick={backToSite}
+              style={{ width: "100%", justifyContent: "center", borderColor: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", marginBottom: "0.65rem" }}
+            >
+              Back to Site
+            </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => setPasswordModal(true)}
+              style={{ width: "100%", justifyContent: "center", borderColor: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", marginBottom: "0.65rem" }}
+            >
+              Change Password
+            </button>
+            <button
+              className="btn btn-ghost"
               onClick={logout}
               style={{ width: "100%", justifyContent: "center", borderColor: "rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)" }}
             >
@@ -1154,6 +1535,20 @@ export default function AdminPanel() {
           {panels[page]}
         </main>
       </div>
+      {passwordModal && (
+        <PasswordModal
+          onClose={() => setPasswordModal(false)}
+          onSave={savePassword}
+          loading={passwordSaving}
+          error={passwordError}
+          currentPassword={currentPassword}
+          setCurrentPassword={setCurrentPassword}
+          newPassword={newPassword}
+          setNewPassword={setNewPassword}
+          confirmPassword={confirmPassword}
+          setConfirmPassword={setConfirmPassword}
+        />
+      )}
       {toast && <Toast message={toast} onDone={() => setToast(null)} />}
     </>
   );

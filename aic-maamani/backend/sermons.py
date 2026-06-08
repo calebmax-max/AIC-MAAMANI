@@ -1,5 +1,7 @@
+from datetime import date
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
 from admin_auth import require_admin
@@ -10,8 +12,16 @@ from schemas import (
     SermonSeriesCreate, SermonSeriesOut,
     SermonNotesCreate, SermonNotesOut,
 )
+from storage import save_upload
 
 router = APIRouter()
+
+
+def _clean_text(value: Optional[str]) -> Optional[str]:
+    if value is None:
+        return None
+    stripped = value.strip()
+    return stripped or None
 
 
 # ─── Series ──────────────────────────────────────────────────────────────────
@@ -79,8 +89,50 @@ def get_sermon(sermon_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=SermonOut, status_code=201, dependencies=[Depends(require_admin)])
-def create_sermon(payload: SermonCreate, db: Session = Depends(get_db)):
-    sermon = Sermon(**payload.model_dump())
+async def create_sermon(
+    title: str = Form(...),
+    speaker: str = Form(...),
+    date: date = Form(...),
+    duration: Optional[str] = Form(None),
+    scripture: Optional[str] = Form(None),
+    topic: Optional[str] = Form(None),
+    series_id: Optional[str] = Form(None),
+    thumbnail: Optional[str] = Form(None),
+    video_url: Optional[str] = Form(None),
+    audio_url: Optional[str] = Form(None),
+    document_url: Optional[str] = Form(None),
+    has_notes: bool = Form(False),
+    featured: bool = Form(False),
+    thumbnail_file: UploadFile | None = File(None),
+    video_file: UploadFile | None = File(None),
+    audio_file: UploadFile | None = File(None),
+    document_file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
+    if thumbnail_file:
+        thumbnail = await save_upload(thumbnail_file, "sermons")
+    if video_file:
+        video_url = await save_upload(video_file, "sermons")
+    if audio_file:
+        audio_url = await save_upload(audio_file, "sermons")
+    if document_file:
+        document_url = await save_upload(document_file, "sermons")
+
+    sermon = Sermon(
+        title=title.strip(),
+        speaker=speaker.strip(),
+        date=date,
+        duration=_clean_text(duration),
+        scripture=_clean_text(scripture),
+        topic=_clean_text(topic),
+        series_id=_clean_text(series_id),
+        thumbnail=_clean_text(thumbnail),
+        video_url=_clean_text(video_url),
+        audio_url=_clean_text(audio_url),
+        document_url=_clean_text(document_url),
+        has_notes=has_notes,
+        featured=featured,
+    )
     db.add(sermon)
     db.commit()
     db.refresh(sermon)
@@ -88,12 +140,53 @@ def create_sermon(payload: SermonCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{sermon_id}", response_model=SermonOut, dependencies=[Depends(require_admin)])
-def update_sermon(sermon_id: int, payload: SermonCreate, db: Session = Depends(get_db)):
+async def update_sermon(
+    sermon_id: int,
+    title: str = Form(...),
+    speaker: str = Form(...),
+    date: date = Form(...),
+    duration: Optional[str] = Form(None),
+    scripture: Optional[str] = Form(None),
+    topic: Optional[str] = Form(None),
+    series_id: Optional[str] = Form(None),
+    thumbnail: Optional[str] = Form(None),
+    video_url: Optional[str] = Form(None),
+    audio_url: Optional[str] = Form(None),
+    document_url: Optional[str] = Form(None),
+    has_notes: bool = Form(False),
+    featured: bool = Form(False),
+    thumbnail_file: UploadFile | None = File(None),
+    video_file: UploadFile | None = File(None),
+    audio_file: UploadFile | None = File(None),
+    document_file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
     sermon = db.query(Sermon).filter(Sermon.id == sermon_id).first()
     if not sermon:
         raise HTTPException(status_code=404, detail="Sermon not found")
-    for key, value in payload.model_dump().items():
-        setattr(sermon, key, value)
+
+    if thumbnail_file:
+        thumbnail = await save_upload(thumbnail_file, "sermons")
+    if video_file:
+        video_url = await save_upload(video_file, "sermons")
+    if audio_file:
+        audio_url = await save_upload(audio_file, "sermons")
+    if document_file:
+        document_url = await save_upload(document_file, "sermons")
+
+    sermon.title = title.strip()
+    sermon.speaker = speaker.strip()
+    sermon.date = date
+    sermon.duration = _clean_text(duration)
+    sermon.scripture = _clean_text(scripture)
+    sermon.topic = _clean_text(topic)
+    sermon.series_id = _clean_text(series_id)
+    sermon.thumbnail = _clean_text(thumbnail) if thumbnail is not None else sermon.thumbnail
+    sermon.video_url = _clean_text(video_url) if video_url is not None else sermon.video_url
+    sermon.audio_url = _clean_text(audio_url) if audio_url is not None else sermon.audio_url
+    sermon.document_url = _clean_text(document_url) if document_url is not None else sermon.document_url
+    sermon.has_notes = has_notes
+    sermon.featured = featured
     db.commit()
     db.refresh(sermon)
     return sermon

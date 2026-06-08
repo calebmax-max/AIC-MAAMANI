@@ -50,6 +50,8 @@ class SermonBase(BaseModel):
     series_id: Optional[str] = None
     thumbnail: Optional[str] = None
     video_url: Optional[str] = None
+    audio_url: Optional[str] = None
+    document_url: Optional[str] = None
     has_notes: bool = False
     featured: bool = False
 
@@ -149,8 +151,7 @@ class GalleryPhotoOut(GalleryPhotoBase):
 
 class GalleryVideoBase(BaseModel):
     title: str
-    thumb: Optional[str] = None
-    youtube_id: Optional[str] = None
+    video_url: Optional[str] = None
     date: Optional[str] = None
 
 class GalleryVideoCreate(GalleryVideoBase):

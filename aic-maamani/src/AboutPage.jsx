@@ -507,6 +507,37 @@ function Footer() {
             onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.35)"; }}
           >{label}</a>
         ))}
+        <a
+          href="#admin"
+          aria-label="Admin panel"
+          title="Admin panel"
+          style={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            border: "1px solid rgba(239,159,39,0.28)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "rgba(255,255,255,0.35)",
+            textDecoration: "none",
+            transition: "all 0.2s",
+            marginLeft: "0.25rem",
+            fontSize: "0.82rem",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = C.copper;
+            e.currentTarget.style.borderColor = C.copper;
+            e.currentTarget.style.background = "rgba(239,159,39,0.08)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.35)";
+            e.currentTarget.style.borderColor = "rgba(239,159,39,0.28)";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          ◈
+        </a>
       </div>
       <div style={{ marginTop:"2rem", fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.63rem", letterSpacing:"0.1em", color:"rgba(255,255,255,0.18)" }}>
         © 2025 Grace Covenant Church. Built with faith & care.
