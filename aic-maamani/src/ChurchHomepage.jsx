@@ -59,9 +59,17 @@ function AnimatedCounter({ target, label, suffix = "" }) {
   );
 }
 
-const NAV_LINKS = ["Home", "About", "Sermons", "Events", "Blog"];
+const NAV_LINKS = [
+  { id: "home", label: "Home" },
+  { id: "about", label: "About" },
+  { id: "sermons", label: "Sermons" },
+  { id: "events", label: "Events" },
+  { id: "blog", label: "Blog" },
+  { id: "gallery", label: "Gallery" },
+  { id: "contact", label: "Contact Us" },
+];
 
-export default function ChurchHomepage() {
+export default function ChurchHomepage({ showNav = true } = {}) {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -76,6 +84,7 @@ export default function ChurchHomepage() {
       <style>{globalStyle}</style>
 
       {/* ── NAV ── */}
+      {showNav && (
       <nav style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         background: scrolled ? "rgba(44,44,42,0.96)" : "transparent",
@@ -90,17 +99,17 @@ export default function ChurchHomepage() {
           <span style={{ color: COPPER, fontSize: "1.1rem" }}>◈</span> AIC MAAMANI
         </div>
         <div style={{ display: "flex", gap: "2.2rem", alignItems: "center" }}>
-          {NAV_LINKS.map(l => (
-            <a key={l} href={`#${l.toLowerCase()}`} style={{
+          {NAV_LINKS.map(({ id, label }) => (
+            <a key={id} href={`#${id}`} style={{
               fontFamily: "'DM Sans', sans-serif", fontWeight: 400, letterSpacing: "0.1em",
               fontSize: "0.78rem", textTransform: "uppercase", color: "rgba(255,255,255,0.7)",
               textDecoration: "none", transition: "color 0.2s"
             }}
               onMouseEnter={e => { e.target.style.color = COPPER; }}
               onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.7)"; }}
-            >{l}</a>
+            >{label}</a>
           ))}
-          <a href="#give" style={{
+          <a href="#contact" style={{
             fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: "0.12em",
             fontSize: "0.75rem", textTransform: "uppercase", color: CHARCOAL,
             background: COPPER, padding: "0.5rem 1.4rem",
@@ -108,9 +117,10 @@ export default function ChurchHomepage() {
           }}
             onMouseEnter={e => { e.target.style.background = "#d48e1f"; }}
             onMouseLeave={e => { e.target.style.background = COPPER; }}
-          ></a>
+          >Contact Us</a>
         </div>
       </nav>
+      )}
 
       {/* ── HERO ── */}
       <section id="home" style={{
@@ -174,7 +184,7 @@ export default function ChurchHomepage() {
           </p>
 
           <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-            <a href="#services" style={{
+            <a href="#events" style={{
               background: COPPER, color: CHARCOAL, padding: "0.9rem 2rem",
               fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
               letterSpacing: "0.13em", fontSize: "0.75rem", textTransform: "uppercase",
@@ -288,7 +298,7 @@ export default function ChurchHomepage() {
               </div>
               <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: CHARCOAL }}>Upcoming Events</h2>
             </div>
-            <a href="#" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.73rem", letterSpacing: "0.15em", textTransform: "uppercase", color: COPPER2, textDecoration: "none", borderBottom: `1px solid ${COPPER2}`, paddingBottom: "2px" }}>See All Events →</a>
+            <a href="#events" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.73rem", letterSpacing: "0.15em", textTransform: "uppercase", color: COPPER2, textDecoration: "none", borderBottom: `1px solid ${COPPER2}`, paddingBottom: "2px" }}>See All Events →</a>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: "1.25rem" }}>
             {[
@@ -371,12 +381,12 @@ export default function ChurchHomepage() {
                 In a world that promises satisfaction in so many wrong places, Pastor Samuel unpacks what it truly means to hunger for something deeper — and the extraordinary promise attached to that ache.
               </p>
               <div style={{ display: "flex", gap: "1rem" }}>
-                <a href="#" style={{
+                <a href="#sermons" style={{
                   background: COPPER, color: CHARCOAL, padding: "0.7rem 1.6rem",
                   fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
                   letterSpacing: "0.12em", fontSize: "0.73rem", textTransform: "uppercase", textDecoration: "none"
                 }}>Watch Now</a>
-                <a href="#" style={{
+                <a href="#sermons" style={{
                   border: `1px solid rgba(255,255,255,0.2)`, color: "rgba(255,255,255,0.6)",
                   padding: "0.7rem 1.6rem",
                   fontFamily: "'DM Sans', sans-serif", fontWeight: 400,
@@ -404,7 +414,7 @@ export default function ChurchHomepage() {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.9rem", color: MID, lineHeight: 1.8, marginBottom: "1.5rem" }}>
               Weekly reflections, pastoral letters, and devotionals to nourish your faith between Sundays.
             </p>
-            <a href="#" style={{
+            <a href="#blog" style={{
               fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.73rem",
               letterSpacing: "0.15em", textTransform: "uppercase", color: COPPER2,
               textDecoration: "none", borderBottom: `1px solid ${COPPER2}`, paddingBottom: "2px"
@@ -423,7 +433,7 @@ export default function ChurchHomepage() {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.95rem", lineHeight: 1.85, color: MID }}>
               There are seasons when our prayers seem to bounce off the ceiling. When the Word feels dry and the presence of God, distant. This is not the end of your faith — it may be the beginning of a deeper one. The Psalmist knew this valley intimately…
             </p>
-            <a href="#" style={{
+            <a href="#blog" style={{
               display: "inline-block", marginTop: "1.25rem",
               fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
               letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
@@ -480,11 +490,11 @@ export default function ChurchHomepage() {
         </div>
         <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.73rem", letterSpacing: "0.12em", color: "rgba(255, 255, 255, 0.93)", marginBottom: "1.75rem" }}>A Church for Every Soul · Kitui, Kenya</p>
         <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", flexWrap: "wrap" }}>
-          {NAV_LINKS.map(l => (
-            <a key={l} href={`#${l.toLowerCase()}`} style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(249, 241, 241, 0.89)", textDecoration: "none", transition: "color 0.2s" }}
+          {NAV_LINKS.map(({ id, label }) => (
+            <a key={id} href={`#${id}`} style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(249, 241, 241, 0.89)", textDecoration: "none", transition: "color 0.2s" }}
               onMouseEnter={e => { e.target.style.color = COPPER; }}
               onMouseLeave={e => { e.target.style.color = "rgba(242, 236, 236, 0.96)"; }}
-            >{l}</a>
+            >{label}</a>
           ))}
         </div>
         <div style={{ marginTop: "2rem", fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "12px", letterSpacing: "0.1em", color: "rgba(231, 225, 225, 0.93)" }}>

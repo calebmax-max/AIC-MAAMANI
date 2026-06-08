@@ -532,7 +532,7 @@ function VideoEmbed({ url }) {
           <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>Click to load video</span>
         </div>
       )}
-      {loaded && <iframe src={url + "?autoplay=1"} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} frameBorder="0" allow="autoplay; fullscreen" allowFullScreen />}
+      {loaded && <iframe title="Sermon player" src={url + "?autoplay=1"} style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }} frameBorder="0" allow="autoplay; fullscreen" allowFullScreen />}
     </div>
   );
 }

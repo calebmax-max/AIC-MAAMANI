@@ -47,12 +47,20 @@ function useInView(threshold = 0.15) {
     const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold });
     if (ref.current) obs.observe(ref.current);
     return () => obs.disconnect();
-  }, []);
+  }, [threshold]);
   return [ref, visible];
 }
 
 // ── NAV ─────────────────────────────────────────────────
-const NAV_LINKS = ["Home", "About", "Sermons", "Events", "Blog", "Give"];
+const NAV_LINKS = [
+  { id: "home", label: "Home" },
+  { id: "about", label: "About" },
+  { id: "sermons", label: "Sermons" },
+  { id: "events", label: "Events" },
+  { id: "blog", label: "Blog" },
+  { id: "gallery", label: "Gallery" },
+  { id: "contact", label: "Contact Us" },
+];
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
@@ -69,26 +77,26 @@ function Nav() {
       transition:"all 0.35s", padding:"0 2.5rem",
       display:"flex", alignItems:"center", justifyContent:"space-between"
     }}>
-      <a href="#" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
+      <a href="#home" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
         <span style={{ color: C.copper }}>◈</span> Grace Covenant
       </a>
       <div style={{ display:"flex", gap:"2.2rem", alignItems:"center" }}>
-        {NAV_LINKS.map(l => (
-          <a key={l} href={`#${l.toLowerCase()}`} style={{
-            fontFamily:"'DM Sans', sans-serif", fontWeight: l === "About" ? 500 : 400,
+        {NAV_LINKS.map(({ id, label }) => (
+          <a key={id} href={`#${id}`} style={{
+            fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
             letterSpacing:"0.1em", fontSize:"0.78rem", textTransform:"uppercase",
-            color: l === "About" ? C.copper : "rgba(255,255,255,0.7)",
+            color: label === "About" ? C.copper : "rgba(255,255,255,0.7)",
             textDecoration:"none", transition:"color 0.2s"
           }}
             onMouseEnter={e => { e.target.style.color = C.copper; }}
-            onMouseLeave={e => { e.target.style.color = l === "About" ? C.copper : "rgba(255,255,255,0.7)"; }}
-          >{l}</a>
+            onMouseLeave={e => { e.target.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.7)"; }}
+          >{label}</a>
         ))}
-        <a href="#give" style={{
+        <a href="#contact" style={{
           background: C.copper, color: C.charcoal, padding:"0.5rem 1.4rem",
           fontFamily:"'DM Sans', sans-serif", fontWeight:500, letterSpacing:"0.12em",
           fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none"
-        }}>Give Now</a>
+        }}>Contact Us</a>
       </div>
     </nav>
   );
@@ -456,15 +464,15 @@ function Footer() {
         A Church for Every Soul · Upper Hill, Nairobi
       </p>
       <div style={{ display:"flex", justifyContent:"center", gap:"2.5rem", flexWrap:"wrap" }}>
-        {NAV_LINKS.map(l => (
-          <a key={l} href={`#${l.toLowerCase()}`} style={{
+        {NAV_LINKS.map(({ id, label }) => (
+          <a key={id} href={`#${id}`} style={{
             fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.7rem",
             letterSpacing:"0.14em", textTransform:"uppercase",
             color:"rgba(255,255,255,0.35)", textDecoration:"none", transition:"color 0.2s"
           }}
             onMouseEnter={e => { e.target.style.color = C.copper; }}
             onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.35)"; }}
-          >{l}</a>
+          >{label}</a>
         ))}
       </div>
       <div style={{ marginTop:"2rem", fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.63rem", letterSpacing:"0.1em", color:"rgba(255,255,255,0.18)" }}>
@@ -475,12 +483,12 @@ function Footer() {
 }
 
 // ── ROOT ─────────────────────────────────────────────────
-export default function AboutPage() {
+export default function AboutPage({ showNav = true } = {}) {
   return (
     <>
       <style>{fonts}</style>
       <style>{globalStyle}</style>
-      <Nav />
+      {showNav && <Nav />}
       <PageHero />
       <Timeline />
       <VisionMission />
