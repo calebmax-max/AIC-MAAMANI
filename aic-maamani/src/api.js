@@ -1,4 +1,4 @@
-const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:8000";
+const API_BASE = process.env.REACT_APP_API_BASE_URL || window.location.origin;
 
 export async function fetchJson(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {

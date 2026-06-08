@@ -11,10 +11,10 @@ class AdminUser(Base):
     __tablename__ = "admin_users"
 
     id            = Column(Integer, primary_key=True, index=True)
-    username      = Column(String, nullable=False, unique=True, index=True)
-    password_salt = Column(String, nullable=False)
-    password_hash = Column(String, nullable=False)
-    role          = Column(String, nullable=False, default="full_admin")
+    username      = Column(String(255), nullable=False, unique=True, index=True)
+    password_salt = Column(String(255), nullable=False)
+    password_hash = Column(String(255), nullable=False)
+    role          = Column(String(255), nullable=False, default="full_admin")
     is_active     = Column(Boolean, default=True)
     created_at    = Column(DateTime, default=datetime.utcnow)
     updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -24,9 +24,9 @@ class AdminUser(Base):
 class SermonSeries(Base):
     __tablename__ = "sermon_series"
 
-    id          = Column(String, primary_key=True)          # e.g. "john"
-    title       = Column(String, nullable=False)
-    cover_url   = Column(String)
+    id          = Column(String(255), primary_key=True)          # e.g. "john"
+    title       = Column(String(255), nullable=False)
+    cover_url   = Column(String(255))
     description = Column(Text)
     count       = Column(Integer, default=0)
 
@@ -36,20 +36,20 @@ class SermonSeries(Base):
 class Sermon(Base):
     __tablename__ = "sermons"
 
-    id          = Column(Integer, primary_key=True, index=True)
-    title       = Column(String, nullable=False)
-    speaker     = Column(String, nullable=False)
-    date        = Column(Date, nullable=False)
-    duration    = Column(String)                             # e.g. "42 min"
-    scripture   = Column(String)
-    topic       = Column(String)
-    series_id   = Column(String, ForeignKey("sermon_series.id"))
-    thumbnail   = Column(String)
-    video_url   = Column(String)
-    audio_url   = Column(String)
-    document_url = Column(String)
-    has_notes   = Column(Boolean, default=False)
-    featured    = Column(Boolean, default=False)
+    id           = Column(Integer, primary_key=True, index=True)
+    title        = Column(String(255), nullable=False)
+    speaker      = Column(String(255), nullable=False)
+    date         = Column(Date, nullable=False)
+    duration     = Column(String(255))                             # e.g. "42 min"
+    scripture    = Column(String(255))
+    topic        = Column(String(255))
+    series_id    = Column(String(255), ForeignKey("sermon_series.id"))
+    thumbnail    = Column(String(255))
+    video_url    = Column(String(255))
+    audio_url    = Column(String(255))
+    document_url = Column(String(255))
+    has_notes    = Column(Boolean, default=False)
+    featured     = Column(Boolean, default=False)
 
     series_rel  = relationship("SermonSeries", back_populates="sermons")
     notes       = relationship("SermonNotes", back_populates="sermon", uselist=False)
@@ -77,12 +77,12 @@ class Event(Base):
     __tablename__ = "events"
 
     id          = Column(Integer, primary_key=True, index=True)
-    title       = Column(String, nullable=False)
-    category    = Column(String)                             # worship | youth | outreach | small-groups
+    title       = Column(String(255), nullable=False)
+    category    = Column(String(255))                             # worship | youth | outreach | small-groups
     date        = Column(Date, nullable=False)
-    time        = Column(String)                             # "10:00 AM"
-    end_time    = Column(String)
-    location    = Column(String)
+    time        = Column(String(255))                             # "10:00 AM"
+    end_time    = Column(String(255))
+    location    = Column(String(255))
     online      = Column(Boolean, default=False)
     description = Column(Text)
     spots       = Column(Integer, nullable=True)            # None = unlimited
@@ -95,9 +95,9 @@ class EventRegistration(Base):
 
     id         = Column(Integer, primary_key=True, index=True)
     event_id   = Column(Integer, ForeignKey("events.id"))
-    name       = Column(String, nullable=False)
-    email      = Column(String, nullable=False)
-    phone      = Column(String)
+    name       = Column(String(255), nullable=False)
+    email      = Column(String(255), nullable=False)
+    phone      = Column(String(255))
     created_at = Column(DateTime, default=datetime.utcnow)
 
     event = relationship("Event", back_populates="registrations")
@@ -109,17 +109,17 @@ class BlogPost(Base):
     __tablename__ = "blog_posts"
 
     id        = Column(Integer, primary_key=True, index=True)
-    category  = Column(String)                               # devotional | teaching | testimony | announcement
+    category  = Column(String(255))                               # devotional | teaching | testimony | announcement
     tags      = Column(JSON)                                 # ["faith", "prayer"]
-    emoji     = Column(String)
-    hero_bg   = Column(String)
-    title     = Column(String, nullable=False)
+    emoji     = Column(String(255))
+    hero_bg   = Column(String(255))
+    title     = Column(String(255), nullable=False)
     excerpt   = Column(Text)
-    author    = Column(String)
-    initials  = Column(String)
-    date      = Column(String)                               # human-readable, e.g. "June 2, 2026"
-    read_time = Column(String)
-    bio_role  = Column(String)
+    author    = Column(String(255))
+    initials  = Column(String(255))
+    date      = Column(String(255))                               # human-readable, e.g. "June 2, 2026"
+    read_time = Column(String(255))
+    bio_role  = Column(String(255))
     bio       = Column(Text)
     body      = Column(JSON)                                 # [{type: "p"|"quote", text: "..."}]
 
@@ -130,9 +130,9 @@ class GalleryPhoto(Base):
     __tablename__ = "gallery_photos"
 
     id     = Column(Integer, primary_key=True, index=True)
-    album  = Column(String)                                  # Worship | Youth | Outreach 2024 | Community | Missions
-    src    = Column(String)                                  # image URL
-    alt    = Column(String)
+    album  = Column(String(255))                                  # Worship | Youth | Outreach 2024 | Community | Missions
+    src    = Column(String(255))                                  # image URL
+    alt    = Column(String(255))
     height = Column(Integer)                                 # display hint
 
 
@@ -140,9 +140,9 @@ class GalleryVideo(Base):
     __tablename__ = "gallery_videos"
 
     id         = Column(Integer, primary_key=True, index=True)
-    title      = Column(String, nullable=False)
-    video_url  = Column(String)
-    date       = Column(String)                              # human-readable
+    title      = Column(String(255), nullable=False)
+    video_url  = Column(String(255))
+    date       = Column(String(255))                              # human-readable
 
 
 # ─── Contact ────────────────────────────────────────────────────────────────
@@ -151,10 +151,10 @@ class ContactMessage(Base):
     __tablename__ = "contact_messages"
 
     id         = Column(Integer, primary_key=True, index=True)
-    name       = Column(String, nullable=False)
-    email      = Column(String, nullable=False)
-    phone      = Column(String)
-    subject    = Column(String)
+    name       = Column(String(255), nullable=False)
+    email      = Column(String(255), nullable=False)
+    phone      = Column(String(255))
+    subject    = Column(String(255))
     message    = Column(Text, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     read       = Column(Boolean, default=False)
@@ -166,9 +166,9 @@ class TeamMember(Base):
     __tablename__ = "team_members"
 
     id       = Column(Integer, primary_key=True, index=True)
-    name     = Column(String, nullable=False)
-    role     = Column(String)
+    name     = Column(String(255), nullable=False)
+    role     = Column(String(255))
     bio      = Column(Text)
-    photo    = Column(String)
+    photo    = Column(String(255))
     order    = Column(Integer, default=0)                   # display order
 
