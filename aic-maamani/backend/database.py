@@ -7,6 +7,8 @@ from sqlalchemy.orm import DeclarativeBase, sessionmaker
 def _build_database_url() -> str:
     url = os.getenv("DATABASE_URL")
     if url:
+        if url.startswith("postgres://"):
+            return "postgresql://" + url.removeprefix("postgres://")
         return url
 
     if any(
@@ -26,7 +28,11 @@ def _build_database_url() -> str:
 
 DATABASE_URL = _build_database_url()
 
-engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+engine_kwargs = {"pool_pre_ping": True}
+if DATABASE_URL.startswith("sqlite"):
+    engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(DATABASE_URL, **engine_kwargs)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

@@ -1,27 +1,13 @@
 previews:
   generation: automatic
 
-services:
-  - type: pserv
-    name: aic-maamani-mysql
-    runtime: docker
-    repo: https://github.com/render-examples/mysql.git
-    branch: master
-    plan: starter
-    envVars:
-      - key: MYSQL_DATABASE
-        value: aic_maamani
-      - key: MYSQL_USER
-        value: aic_maamani
-      - key: MYSQL_PASSWORD
-        generateValue: true
-      - key: MYSQL_ROOT_PASSWORD
-        generateValue: true
-    disk:
-      name: mysql-data
-      mountPath: /var/lib/mysql
-      sizeGB: 10
+databases:
+  - name: aic-maamani-postgres
+    plan: basic-256mb
+    databaseName: aic_maamani
+    user: aic_maamani
 
+services:
   - type: web
     name: aic-maamani-api
     runtime: python
@@ -34,31 +20,10 @@ services:
       mountPath: /opt/render/project/src/aic-maamani/backend/uploads
       sizeGB: 1
     envVars:
-      - key: MYSQL_HOST
-        fromService:
-          name: aic-maamani-mysql
-          type: pserv
-          property: host
-      - key: MYSQL_PORT
-        fromService:
-          name: aic-maamani-mysql
-          type: pserv
-          property: port
-      - key: MYSQL_USER
-        fromService:
-          name: aic-maamani-mysql
-          type: pserv
-          envVarKey: MYSQL_USER
-      - key: MYSQL_PASSWORD
-        fromService:
-          name: aic-maamani-mysql
-          type: pserv
-          envVarKey: MYSQL_PASSWORD
-      - key: MYSQL_DATABASE
-        fromService:
-          name: aic-maamani-mysql
-          type: pserv
-          envVarKey: MYSQL_DATABASE
+      - key: DATABASE_URL
+        fromDatabase:
+          name: aic-maamani-postgres
+          property: connectionString
       - key: AIC_MAAMANI_CORS_ORIGINS
         value: https://aic-maamani-web.onrender.com
       - key: AIC_MAAMANI_SESSION_SECRET
@@ -75,7 +40,7 @@ services:
     runtime: static
     rootDir: aic-maamani
     buildCommand: npm ci && npm run build
-    staticPublishPath: aic-maamani/build
+    staticPublishPath: build
     envVars:
       - key: REACT_APP_API_BASE_URL
         value: https://aic-maamani-api.onrender.com

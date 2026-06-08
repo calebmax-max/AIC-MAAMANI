@@ -11,7 +11,7 @@ def _existing_columns(table_name: str) -> set[str]:
 
 
 def ensure_media_columns() -> None:
-    if engine.dialect.name not in {"sqlite", "mysql"}:
+    if engine.dialect.name not in {"sqlite", "mysql", "postgresql"}:
         return
 
     required: list[tuple[str, str, str]] = []
