@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, List, Optional
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 
 # ─── Sermon Series ───────────────────────────────────────────────────────────
@@ -88,8 +88,16 @@ class EventOut(EventBase):
 
 class EventRegistrationCreate(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     phone: Optional[str] = None
+
+    @field_validator("email")
+    @classmethod
+    def email_must_look_valid(cls, v: str) -> str:
+        email = v.strip()
+        if "@" not in email or email.startswith("@") or email.endswith("@"):
+            raise ValueError("Invalid email address")
+        return email
 
 class EventRegistrationOut(EventRegistrationCreate):
     id: int
@@ -157,10 +165,18 @@ class GalleryVideoOut(GalleryVideoBase):
 
 class ContactMessageCreate(BaseModel):
     name: str
-    email: EmailStr
+    email: str
     phone: Optional[str] = None
     subject: str
     message: str
+
+    @field_validator("email")
+    @classmethod
+    def contact_email_must_look_valid(cls, v: str) -> str:
+        email = v.strip()
+        if "@" not in email or email.startswith("@") or email.endswith("@"):
+            raise ValueError("Invalid email address")
+        return email
 
     @field_validator("message")
     @classmethod
