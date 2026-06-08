@@ -224,8 +224,8 @@ export default function ChurchHomepage({ showNav = true } = {}) {
         flexWrap: "wrap", gap: "3rem"
       }}>
         {[
-          { icon: "◷", label: "Sunday Service", detail: "7:30 AM · 10:00 AM · 6:00 PM" },
-          { icon: "◈", label: "Wednesday Bible Study", detail: "6:30 PM" },
+          { icon: "◷", label: "Sunday Service", detail: "10:30 AM - 1:30 PM" },
+          { icon: "◈", label: "Wednesday Fellowship", detail: "4:00 PM - 5:00 PM" },
           { icon: "⊕", label: "Location", detail: "KITUI, KENYA" },
         ].map(({ icon, label, detail }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
@@ -263,10 +263,10 @@ export default function ChurchHomepage({ showNav = true } = {}) {
               You are not too broken,<br />too lost, or too late.
             </h2>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID, marginBottom: "1rem" }}>
-              AIV MAAMANI was founded on a single conviction: that the love of God meets people exactly where they are. Whether you're stepping inside a church for the first time or returning after years away — this is a place of radical welcome, honest community, and life-transforming faith.
+              AIC MAAMANI was founded on a single conviction: that the love of God meets people exactly where they are. Whether you're stepping inside a church for the first time or returning after years away — this is a place of radical welcome, honest community, and life-transforming faith.
             </p>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID }}>
-              Come hungry. Come tired. Come curious. Just come.
+             Come tired. Come curious. Just come.
             </p>
             <div style={{ marginTop: "1.5rem", fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: COPPER }}>— Rev. Daniel Mutinda</div>
           </div>
@@ -277,10 +277,10 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       <section style={{ background: CHARCOAL, padding: "5rem 2.5rem" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "3rem" }}>
           {[
-            { target: 2400, label: "Members", suffix: "+" },
+            { target: 170, label: "Members", suffix: "+" },
             { target: 26,   label: "Years of Ministry", suffix: "" },
             { target: 14,   label: "Active Ministries", suffix: "" },
-            { target: 48,   label: "Nations Reached", suffix: "" },
+            { target: 50,   label: "Youths involved", suffix: "" },
           ].map(({ target, label, suffix }) => (
             <AnimatedCounter key={label} target={target} label={label} suffix={suffix} />
           ))}
@@ -456,10 +456,11 @@ export default function ChurchHomepage({ showNav = true } = {}) {
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "4rem", alignItems: "start" }}>
             <div>
               {[
-                { icon: "⊕", title: "Address", lines: ["Grace Covenant Church", "14 Elgeyo Marakwet Rd", "Upper Hill, Nairobi 00200"] },
-                { icon: "◎", title: "Phone", lines: ["+254 700 123 456"] },
-                { icon: "◈", title: "Email", lines: ["aicmaamani@gmail.com"] },
-                { icon: "◷", title: "Service Times", lines: ["Sunday: 7:30 AM · 10:00 AM · 6:00 PM", "Wednesday: 6:30 PM (Bible Study)"] },
+                { icon: "◎", title: "Phone", lines: ["+254 714086352"] },
+                { icon: "◈", title: "Email", lines: ["danielmutinda320@gmail.com"] },
+                { icon: "◷", title: "Service Times", lines: ["Sunday School: 8:00 AM - 9:30 AM", "Main Service: 10:30 AM - 1:30 PM",
+                  "Youth Meeting: 3:00 PM - 4:30 PM ", "Wednesday Fellowship: 4:00 PM -  5:00 PM ", "Thursday: 3:00 PM - 5:00 PM - Praise and Worship Team",
+                "Saturday: 6:00 AM - 7:00 AM - Morning Devotion"] },
               ].map(({ icon, title, lines }) => (
                 <div key={title} style={{ display: "flex", gap: "1.1rem", marginBottom: "2rem", paddingBottom: "2rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                   <div style={{ fontSize: "1.1rem", color: COPPER, flexShrink: 0, marginTop: "2px" }}>{icon}</div>

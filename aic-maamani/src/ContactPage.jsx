@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { fetchJson } from "./api";
 
 // ── Palette ────────────────────────────────────────────────
 // #F2F1EF  light gray bg
@@ -58,9 +59,15 @@ function ContactForm() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     setStatus("sending");
-    // Simulate EmailJS / backend call
-    await new Promise(r => setTimeout(r, 1400));
-    setStatus("success");
+    try {
+      await fetchJson("/api/contact", {
+        method: "POST",
+        body: JSON.stringify(fields),
+      });
+      setStatus("success");
+    } catch (error) {
+      setStatus("error");
+    }
   };
 
   if (status === "success") {
@@ -108,14 +115,13 @@ function ContactForm() {
             onFocus={e => e.target.style.borderColor = "#EF9F27"}
             onBlur={e => e.target.style.borderColor = errors.subject ? "#C0392B" : "#D8D7D4"}>
             <option value="" disabled>Select a subject…</option>
-            <option>General Enquiry</option>
-            <option>Prayer Request</option>
-            <option>Membership</option>
-            <option>Volunteering</option>
-            <option>Pastoral Care</option>
-            <option>Events & Programmes</option>
-            <option>Giving & Tithes</option>
-            <option>Other</option>
+            <option value="general">General Enquiry</option>
+            <option value="prayer-request">Prayer Request</option>
+            <option value="pastoral-care">Pastoral Care</option>
+            <option value="volunteering">Volunteering</option>
+            <option value="events">Events & Programmes</option>
+            <option value="media">Media</option>
+            <option value="other">Other</option>
           </select>
         </Field>
       </div>

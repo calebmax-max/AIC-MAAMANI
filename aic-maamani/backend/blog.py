@@ -2,9 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from db.database import get_db
-from models.models import BlogPost
-from schemas.schemas import BlogPostCreate, BlogPostOut
+from admin_auth import require_admin
+from database import get_db
+from models import BlogPost
+from schemas import BlogPostCreate, BlogPostOut
 
 router = APIRouter()
 
@@ -37,7 +38,7 @@ def get_post(post_id: int, db: Session = Depends(get_db)):
     return post
 
 
-@router.post("", response_model=BlogPostOut, status_code=201)
+@router.post("", response_model=BlogPostOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_post(payload: BlogPostCreate, db: Session = Depends(get_db)):
     post = BlogPost(**payload.model_dump())
     db.add(post)
@@ -46,7 +47,7 @@ def create_post(payload: BlogPostCreate, db: Session = Depends(get_db)):
     return post
 
 
-@router.put("/{post_id}", response_model=BlogPostOut)
+@router.put("/{post_id}", response_model=BlogPostOut, dependencies=[Depends(require_admin)])
 def update_post(post_id: int, payload: BlogPostCreate, db: Session = Depends(get_db)):
     post = db.query(BlogPost).filter(BlogPost.id == post_id).first()
     if not post:
@@ -58,7 +59,7 @@ def update_post(post_id: int, payload: BlogPostCreate, db: Session = Depends(get
     return post
 
 
-@router.delete("/{post_id}", status_code=204)
+@router.delete("/{post_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_post(post_id: int, db: Session = Depends(get_db)):
     post = db.query(BlogPost).filter(BlogPost.id == post_id).first()
     if not post:

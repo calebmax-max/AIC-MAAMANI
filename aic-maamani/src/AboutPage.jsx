@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { fetchJson } from "./api";
 
 // ── Slate & Copper palette ──────────────────────────────
 const C = {
@@ -368,7 +369,7 @@ function MeetPastor() {
 }
 
 // ── LEADERSHIP TEAM ──────────────────────────────────────
-const TEAM = [
+const fallbackTeam = [
   { name:"Dr. Joyce Kamau", role:"Associate Pastor", dept:"Pastoral Care", initials:"JK", accent: "#EF9F27" },
   { name:"Elder Peter Ndirangu", role:"Elder & Treasurer", dept:"Governance", initials:"PN", accent: "#5F5E5A" },
   { name:"Pastor Ruth Akinyi", role:"Women's Ministry", dept:"Ministry", initials:"RA", accent: "#EF9F27" },
@@ -426,6 +427,38 @@ function TeamCard({ member, delay }) {
 
 function LeadershipTeam() {
   const [ref, visible] = useInView(0.1);
+  const [team, setTeam] = useState(fallbackTeam);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/about/team")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data) || !data.length) return;
+        setTeam(
+          data.map((member, index) => ({
+            name: member.name,
+            role: member.role || "",
+            dept: member.role || "Ministry",
+            initials:
+              member.name
+                ?.split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase() || "TM",
+            accent: index % 2 === 0 ? "#EF9F27" : "#5F5E5A",
+          }))
+        );
+      })
+      .catch(() => {
+        if (mounted) setTeam(fallbackTeam);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
     <section style={{ background: C.stone, padding:"6rem 2.5rem" }}>
       <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
@@ -439,7 +472,7 @@ function LeadershipTeam() {
           </p>
         </div>
         <div ref={ref} style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(270px, 1fr))", gap:"1.25rem" }}>
-          {TEAM.map((m, i) => (
+          {team.map((m, i) => (
             <div key={m.name} style={{
               opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
               transition:`opacity 0.45s ${i * 0.08}s, transform 0.45s ${i * 0.08}s`

@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { fetchJson } from "./api";
 
 // ── Palette ────────────────────────────────────────────────────────────────
 // #F2F1EF  light gray bg
@@ -7,7 +8,7 @@ import { useState, useMemo } from "react";
 // #5F5E5A  mid gray secondary
 
 // ── Seed data ──────────────────────────────────────────────────────────────
-const EVENTS = [
+const fallbackEvents = [
   {
     id: 1,
     title: "Sunday Worship Service",
@@ -199,7 +200,13 @@ function RSVPModal({ event, onClose }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!name || !email) return;
-    setStep("done");
+    setStep("sending");
+    fetchJson(`/api/events/${event.id}/register`, {
+      method: "POST",
+      body: JSON.stringify({ name, email, phone: "" }),
+    })
+      .then(() => setStep("done"))
+      .catch(() => setStep("done"));
   };
 
   const overlayStyle = {
@@ -453,12 +460,41 @@ export default function ChurchEvents() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState("list"); // list | calendar
   const [rsvpEvent, setRsvpEvent] = useState(null);
+  const [events, setEvents] = useState(fallbackEvents);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/events")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data) || !data.length) return;
+        setEvents(
+          data.map((event) => ({
+            id: event.id,
+            title: event.title,
+            category: event.category,
+            date: event.date,
+            time: event.time,
+            end: event.end_time || event.end || "",
+            location: event.location,
+            online: Boolean(event.online),
+            description: event.description || "",
+            spots: event.spots,
+          }))
+        );
+      })
+      .catch(() => {
+        if (mounted) setEvents(fallbackEvents);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filtered = useMemo(() =>
-    EVENTS
+    events
       .filter(ev => activeCategory === "all" || ev.category === activeCategory)
       .sort((a,b) => a.date.localeCompare(b.date)),
-    [activeCategory]);
+    [activeCategory, events]);
 
   return (
     <div style={{

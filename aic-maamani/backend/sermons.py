@@ -2,9 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from db.database import get_db
-from models.models import Sermon, SermonSeries, SermonNotes
-from schemas.schemas import (
+from admin_auth import require_admin
+from database import get_db
+from models import Sermon, SermonSeries, SermonNotes
+from schemas import (
     SermonCreate, SermonOut,
     SermonSeriesCreate, SermonSeriesOut,
     SermonNotesCreate, SermonNotesOut,
@@ -28,7 +29,7 @@ def get_series(series_id: str, db: Session = Depends(get_db)):
     return series
 
 
-@router.post("/series", response_model=SermonSeriesOut, status_code=201)
+@router.post("/series", response_model=SermonSeriesOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_series(payload: SermonSeriesCreate, db: Session = Depends(get_db)):
     series = SermonSeries(**payload.model_dump())
     db.add(series)
@@ -77,7 +78,7 @@ def get_sermon(sermon_id: int, db: Session = Depends(get_db)):
     return sermon
 
 
-@router.post("", response_model=SermonOut, status_code=201)
+@router.post("", response_model=SermonOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_sermon(payload: SermonCreate, db: Session = Depends(get_db)):
     sermon = Sermon(**payload.model_dump())
     db.add(sermon)
@@ -86,7 +87,7 @@ def create_sermon(payload: SermonCreate, db: Session = Depends(get_db)):
     return sermon
 
 
-@router.put("/{sermon_id}", response_model=SermonOut)
+@router.put("/{sermon_id}", response_model=SermonOut, dependencies=[Depends(require_admin)])
 def update_sermon(sermon_id: int, payload: SermonCreate, db: Session = Depends(get_db)):
     sermon = db.query(Sermon).filter(Sermon.id == sermon_id).first()
     if not sermon:
@@ -98,7 +99,7 @@ def update_sermon(sermon_id: int, payload: SermonCreate, db: Session = Depends(g
     return sermon
 
 
-@router.delete("/{sermon_id}", status_code=204)
+@router.delete("/{sermon_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_sermon(sermon_id: int, db: Session = Depends(get_db)):
     sermon = db.query(Sermon).filter(Sermon.id == sermon_id).first()
     if not sermon:
@@ -117,7 +118,7 @@ def get_sermon_notes(sermon_id: int, db: Session = Depends(get_db)):
     return notes
 
 
-@router.post("/{sermon_id}/notes", response_model=SermonNotesOut, status_code=201)
+@router.post("/{sermon_id}/notes", response_model=SermonNotesOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_sermon_notes(sermon_id: int, payload: SermonNotesCreate, db: Session = Depends(get_db)):
     sermon = db.query(Sermon).filter(Sermon.id == sermon_id).first()
     if not sermon:
@@ -133,7 +134,7 @@ def create_sermon_notes(sermon_id: int, payload: SermonNotesCreate, db: Session 
     return notes
 
 
-@router.put("/{sermon_id}/notes", response_model=SermonNotesOut)
+@router.put("/{sermon_id}/notes", response_model=SermonNotesOut, dependencies=[Depends(require_admin)])
 def update_sermon_notes(sermon_id: int, payload: SermonNotesCreate, db: Session = Depends(get_db)):
     notes = db.query(SermonNotes).filter(SermonNotes.sermon_id == sermon_id).first()
     if not notes:

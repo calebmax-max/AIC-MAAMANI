@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from "react";
+import { fetchJson } from "./api";
 
 const COPPER = "#EF9F27";
 const CHARCOAL = "#2C2C2A";
@@ -18,7 +19,7 @@ const globalStyles = `
 `;
 
 // Sample rich sermon notes content keyed by sermon id
-const sermonNotes = {
+const fallbackSermonNotes = {
   1: {
     outline: [
       { ref: "John 1:1–3", point: "The Pre-Existent Word", sub: "Jesus existed before creation, as the agent of all things." },
@@ -262,14 +263,14 @@ const sermonNotes = {
   },
 };
 
-const seriesData = [
+const fallbackSeriesData = [
   { id: "john", title: "The Book of John", cover: "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80", count: 12, description: "A journey through the Gospel of John" },
   { id: "psalms", title: "Songs of Ascent", cover: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80", count: 8, description: "Psalms 120–134 for the pilgrim soul" },
   { id: "faith", title: "Faith That Works", cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80", count: 6, description: "The epistle of James unpacked" },
   { id: "advent", title: "Advent 2024", cover: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=400&q=80", count: 4, description: "Waiting, hoping, expecting" },
 ];
 
-const sermonsData = [
+const fallbackSermonsData = [
   { id: 1, title: "In the Beginning Was the Word", speaker: "Pastor David Kimani", date: "2025-06-01", duration: "42 min", scripture: "John 1:1–18", topic: "Christology", series: "john", thumbnail: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: true, featured: true },
   { id: 2, title: "Come and See", speaker: "Pastor David Kimani", date: "2025-05-25", duration: "38 min", scripture: "John 1:35–51", topic: "Discipleship", series: "john", thumbnail: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&q=80", videoUrl: null, hasNotes: true },
   { id: 3, title: "Water Into Wine", speaker: "Pastor Grace Mwangi", date: "2025-05-18", duration: "45 min", scripture: "John 2:1–12", topic: "Miracles", series: "john", thumbnail: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: false },
@@ -280,9 +281,6 @@ const sermonsData = [
   { id: 8, title: "O Come, O Come Emmanuel", speaker: "Pastor Grace Mwangi", date: "2024-12-01", duration: "37 min", scripture: "Isaiah 7:14", topic: "Advent", series: "advent", thumbnail: "https://images.unsplash.com/photo-1543525238-54e3d131f629?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: true },
   { id: 9, title: "The Light Has Come", speaker: "Pastor David Kimani", date: "2024-12-08", duration: "41 min", scripture: "John 1:9–14", topic: "Advent", series: "advent", thumbnail: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&q=80", videoUrl: null, hasNotes: true },
 ];
-
-const speakers = [...new Set(sermonsData.map(s => s.speaker))];
-const topics = [...new Set(sermonsData.map(s => s.topic))];
 
 function PlayIcon({ size = 20, color = "white" }) {
   return (
@@ -317,8 +315,8 @@ function SearchIcon({ size = 18 }) {
 }
 
 // ─── Sermon Notes Reader Modal ───────────────────────────────────────────────
-function SermonNotesReader({ sermon, onClose }) {
-  const notes = sermonNotes[sermon.id];
+function SermonNotesReader({ sermon, notesMap, onClose }) {
+  const notes = notesMap[sermon.id] || fallbackSermonNotes[sermon.id];
   const scrollRef = useRef(null);
   const [readProgress, setReadProgress] = useState(0);
   const [fontSize, setFontSize] = useState(16);
@@ -538,7 +536,7 @@ function VideoEmbed({ url }) {
 }
 
 // ─── Featured Sermon ──────────────────────────────────────────────────────────
-function FeaturedSermon({ sermon, onReadNotes }) {
+function FeaturedSermon({ sermon, seriesData, onReadNotes }) {
   return (
     <div style={{ background: CHARCOAL, borderRadius: 16, overflow: "hidden", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 0, marginBottom: 56 }}>
       <div style={{ position: "relative" }}>
@@ -665,6 +663,9 @@ function SeriesRow({ series, sermons, onReadNotes }) {
 const ITEMS_PER_PAGE = 6;
 
 export default function SermonsPage() {
+  const [seriesData, setSeriesData] = useState(fallbackSeriesData);
+  const [sermonsData, setSermonsData] = useState(fallbackSermonsData);
+  const [sermonNotesMap, setSermonNotesMap] = useState(fallbackSermonNotes);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSeries, setFilterSeries] = useState("all");
   const [filterSpeaker, setFilterSpeaker] = useState("all");
@@ -674,7 +675,98 @@ export default function SermonsPage() {
   const [activeTab, setActiveTab] = useState("archive");
   const [notesSermon, setNotesSermon] = useState(null);
 
-  const featured = sermonsData[0];
+  useEffect(() => {
+    let mounted = true;
+
+    const load = async () => {
+      try {
+        const [series, sermons] = await Promise.all([
+          fetchJson("/api/sermons/series"),
+          fetchJson("/api/sermons"),
+        ]);
+
+        if (!mounted) return;
+
+        if (Array.isArray(series) && series.length) {
+          setSeriesData(
+            series.map((item) => ({
+              id: item.id,
+              title: item.title,
+              cover: item.cover_url || "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80",
+              count: item.count || 0,
+              description: item.description || "",
+            }))
+          );
+        }
+
+        if (Array.isArray(sermons) && sermons.length) {
+          const mappedSermons = sermons.map((item) => ({
+            id: item.id,
+            title: item.title,
+            speaker: item.speaker,
+            date: item.date,
+            duration: item.duration || "—",
+            scripture: item.scripture || "",
+            topic: item.topic || "",
+            series: item.series_id || "",
+            thumbnail: item.thumbnail || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80",
+            videoUrl: item.video_url || null,
+            hasNotes: Boolean(item.has_notes),
+            featured: Boolean(item.featured),
+          }));
+
+          setSermonsData(mappedSermons);
+
+          const notesEntries = await Promise.all(
+            mappedSermons
+              .filter((item) => item.hasNotes)
+              .map(async (item) => {
+                try {
+                  const notes = await fetchJson(`/api/sermons/${item.id}/notes`);
+                  return [
+                    item.id,
+                    {
+                      outline: notes.outline || [],
+                      keyScriptures: notes.key_scriptures || [],
+                      sections: notes.sections || [],
+                      reflectionQuestions: notes.reflection_questions || [],
+                      prayer: notes.prayer || "",
+                    },
+                  ];
+                } catch {
+                  return [item.id, fallbackSermonNotes[item.id] || null];
+                }
+              })
+          );
+
+          const notesMap = { ...fallbackSermonNotes };
+          notesEntries.forEach(([id, notes]) => {
+            if (notes) notesMap[id] = notes;
+          });
+          setSermonNotesMap(notesMap);
+        }
+      } catch {
+        if (!mounted) return;
+        setSeriesData(fallbackSeriesData);
+        setSermonsData(fallbackSermonsData);
+        setSermonNotesMap(fallbackSermonNotes);
+      }
+    };
+
+    load();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const speakers = useMemo(() => [...new Set(sermonsData.map((s) => s.speaker))], [sermonsData]);
+  const topics = useMemo(() => [...new Set(sermonsData.map((s) => s.topic))], [sermonsData]);
+
+  const featured = useMemo(
+    () => sermonsData.find((s) => s.featured) || sermonsData[0],
+    [sermonsData]
+  );
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -687,7 +779,7 @@ export default function SermonsPage() {
       if (dateRange.to && s.date > dateRange.to) return false;
       return true;
     });
-  }, [searchQuery, filterSeries, filterSpeaker, filterTopic, dateRange]);
+  }, [searchQuery, filterSeries, filterSpeaker, filterTopic, dateRange, sermonsData]);
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -698,7 +790,7 @@ export default function SermonsPage() {
   return (
     <>
       <style>{globalStyles}</style>
-      {notesSermon && <SermonNotesReader sermon={notesSermon} onClose={() => setNotesSermon(null)} />}
+      {notesSermon && <SermonNotesReader sermon={notesSermon} notesMap={sermonNotesMap} onClose={() => setNotesSermon(null)} />}
 
       <div style={{ minHeight: "100vh", background: LIGHT_GRAY }}>
         {/* Header */}
@@ -741,7 +833,7 @@ export default function SermonsPage() {
             </div>
           </div>
 
-          <FeaturedSermon sermon={featured} onReadNotes={setNotesSermon} />
+          <FeaturedSermon sermon={featured} seriesData={seriesData} onReadNotes={setNotesSermon} />
 
           {/* Tabs */}
           <div style={{ display: "flex", gap: 0, marginBottom: 32, borderBottom: "2px solid #E6E5E2" }}>

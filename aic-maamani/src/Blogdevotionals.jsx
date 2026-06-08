@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { fetchJson } from "./api";
 
 const palette = {
   bg: "#F2F1EF",
@@ -10,7 +11,7 @@ const palette = {
   accentLight: "#FDF3E0",
 };
 
-const posts = [
+const fallbackPosts = [
   {
     id: 1, category: "devotional", tags: ["faith", "prayer"],
     emoji: "🌅", heroBg: "#FDF3E0",
@@ -220,8 +221,8 @@ function PostCard({ post, onClick }) {
   );
 }
 
-function SinglePost({ post, onBack, onRelClick }) {
-  const related = posts.filter(p => p.id !== post.id && (p.category === post.category || p.tags.some(t => post.tags.includes(t)))).slice(0, 3);
+function SinglePost({ post, onBack, onRelClick, allPosts }) {
+  const related = allPosts.filter(p => p.id !== post.id && (p.category === post.category || p.tags.some(t => post.tags.includes(t)))).slice(0, 3);
   return (
     <div style={s.singleWrap}>
       <button style={s.backBtn} onClick={onBack}>← Back to all posts</button>
@@ -277,6 +278,22 @@ export default function BlogDevotionals() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeTag, setActiveTag] = useState(null);
   const [openPost, setOpenPost] = useState(null);
+  const [posts, setPosts] = useState(fallbackPosts);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/blog")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data) || !data.length) return;
+        setPosts(data);
+      })
+      .catch(() => {
+        if (mounted) setPosts(fallbackPosts);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filtered = posts.filter(p => {
     const catOk = activeFilter === "all" || p.category === activeFilter;
@@ -295,7 +312,7 @@ export default function BlogDevotionals() {
           <p style={s.headerSub}>Devotionals, teachings, and testimonies for the journey</p>
           <div style={s.rule} />
         </div>
-        <SinglePost post={openPost} onBack={() => setOpenPost(null)} onRelClick={setOpenPost} />
+        <SinglePost post={openPost} onBack={() => setOpenPost(null)} onRelClick={setOpenPost} allPosts={posts} />
       </div>
     );
   }

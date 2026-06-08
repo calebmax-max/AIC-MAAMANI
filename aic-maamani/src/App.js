@@ -6,6 +6,7 @@ import ChurchEvents from "./ChurchEvents";
 import BlogDevotionals from "./Blogdevotionals";
 import ChurchGallery from "./Churchgallery";
 import ContactPage from "./ContactPage";
+import AdminPanel from "./Adminpanel";
 
 const COPPER = "#EF9F27";
 const CHARCOAL = "#2C2C2A";
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { id: "blog", label: "Blog" },
   { id: "gallery", label: "Gallery" },
   { id: "contact", label: "Contact Us" },
+  { id: "admin", label: "Admin" },
 ];
 
 const ROUTES = {
@@ -30,6 +32,7 @@ const ROUTES = {
   blog: BlogDevotionals,
   gallery: ChurchGallery,
   contact: ContactPage,
+  admin: AdminPanel,
 };
 
 function useHashRoute() {
@@ -162,13 +165,15 @@ export default function App() {
         a { -webkit-tap-highlight-color: transparent; }
       `}</style>
 
-      <SharedNav current={route} />
+      {route !== "admin" && <SharedNav current={route} />}
 
-      <main style={{ paddingTop: needsTopOffset ? "68px" : 0 }}>
+      <main style={{ paddingTop: needsTopOffset && route !== "admin" ? "68px" : 0 }}>
         {route === "home" ? (
           <RouteComponent showNav={false} />
         ) : route === "about" ? (
           <RouteComponent showNav={false} />
+        ) : route === "admin" ? (
+          <RouteComponent />
         ) : (
           <RouteComponent />
         )}

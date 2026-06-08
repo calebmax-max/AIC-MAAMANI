@@ -2,9 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from db.database import get_db
-from models.models import GalleryPhoto, GalleryVideo
-from schemas.schemas import (
+from admin_auth import require_admin
+from database import get_db
+from models import GalleryPhoto, GalleryVideo
+from schemas import (
     GalleryPhotoCreate, GalleryPhotoOut,
     GalleryVideoCreate, GalleryVideoOut,
 )
@@ -37,7 +38,7 @@ def get_photo(photo_id: int, db: Session = Depends(get_db)):
     return photo
 
 
-@router.post("/photos", response_model=GalleryPhotoOut, status_code=201)
+@router.post("/photos", response_model=GalleryPhotoOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_photo(payload: GalleryPhotoCreate, db: Session = Depends(get_db)):
     photo = GalleryPhoto(**payload.model_dump())
     db.add(photo)
@@ -46,7 +47,7 @@ def create_photo(payload: GalleryPhotoCreate, db: Session = Depends(get_db)):
     return photo
 
 
-@router.delete("/photos/{photo_id}", status_code=204)
+@router.delete("/photos/{photo_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_photo(photo_id: int, db: Session = Depends(get_db)):
     photo = db.query(GalleryPhoto).filter(GalleryPhoto.id == photo_id).first()
     if not photo:
@@ -75,7 +76,7 @@ def get_video(video_id: int, db: Session = Depends(get_db)):
     return video
 
 
-@router.post("/videos", response_model=GalleryVideoOut, status_code=201)
+@router.post("/videos", response_model=GalleryVideoOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_video(payload: GalleryVideoCreate, db: Session = Depends(get_db)):
     video = GalleryVideo(**payload.model_dump())
     db.add(video)
@@ -84,7 +85,7 @@ def create_video(payload: GalleryVideoCreate, db: Session = Depends(get_db)):
     return video
 
 
-@router.delete("/videos/{video_id}", status_code=204)
+@router.delete("/videos/{video_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_video(video_id: int, db: Session = Depends(get_db)):
     video = db.query(GalleryVideo).filter(GalleryVideo.id == video_id).first()
     if not video:

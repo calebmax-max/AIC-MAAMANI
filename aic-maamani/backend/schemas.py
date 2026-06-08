@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import date, datetime
 from typing import Any, List, Optional
-from pydantic import BaseModel, EmailStr, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 # ─── Sermon Series ───────────────────────────────────────────────────────────
@@ -191,3 +191,51 @@ class TeamMemberCreate(TeamMemberBase):
 class TeamMemberOut(TeamMemberBase):
     id: int
     model_config = {"from_attributes": True}
+
+
+# â”€â”€ About / Site Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+class AboutSectionOut(BaseModel):
+    title: str
+    body: str
+    model_config = {"from_attributes": True}
+
+
+class TimelineItemOut(BaseModel):
+    year: str
+    title: str
+    body: str
+    model_config = {"from_attributes": True}
+
+
+class ValueItemOut(BaseModel):
+    icon: str
+    label: str
+    body: str
+    model_config = {"from_attributes": True}
+
+
+class BeliefItemOut(BaseModel):
+    title: str
+    body: str
+    ref: str
+    model_config = {"from_attributes": True}
+
+
+class PastorProfileOut(BaseModel):
+    name: str
+    title: str
+    quote: str
+    bio: List[str]
+    credentials: List[str]
+
+
+class AboutPageOut(BaseModel):
+    story: AboutSectionOut
+    vision: AboutSectionOut
+    mission: AboutSectionOut
+    timeline: List[TimelineItemOut]
+    values: List[ValueItemOut]
+    beliefs: List[BeliefItemOut]
+    pastor: PastorProfileOut
+    team: List[TeamMemberOut]

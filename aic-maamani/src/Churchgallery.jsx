@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { fetchJson } from "./api";
 
 const PALETTE = {
   bg: "#F2F1EF",
@@ -55,7 +56,7 @@ const HEIGHTS = [320, 240, 380, 260, 300, 280, 350, 220, 290, 340, 260, 310, 270
 
 const PHOTO_ALBUMS = ["Worship","Youth","Outreach 2024","Community","Worship","Missions","Youth","Community","Outreach 2024","Worship","Missions","Community","Youth","Outreach 2024","Worship"];
 
-const PHOTOS = PHOTO_STYLES.map((s, i) => ({
+const fallbackPhotos = PHOTO_STYLES.map((s, i) => ({
   id: i + 1,
   album: PHOTO_ALBUMS[i],
   src: mockPhoto(400, HEIGHTS[i], s.bg, s.label, s.icon),
@@ -63,7 +64,7 @@ const PHOTOS = PHOTO_STYLES.map((s, i) => ({
   h: HEIGHTS[i],
 }));
 
-const VIDEOS = [
+const fallbackVideos = [
   { id: 1, title: "Sunday Message — Walking in Faith", thumb: mockVideoThumb("Sunday Message", "✝"), youtubeId: null, date: "June 2, 2024" },
   { id: 2, title: "Youth Night Highlights — Spring 2024", thumb: mockVideoThumb("Youth Night", "☀"), youtubeId: null, date: "May 18, 2024" },
   { id: 3, title: "Outreach 2024 — Community Impact Reel", thumb: mockVideoThumb("Outreach Reel", "🤝"), youtubeId: null, date: "April 30, 2024" },
@@ -332,10 +333,54 @@ export default function ChurchGallery() {
   const [activeAlbum, setActiveAlbum] = useState("All");
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [photos, setPhotos] = useState(fallbackPhotos);
+  const [videos, setVideos] = useState(fallbackVideos);
+
+  useEffect(() => {
+    let mounted = true;
+
+    fetchJson("/api/gallery/photos")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data) || !data.length) return;
+        setPhotos(
+          data.map((photo) => ({
+            id: photo.id,
+            album: photo.album || "Worship",
+            src: photo.src,
+            alt: photo.alt || "Gallery photo",
+            h: photo.height || 320,
+          }))
+        );
+      })
+      .catch(() => {
+        if (mounted) setPhotos(fallbackPhotos);
+      });
+
+    fetchJson("/api/gallery/videos")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data) || !data.length) return;
+        setVideos(
+          data.map((video) => ({
+            id: video.id,
+            title: video.title,
+            thumb: video.thumb,
+            youtubeId: video.youtube_id,
+            date: video.date || "",
+          }))
+        );
+      })
+      .catch(() => {
+        if (mounted) setVideos(fallbackVideos);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const filtered = activeAlbum === "All"
-    ? PHOTOS
-    : PHOTOS.filter((p) => p.album === activeAlbum);
+    ? photos
+    : photos.filter((p) => p.album === activeAlbum);
 
   const openLightbox = (photo) => {
     setLightboxIndex(filtered.findIndex((p) => p.id === photo.id));
@@ -343,7 +388,7 @@ export default function ChurchGallery() {
   };
 
   const accentCount = ALBUMS.reduce((acc, album) => {
-    acc[album] = album === "All" ? PHOTOS.length : PHOTOS.filter((p) => p.album === album).length;
+    acc[album] = album === "All" ? photos.length : photos.filter((p) => p.album === album).length;
     return acc;
   }, {});
 
@@ -473,14 +518,14 @@ export default function ChurchGallery() {
               fontSize: "12px", color: PALETTE.secondary,
               margin: "0 0 24px",
             }}>
-              {VIDEOS.length} videos
+              {videos.length} videos
             </p>
             <div style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
               gap: "20px",
             }}>
-              {VIDEOS.map((v) => <VideoCard key={v.id} video={v} />)}
+              {videos.map((v) => <VideoCard key={v.id} video={v} />)}
             </div>
           </>
         )}
