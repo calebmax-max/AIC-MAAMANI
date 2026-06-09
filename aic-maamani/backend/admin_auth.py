@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from admin_security import create_password_record, verify_password
 from database import get_db
 from models import AdminUser, BlogPost, ContactMessage, Event, GalleryPhoto, GalleryVideo, Sermon, TeamMember
-from token_auth import create_access_token
+from token_auth import create_access_token, verify_token as verify_jwt_token
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
