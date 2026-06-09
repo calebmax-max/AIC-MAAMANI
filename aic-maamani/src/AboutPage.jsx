@@ -237,13 +237,13 @@ function VisionMission() {
             <div style={{ borderLeft:`3px solid ${C.copper}`, paddingLeft:"1.5rem", marginBottom:"1.5rem" }}>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1rem", lineHeight:1.85, color:"rgba(255,255,255,0.6)" }}>
                 <strong style={{ color:C.copper, fontWeight:500 }}>Our Vision</strong><br />
-                A Nairobi — and a world — shaped by the grace, justice, and love of Jesus Christ.
+                To be a Christ-centered, SPirit-filled, life-giving church that leads people to Jesus, builds mature disciples, transforms families, serves the community, and bring hope to the world.
               </p>
             </div>
             <div style={{ borderLeft:`3px solid rgba(239,159,39,0.35)`, paddingLeft:"1.5rem" }}>
               <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1rem", lineHeight:1.85, color:"rgba(255,255,255,0.6)" }}>
                 <strong style={{ color:C.white, fontWeight:500 }}>Our Mission</strong><br />
-                To gather, grow, and send people who follow Jesus wholeheartedly — in every neighbourhood, vocation, and season of life.
+                To raise passionate followers of Jesus, empower believers through the Holy Spirit, and bring hope, healing, and transformation to our generation.
               </p>
             </div>
           </div>
@@ -397,12 +397,11 @@ function MeetPastor() {
 
 // ── LEADERSHIP TEAM ──────────────────────────────────────
 const fallbackTeam = [
-  { name:"Dr. Joyce Kamau", role:"Associate Pastor", dept:"Pastoral Care", initials:"JK", accent: "#EF9F27" },
-  { name:"Elder Peter Ndirangu", role:"Elder & Treasurer", dept:"Governance", initials:"PN", accent: "#5F5E5A" },
-  { name:"Pastor Ruth Akinyi", role:"Women's Ministry", dept:"Ministry", initials:"RA", accent: "#EF9F27" },
-  { name:"Deacon Tom Mwangi", role:"Worship Director", dept:"Creative Arts", initials:"TM", accent: "#5F5E5A" },
-  { name:"Sister Faith Ouma", role:"Children's Church", dept:"Next Gen", initials:"FO", accent: "#EF9F27" },
-  { name:"Elder David Wekesa", role:"Outreach Elder", dept:"Missions", initials:"DW", accent: "#5F5E5A" },
+  { name:"Pr. Daniel Mutinda", role:"Senior Pastor", dept:"Pastor In-charge", initials:"SP", accent: "#EF9F27" },
+  { name:"Pr. Grace Viata", role:"Associate Pastor", dept:"Associate Pastor", initials:"AP", accent: "#5F5E5A" },
+  { name:"Robert Kioko", role:"Treasurer", dept:"Finance", initials:"TF", accent: "#EF9F27" },
+  { name:"Jennifer Samuel", role:"Chairlady", dept:"Women Committee", initials:"WC", accent: "#5F5E5A" },
+  { name:"Ruth Kitheka", role:"Youth Leader", dept:"Next Gen", initials:"YL", accent: "#EF9F27" },
 ];
 
 function TeamCard({ member, delay }) {

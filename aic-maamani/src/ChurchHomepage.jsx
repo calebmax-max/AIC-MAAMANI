@@ -27,13 +27,19 @@ function useCountUp(target, duration = 2000, start = false) {
   useEffect(() => {
     if (!start) return;
     let startTime = null;
+    let rafId = null;
     const step = (ts) => {
       if (!startTime) startTime = ts;
       const p = Math.min((ts - startTime) / duration, 1);
       setCount(Math.floor(p * target));
-      if (p < 1) requestAnimationFrame(step);
+      if (p < 1) {
+        rafId = requestAnimationFrame(step);
+      }
     };
-    requestAnimationFrame(step);
+    rafId = requestAnimationFrame(step);
+    return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
+    };
   }, [start, target, duration]);
   return count;
 }
@@ -115,7 +121,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
           }}>
             <span style={{ display: "inline-block", width: "6px", height: "6px", background: COPPER, borderRadius: "50%" }} />
             <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, letterSpacing: "0.2em", fontSize: "0.68rem", textTransform: "uppercase", color: COPPER }}>
-              KITUI, KENYA · Est. 1998
+              KITUI, KENYA · Est. 1994
             </span>
           </div>
 
@@ -517,55 +523,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer style={{ background: DARK, borderTop: `1px solid rgba(250, 249, 248, 0.87)`, padding: "3rem 2.5rem", textAlign: "center" }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.35rem", color: WHITE, marginBottom: "0.4rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
-          <span style={{ color: COPPER }}>◈</span> AIC MAAMANI
-        </div>
-        <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.73rem", letterSpacing: "0.12em", color: "rgba(255, 255, 255, 0.93)", marginBottom: "1.75rem" }}>A Church for Every Soul · Kitui, Kenya</p>
-        <div style={{ display: "flex", justifyContent: "center", gap: "2.5rem", flexWrap: "wrap" }}>
-          {NAV_LINKS.map(({ id, label }) => (
-            <a key={id} href={`#${id}`} style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(249, 241, 241, 0.89)", textDecoration: "none", transition: "color 0.2s" }}
-              onMouseEnter={e => { e.target.style.color = COPPER; }}
-              onMouseLeave={e => { e.target.style.color = "rgba(242, 236, 236, 0.96)"; }}
-            >{label}</a>
-          ))}
-          <a
-            href="#admin"
-            aria-label="Admin panel"
-            title="Admin panel"
-            style={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "50%",
-              border: "1px solid rgba(239,159,39,0.28)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "rgba(242, 236, 236, 0.96)",
-              textDecoration: "none",
-              transition: "all 0.2s",
-              marginLeft: "0.25rem",
-              fontSize: "0.82rem",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.color = COPPER;
-              e.currentTarget.style.borderColor = COPPER;
-              e.currentTarget.style.background = "rgba(239,159,39,0.08)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.color = "rgba(242, 236, 236, 0.96)";
-              e.currentTarget.style.borderColor = "rgba(239,159,39,0.28)";
-              e.currentTarget.style.background = "transparent";
-            }}
-          >
-            ◈
-          </a>
-        </div>
-        <div style={{ marginTop: "2rem", fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "12px", letterSpacing: "0.1em", color: "rgba(231, 225, 225, 0.93)" }}>
-          © 2025 AIC MAAMANI Church. Built with faith & care.
-        </div>
-      </footer>
+      {/* Footer removed — use shared footer from App.js */}
     </>
   );
 }

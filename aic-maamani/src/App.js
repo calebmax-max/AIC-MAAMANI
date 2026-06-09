@@ -165,7 +165,7 @@ function SharedFooter() {
         >◈</a>
       </div>
       <div style={{ marginTop: "2rem", fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.63rem", letterSpacing: "0.1em", color: "rgba(255,255,255,0.18)" }}>
-        © 2025 AIC MAAMANI Church. Built with faith & care.
+        Developed by TONIE TECH 2026
       </div>
     </footer>
   );
