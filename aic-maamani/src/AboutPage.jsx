@@ -31,6 +31,7 @@ const globalStyle = `
     /* Nav */
     .about-nav { padding: 0 1.25rem !important; }
     .nav-links { display: none !important; }
+    .hamburger-btn { display: inline-flex !important; }
 
     /* Timeline: hide spine, stack rows cleanly */
     .timeline-row { display: flex !important; flex-direction: column !important; padding-bottom: 1.75rem !important; margin-bottom: 0 !important; }
@@ -93,12 +94,14 @@ const NAV_LINKS = [
 ];
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", fn);
     return () => window.removeEventListener("scroll", fn);
   }, []);
   return (
+    <>
     <nav className="about-nav" style={{
       position:"fixed", top:0, left:0, right:0, zIndex:100, minHeight:"68px",
       background: scrolled ? "rgba(44,44,42,0.96)" : C.charcoal,
@@ -110,28 +113,27 @@ function Nav() {
       <a href="#home" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
         <span style={{ color: C.copper }}>◈</span> AIC MAAMANI
       </a>
+
+      {/* Hamburger — shown on mobile via CSS */}
       <button
         type="button"
+        onClick={() => setMenuOpen(o => !o)}
+        className="hamburger-btn"
         style={{
-          fontFamily: "'DM Sans', sans-serif",
-          fontWeight: 700,
-          letterSpacing: "0.14em",
-          fontSize: "0.85rem",
-          textTransform: "uppercase",
-          color: "#fff",
-          background: "rgba(255,255,255,0.08)",
-          border: "1px solid rgba(255,255,255,0.18)",
-          borderRadius: 999,
-          padding: "0.55rem 1rem",
-          cursor: "pointer",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "0.4rem",
+          fontFamily: "'DM Sans', sans-serif", fontWeight: 700,
+          letterSpacing: "0.14em", fontSize: "0.85rem", textTransform: "uppercase",
+          color: menuOpen ? C.copper : "#fff",
+          background: menuOpen ? "rgba(239,159,39,0.1)" : "rgba(255,255,255,0.08)",
+          border: menuOpen ? `1px solid ${C.copper}` : "1px solid rgba(255,255,255,0.18)",
+          borderRadius: 999, padding: "0.55rem 1rem", cursor: "pointer",
+          display: "none", alignItems: "center", gap: "0.4rem", transition: "all 0.2s",
         }}
       >
-        <span>☰</span>
-        <span>MENU</span>
+        <span>{menuOpen ? "✕" : "☰"}</span>
+        <span>{menuOpen ? "CLOSE" : "MENU"}</span>
       </button>
+
+      {/* Desktop nav links */}
       <div className="nav-inner nav-links" style={{ display:"flex", gap:"2.2rem", alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
         {NAV_LINKS.map(({ id, label }) => (
           <a key={id} className="nav-link" href={`#${id}`} style={{
@@ -151,6 +153,37 @@ function Nav() {
         }}>Contact Us</a>
       </div>
     </nav>
+
+    {/* Mobile dropdown */}
+    {menuOpen && (
+      <div style={{
+        position:"fixed", top:"68px", left:0, right:0, zIndex:99,
+        background:"rgba(26,25,24,0.98)", backdropFilter:"blur(14px)",
+        borderBottom:`1px solid rgba(239,159,39,0.18)`,
+        padding:"1.25rem 2rem 1.75rem",
+        display:"flex", flexDirection:"column",
+      }}>
+        {NAV_LINKS.map(({ id, label }) => (
+          <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)} style={{
+            fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
+            letterSpacing:"0.12em", fontSize:"0.88rem", textTransform:"uppercase",
+            color: label === "About" ? C.copper : "rgba(255,255,255,0.75)",
+            textDecoration:"none", padding:"0.9rem 0",
+            borderBottom:"1px solid rgba(255,255,255,0.06)", transition:"color 0.2s",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
+            onMouseLeave={e => { e.currentTarget.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.75)"; }}
+          >{label}</a>
+        ))}
+        <a href="#contact" onClick={() => setMenuOpen(false)} style={{
+          display:"inline-block", marginTop:"1.25rem", alignSelf:"flex-start",
+          background: C.copper, color: C.charcoal, padding:"0.75rem 1.75rem",
+          fontFamily:"'DM Sans', sans-serif", fontWeight:500, letterSpacing:"0.12em",
+          fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none",
+        }}>Contact Us</a>
+      </div>
+    )}
+    </>
   );
 }
 
