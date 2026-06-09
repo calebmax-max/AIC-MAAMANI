@@ -107,11 +107,34 @@ export default function ChurchHomepage({ showNav = true } = {}) {
         transition: "all 0.35s ease",
         minHeight: "68px"
       }}>
-        <div className="nav-inner">
+        <div className="nav-inner" style={{ display: "flex", gap: "1rem", alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
           <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", color: WHITE, letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
             <span style={{ color: COPPER, fontSize: "1.1rem" }}>◈</span> AIC MAAMANI
           </div>
-          <div className="nav-links">
+          <button
+            type="button"
+            style={{
+              fontFamily: "'DM Sans', sans-serif",
+              fontWeight: 700,
+              letterSpacing: "0.14em",
+              fontSize: "0.85rem",
+              textTransform: "uppercase",
+              color: "#fff",
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.18)",
+              borderRadius: 999,
+              padding: "0.55rem 1rem",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.4rem",
+            }}
+          >
+            <span>☰</span>
+            <span>MENU</span>
+          </button>
+        </div>
+        <div className="nav-links">
             {NAV_LINKS.map(({ id, label }) => (
               <a key={id} className="nav-link" href={`#${id}`}>
                 {label}
@@ -119,7 +142,6 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             ))}
             <a href="#contact" className="nav-cta">Contact Us</a>
           </div>
-        </div>
       </nav>
       )}
 

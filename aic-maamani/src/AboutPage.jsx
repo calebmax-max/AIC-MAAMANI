@@ -81,6 +81,28 @@ function Nav() {
       <a href="#home" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
         <span style={{ color: C.copper }}>◈</span> Grace Covenant
       </a>
+      <button
+        type="button"
+        style={{
+          fontFamily: "'DM Sans', sans-serif",
+          fontWeight: 700,
+          letterSpacing: "0.14em",
+          fontSize: "0.85rem",
+          textTransform: "uppercase",
+          color: "#fff",
+          background: "rgba(255,255,255,0.08)",
+          border: "1px solid rgba(255,255,255,0.18)",
+          borderRadius: 999,
+          padding: "0.55rem 1rem",
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "0.4rem",
+        }}
+      >
+        <span>☰</span>
+        <span>MENU</span>
+      </button>
       <div className="nav-inner nav-links" style={{ display:"flex", gap:"2.2rem", alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
         {NAV_LINKS.map(({ id, label }) => (
           <a key={id} className="nav-link" href={`#${id}`} style={{

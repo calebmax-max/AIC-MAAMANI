@@ -79,21 +79,45 @@ function SharedNav({ current }) {
         padding: "0 2.5rem",
       }}
     >
-      <a
-        href="#home"
-        style={{
-          fontFamily: "'DM Serif Display', serif",
-          fontSize: "1.4rem",
-          color: "#fff",
-          textDecoration: "none",
-          display: "flex",
-          alignItems: "center",
-          gap: "0.5rem",
-          whiteSpace: "nowrap",
-        }}
-      >
-        <span style={{ color: COPPER }}>◇</span> AIC MAAMANI
-      </a>
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap" }}>
+        <a
+          href="#home"
+          style={{
+            fontFamily: "'DM Serif Display', serif",
+            fontSize: "1.4rem",
+            color: "#fff",
+            textDecoration: "none",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            whiteSpace: "nowrap",
+          }}
+        >
+          <span style={{ color: COPPER }}>◇</span> AIC MAAMANI
+        </a>
+        <button
+          type="button"
+          style={{
+            fontFamily: "'DM Sans', sans-serif",
+            fontWeight: 700,
+            letterSpacing: "0.14em",
+            fontSize: "0.85rem",
+            textTransform: "uppercase",
+            color: "#fff",
+            background: "rgba(255,255,255,0.08)",
+            border: "1px solid rgba(255,255,255,0.18)",
+            borderRadius: 999,
+            padding: "0.55rem 1rem",
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "0.4rem",
+          }}
+        >
+          <span>☰</span>
+          <span>MENU</span>
+        </button>
+      </div>
 
       <div className="nav-inner" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
         <div className="nav-links" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
