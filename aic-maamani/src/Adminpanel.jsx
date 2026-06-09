@@ -937,9 +937,9 @@ function GalleryPanel({ toast }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ alt: "", album: "Worship", height: 800, image_file: null });
+  const [form, setForm] = useState({ alt: "", album: "Church", height: 800, image_file: null });
   const [confirm, setConfirm] = useState(null);
-  const albums = ["Worship", "Youth", "Outreach 2024", "Community", "Missions"];
+  const albums = ["Church", "Outreach", "Community"];
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -978,7 +978,7 @@ function GalleryPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery</h1>
-        <button className="btn btn-primary" onClick={() => { setForm({ alt: "", album: "Worship", height: 800, image_file: null }); setModal(true); }}>+ Add Photo</button>
+        <button className="btn btn-primary" onClick={() => { setForm({ alt: "", album: "Church", height: 800, image_file: null }); setModal(true); }}>+ Add Photo</button>
       </div>
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : photos.length === 0 ? <div className="empty">No photos yet.</div> : (
