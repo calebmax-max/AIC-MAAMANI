@@ -92,23 +92,12 @@ function SharedNav({ current }) {
         backdropFilter: transparent ? "none"        : "blur(14px)",
       }}
     >
-      {/* ── Brand + toggle ─────────────────────────── */}
+      {/* ── Brand (always far left) ────────────────── */}
       <a href="#home" className="nav-brand">
         <span style={{ color: COPPER }}>◇</span> AIC MAAMANI
       </a>
 
-      <button
-        type="button"
-        className="nav-toggle"
-        onClick={() => setMenuOpen((v) => !v)}
-        aria-expanded={menuOpen}
-        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
-      >
-        <span>{menuOpen ? "✕" : "☰"}</span>
-        <span>{menuOpen ? "CLOSE" : "MENU"}</span>
-      </button>
-
-      {/* ── Link list ──────────────────────────────── */}
+      {/* ── Link list (far right on desktop, dropdown on mobile) ── */}
       <div className={`nav-links ${menuOpen ? "open" : ""}`}>
         {NAV_ITEMS.map(({ id, label }) => {
           const active     = current === id;
@@ -129,6 +118,18 @@ function SharedNav({ current }) {
           );
         })}
       </div>
+
+      {/* ── Hamburger — renders after links in DOM but CSS `order` pins it far right on mobile ── */}
+      <button
+        type="button"
+        className="nav-toggle"
+        onClick={() => setMenuOpen((v) => !v)}
+        aria-expanded={menuOpen}
+        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
+      >
+        <span>{menuOpen ? "✕" : "☰"}</span>
+        <span>{menuOpen ? "CLOSE" : "MENU"}</span>
+      </button>
     </nav>
   );
 }

@@ -64,10 +64,11 @@ nav.shared-nav {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  flex-wrap: wrap;              /* allows the open link-list to wrap below */
   transition: background 0.3s, border-color 0.3s, backdrop-filter 0.3s;
 }
 
-/* Brand */
+/* Brand — always far left, never shrinks */
 .nav-brand {
   font-family: 'DM Serif Display', serif;
   font-size: 1.4rem;
@@ -78,11 +79,23 @@ nav.shared-nav {
   gap: 0.5rem;
   white-space: nowrap;
   flex-shrink: 0;
+  order: 1;                     /* explicit order: brand first */
+  height: var(--nav-h);
+  line-height: var(--nav-h);
 }
 
-/* Hamburger — visible only on small screens */
+/* Link list — order: 2 on desktop (sits after brand, before nothing) */
+.nav-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+  flex-wrap: nowrap;
+  order: 2;
+}
+
+/* Hamburger — hidden on desktop */
 .nav-toggle {
-  display: none;           /* hidden on desktop */
+  display: none;
   font-family: 'DM Sans', sans-serif;
   font-weight: 800;
   letter-spacing: 0.14em;
@@ -97,14 +110,8 @@ nav.shared-nav {
   align-items: center;
   gap: 0.4rem;
   flex-shrink: 0;
-}
-
-/* Link list */
-.nav-links {
-  display: flex;
-  gap: 2rem;
-  align-items: center;
-  flex-wrap: nowrap;
+  order: 3;                     /* always after brand and links */
+  margin-left: auto;            /* pushes it to the far right */
 }
 
 .nav-link {
@@ -378,11 +385,19 @@ footer.site-footer .footer-links {
   .timeline-row { grid-template-columns: 1fr; gap: 0.5rem; }
   .timeline-row .timeline-meta { text-align: left; padding-right: 0; }
 
-  /* nav: show toggle, collapse links */
-  .nav-toggle { display: inline-flex; }
+  /* nav: show toggle on the right, collapse links into a dropdown below */
+  .nav-toggle {
+    display: inline-flex;
+    order: 3;             /* sits after brand (1) and links (2) in DOM,
+                             but links are hidden so toggle appears top-right */
+    margin-left: auto;    /* pushes toggle all the way to the right */
+  }
 
   .nav-links {
-    display: none;           /* hidden by default on tablet/mobile */
+    /* Hidden by default; when .open, expands below the nav bar */
+    display: none;
+    order: 4;             /* below brand + toggle row */
+    width: 100%;          /* full-width dropdown */
     position: absolute;
     top: var(--nav-h);
     left: 0; right: 0;
@@ -398,15 +413,13 @@ footer.site-footer .footer-links {
   .nav-links.open { display: flex; }
 
   nav.shared-nav {
-    flex-wrap: wrap;
-    padding: 0 var(--section-h);
-    position: fixed;
-    /* ensure brand + toggle are always in a row */
+    /* Keep brand + toggle on one row */
     align-items: center;
     min-height: var(--nav-h);
+    /* Don't wrap the first row (brand + toggle); only the open link panel wraps */
   }
 
-  /* service bar: stack at 2 per row */
+  /* service bar: tighter gap */
   .service-bar { gap: 1.25rem; }
 }
 
