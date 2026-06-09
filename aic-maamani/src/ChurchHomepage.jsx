@@ -20,20 +20,6 @@ const globalStyle = `
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: ${LIGHT}; }
   ::-webkit-scrollbar-thumb { background: ${MID}; border-radius: 3px; }
-
-  .church-nav { padding: 0 2.5rem; }
-  .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; }
-  .nav-links { display: flex; gap: 2.2rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
-  .nav-cta { font-family: 'DM Sans', sans-serif; font-weight: 500; letter-spacing: 0.12em; font-size: 0.75rem; text-transform: uppercase; color: ${CHARCOAL}; background: ${COPPER}; padding: 0.5rem 1.4rem; text-decoration: none; transition: background 0.2s; }
-  .nav-link { font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0.1em; font-size: 0.78rem; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.2s; }
-  .nav-link:hover { color: ${COPPER}; }
-
-  @media (max-width: 768px) {
-    .church-nav { padding: 0 1rem; }
-    .nav-inner { flex-direction: column; align-items: stretch; justify-content: center; padding: 0.85rem 0; height: auto; }
-    .nav-links { justify-content: center; gap: 0.9rem; }
-    .nav-cta { width: 100%; text-align: center; }
-  }
 `;
 
 function useCountUp(target, duration = 2000, start = false) {
