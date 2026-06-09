@@ -262,8 +262,10 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── WELCOME MESSAGE ── */}
-      <section style={{ background: LIGHT, padding: "6rem 2.5rem" }}>
-        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "220px 1fr", gap: "5rem", alignItems: "center" }}>
+      <section style={{ background: LIGHT, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "min(220px, 100%) 1fr", gap: "clamp(2rem, 5vw, 5rem)", alignItems: "center" }}
+          className="hero-layout"
+        >
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
             <div style={{
               width: "160px", height: "190px",
@@ -297,7 +299,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── STATS COUNTERS ── */}
-      <section style={{ background: CHARCOAL, padding: "5rem 2.5rem" }}>
+      <section style={{ background: CHARCOAL, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "3rem" }}>
           {[
             { target: 170, label: "Members", suffix: "+" },
@@ -311,7 +313,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── UPCOMING EVENTS ── */}
-      <section id="events" style={{ background: STONE, padding: "6rem 2.5rem" }}>
+      <section id="events" style={{ background: STONE, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: "3rem", flexWrap: "wrap", gap: "1rem" }}>
             <div>
@@ -357,7 +359,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── LATEST SERMON ── */}
-      <section id="sermons" style={{ background: DARK, padding: "6rem 2.5rem" }}>
+      <section id="sermons" style={{ background: DARK, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ marginBottom: "3rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.6rem" }}>
@@ -366,7 +368,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             </div>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: WHITE }}>Latest Sermon</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "3.5rem", alignItems: "center" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem, 4vw, 3.5rem)", alignItems: "center" }} className="sermon-layout">
             {/* video player mock */}
             <div style={{
               aspectRatio: "16/9", background: CHARCOAL,
@@ -426,8 +428,8 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── LATEST BLOG ── */}
-      <section id="blog" style={{ background: LIGHT, padding: "6rem 2.5rem" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.65fr", gap: "5rem", alignItems: "center" }}>
+      <section id="blog" style={{ background: LIGHT, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
+        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.65fr", gap: "clamp(2rem, 5vw, 5rem)", alignItems: "center" }} className="split-layout">
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.6rem" }}>
               <div style={{ width: "22px", height: "2px", background: COPPER }} />
@@ -466,7 +468,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── FIND US ── */}
-      <section id="find" style={{ background: CHARCOAL, padding: "6rem 2.5rem" }}>
+      <section id="find" style={{ background: CHARCOAL, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
           <div style={{ marginBottom: "3.5rem", textAlign: "center" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", marginBottom: "0.6rem" }}>
@@ -476,7 +478,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             </div>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: WHITE }}>Find Us</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "4rem", alignItems: "start" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "clamp(2rem, 5vw, 4rem)", alignItems: "start" }} className="find-layout">
             <div>
               {[
                 { icon: "◎", title: "Phone", lines: ["+254 714086352"] },
@@ -494,7 +496,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
                 </div>
               ))}
             </div>
-            <div style={{ width: "100%", aspectRatio: "4/3", border: `1px solid rgba(239,159,39,0.2)`, overflow: "hidden" }}>
+            <div className="map-frame" style={{ border: `1px solid rgba(239,159,39,0.2)`, overflow: "hidden" }}>
               <iframe
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8167!2d36.8108!3d-1.2933!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10d22f42bf41%3A0x4865f21b5a98ed4!2sUpper%20Hill%2C%20Nairobi!5e0!3m2!1sen!2ske!4v1686000000000"
                 width="100%" height="100%" style={{ border: 0, filter: "grayscale(100%) contrast(1.1)" }}

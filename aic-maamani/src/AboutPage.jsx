@@ -163,7 +163,7 @@ const TIMELINE = [
 function Timeline() {
   const [ref, visible] = useInView(0.1);
   return (
-    <section style={{ background: C.light, padding:"6rem 2.5rem" }}>
+    <section style={{ background: C.light, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
       <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
         <div style={{ marginBottom:"4rem" }}>
           <SectionLabel text="Our History" />
@@ -215,9 +215,9 @@ const VALUES = [
 function VisionMission() {
   const [ref, visible] = useInView(0.1);
   return (
-    <section style={{ background: C.charcoal, padding:"6rem 2.5rem" }}>
+    <section style={{ background: C.charcoal, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
       <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
-        <div className="grid-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"5rem", alignItems:"start" }}>
+        <div className="grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
           {/* left: big statement */}
           <div>
             <SectionLabel text="Vision & Mission" />
@@ -330,8 +330,8 @@ function Accordion() {
 // ── MEET THE PASTOR ──────────────────────────────────────
 function MeetPastor() {
   return (
-    <section style={{ background: C.light, padding:"6rem 2.5rem" }}>
-      <div className="hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"340px 1fr", gap:"5rem", alignItems:"start" }}>
+    <section style={{ background: C.light, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
+      <div className="about-hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"min(340px, 100%) 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
         {/* photo placeholder */}
         <div>
           <div style={{
@@ -480,7 +480,7 @@ function LeadershipTeam() {
   }, []);
 
   return (
-    <section style={{ background: C.stone, padding:"6rem 2.5rem" }}>
+    <section style={{ background: C.stone, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
       <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
         <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginBottom:"3rem", flexWrap:"wrap", gap:"1rem" }}>
           <div>

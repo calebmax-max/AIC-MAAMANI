@@ -320,8 +320,8 @@ export default function ContactPage() {
       </div>
 
       {/* ── Main content grid ─────────────────────────────── */}
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "48px 24px 80px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: 32, alignItems: "start" }}>
+      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "48px max(16px, 4vw) 80px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr min(380px, 100%)", gap: 32, alignItems: "start" }} className="split-layout">
 
           {/* LEFT column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>

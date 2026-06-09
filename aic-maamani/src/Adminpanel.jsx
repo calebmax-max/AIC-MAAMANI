@@ -60,10 +60,20 @@ tr:hover td { background: #FAF8F5; }
 .stat-card { background: ${WHITE}; border: 1px solid #E0DDD8; padding: 1.25rem 1.5rem; border-left: 4px solid ${COPPER}; }
 .stat-num { font-family: 'DM Serif Display', serif; font-size: 2rem; color: ${CHARCOAL}; line-height: 1; }
 .stat-label { font-size: 0.7rem; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: ${MID}; margin-top: 0.3rem; }
-.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+.section-header { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
 .page-title { font-family: 'DM Serif Display', serif; font-size: 1.75rem; color: ${CHARCOAL}; }
 .card { background: ${WHITE}; border: 1px solid #E0DDD8; }
 .empty { text-align: center; padding: 3rem 1rem; color: ${MID}; font-size: 0.88rem; }
+.admin-outer { padding: 1.5rem; }
+.admin-tabs-row { display: flex; gap: 0.5rem; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 0.25rem; }
+.table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; }
+@media (max-width: 600px) {
+  .modal { padding: 1.25rem; }
+  .page-title { font-size: 1.35rem; }
+  .admin-outer { padding: 1rem 0.75rem; }
+  .toast { right: 0.75rem; left: 0.75rem; bottom: 0.75rem; }
+}
 `;
 
 // ─── API helpers ───────────────────────────────────────────────────────────────
@@ -1476,8 +1486,19 @@ export default function AdminPanel() {
     <>
       <style>{fonts}</style>
       <style>{css}</style>
-      <div style={{ display: "flex", minHeight: "100vh" }}>
-        <aside style={{ width: 220, background: CHARCOAL, display: "flex", flexDirection: "column", flexShrink: 0 }}>
+      <style>{`
+        @media (max-width: 700px) {
+          .admin-shell-outer { flex-direction: column !important; }
+          .admin-sidebar { width: 100% !important; flex-direction: row !important; flex-wrap: wrap; }
+          .admin-sidebar nav { flex-direction: row !important; flex-wrap: wrap; flex: unset; width: 100%; padding: 0.5rem !important; }
+          .admin-sidebar nav button { width: auto !important; padding: 0.5rem 0.9rem !important; font-size: 0.78rem !important; }
+          .admin-sidebar-top { flex-direction: row; align-items: center; justify-content: space-between; }
+          .admin-main { padding: 1.25rem 1rem !important; max-width: 100vw !important; }
+          table th, table td { font-size: 0.78rem; padding: 0.55rem 0.5rem; }
+        }
+      `}</style>
+      <div className="admin-shell-outer" style={{ display: "flex", minHeight: "100vh" }}>
+        <aside className="admin-sidebar" style={{ width: 220, background: CHARCOAL, display: "flex", flexDirection: "column", flexShrink: 0 }}>
           <div style={{ padding: "1.5rem 1.4rem 1.25rem", borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
             <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.15rem", color: WHITE, display: "flex", alignItems: "center", gap: "0.4rem" }}>
               <span style={{ color: COPPER }}>◈</span> AIC MAAMANI
@@ -1540,7 +1561,7 @@ export default function AdminPanel() {
             </button>
           </div>
         </aside>
-        <main style={{ flex: 1, padding: "2rem 2.5rem", overflowY: "auto", maxWidth: "calc(100vw - 220px)" }}>
+        <main className="admin-main" style={{ flex: 1, padding: "2rem 2.5rem", overflowY: "auto", maxWidth: "calc(100vw - 220px)" }}>
           {panels[page]}
         </main>
       </div>
@@ -1562,5 +1583,3 @@ export default function AdminPanel() {
     </>
   );
 }
-
-
