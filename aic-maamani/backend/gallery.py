@@ -13,7 +13,7 @@ from storage import save_upload
 
 router = APIRouter()
 
-VALID_ALBUMS = {"Worship", "Youth", "Outreach 2024", "Community", "Missions"}
+VALID_ALBUMS = {"Church", "Outreach", "Community"}
 
 
 def _clean_text(value: Optional[str]) -> Optional[str]:
