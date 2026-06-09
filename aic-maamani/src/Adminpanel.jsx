@@ -939,6 +939,7 @@ function GalleryPanel({ toast }) {
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ id: null, alt: "", album: "Church", height: 400, image_file: null, src: "" });
   const [confirm, setConfirm] = useState(null);
+  const savingRef = useRef(false);
   const albums = ["Church", "Outreach", "Community"];
 
   const load = useCallback(async () => {
@@ -946,11 +947,14 @@ function GalleryPanel({ toast }) {
     try { setPhotos(await apiFetch("/gallery/photos")); }
     catch (e) { toast("Failed to load photos"); }
     setLoading(false);
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => { load(); }, [load]);
 
   const save = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
     try {
       if (!form.image_file && !form.id) {
         toast("Upload a photo from your device");
@@ -973,9 +977,11 @@ function GalleryPanel({ toast }) {
       }
 
       setModal(false);
-      load();
+      await load();
     } catch (e) {
       toast(e.message);
+    } finally {
+      savingRef.current = false;
     }
   };
 
@@ -984,7 +990,7 @@ function GalleryPanel({ toast }) {
       await apiFetch(`/gallery/photos/${id}`, { method: "DELETE" });
       toast("Photo deleted");
       setConfirm(null);
-      load();
+      await load();
     } catch (e) {
       toast(e.message);
     }
