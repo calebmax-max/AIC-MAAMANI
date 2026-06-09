@@ -979,6 +979,17 @@ function GalleryPanel({ toast }) {
     }
   };
 
+  const del = async (id) => {
+    try {
+      await apiFetch(`/gallery/photos/${id}`, { method: "DELETE" });
+      toast("Photo deleted");
+      setConfirm(null);
+      load();
+    } catch (e) {
+      toast(e.message);
+    }
+  };
+
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
@@ -1026,7 +1037,7 @@ function GalleryPanel({ toast }) {
           </div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             <button className="btn btn-ghost" onClick={() => setModal(false)}>Cancel</button>
-            <button className="btn btn-primary" onClick={save}>Add Photo</button>
+            <button className="btn btn-primary" onClick={save}>{form.id ? "Update Photo" : "Add Photo"}</button>
           </div>
         </Modal>
       )}
