@@ -1,3 +1,5 @@
+
+
 import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "./api";
 
@@ -161,10 +163,6 @@ const DAYS = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function parseDate(str) { return new Date(str + "T00:00:00"); }
-function formatDisplay(str) {
-  const d = parseDate(str);
-  return `${DAYS[d.getDay()]}, ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
-}
 function getDayKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,"0")}-${String(date.getDate()).padStart(2,"0")}`;
 }
@@ -190,118 +188,8 @@ function CategoryBadge({ cat }) {
   );
 }
 
-function RSVPModal({ event, onClose }) {
-  const [step, setStep] = useState("form"); // form | reminder | done
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [remind, setRemind] = useState(false);
-  const [remEmail, setRemEmail] = useState("");
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!name || !email) return;
-    setStep("sending");
-    fetchJson(`/api/events/${event.id}/register`, {
-      method: "POST",
-      body: JSON.stringify({ name, email, phone: "" }),
-    })
-      .then(() => setStep("done"))
-      .catch(() => setStep("done"));
-  };
-
-  const overlayStyle = {
-    position: "fixed", inset: 0,
-    background: "rgba(44,44,42,0.72)",
-    zIndex: 1000,
-    display: "flex", alignItems: "center", justifyContent: "center",
-    padding: 16,
-    backdropFilter: "blur(3px)",
-  };
-  const modalStyle = {
-    background: "#F2F1EF",
-    borderRadius: 16,
-    width: "100%", maxWidth: 480,
-    boxShadow: "0 24px 80px rgba(0,0,0,0.28)",
-    overflow: "hidden",
-    animation: "slideUp 0.25s ease",
-  };
-
-  return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div style={modalStyle} onClick={e => e.stopPropagation()}>
-        {/* Header bar */}
-        <div style={{ background: "#2C2C2A", padding: "20px 24px", display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-          <div>
-            <div style={{ color: "#EF9F27", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform:"uppercase", marginBottom: 4 }}>RSVP / Register</div>
-            <div style={{ color: "#F2F1EF", fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 700, lineHeight: 1.2 }}>{event.title}</div>
-          </div>
-          <button onClick={onClose} style={{ background:"none", border:"none", color:"#5F5E5A", cursor:"pointer", fontSize:22, lineHeight:1, padding:4 }}>✕</button>
-        </div>
-
-        <div style={{ padding: "24px 24px 28px" }}>
-          {step === "done" ? (
-            <div style={{ textAlign:"center", padding: "16px 0 8px" }}>
-              <div style={{ fontSize: 48, marginBottom: 12 }}>✅</div>
-              <div style={{ fontFamily:"'Playfair Display', serif", fontSize: 22, color:"#2C2C2A", marginBottom: 8 }}>You're registered!</div>
-              <div style={{ color:"#5F5E5A", fontSize: 14, lineHeight: 1.6 }}>
-                We'll see you on <strong>{formatDisplay(event.date)}</strong> at <strong>{event.time}</strong>.
-                {remind && remEmail && <> A reminder will be sent to <strong>{remEmail}</strong>.</>}
-              </div>
-              <button onClick={onClose} style={btnPrimary}>Done</button>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <div style={{ display:"grid", gap: 14 }}>
-                <label style={labelStyle}>
-                  Full Name
-                  <input required value={name} onChange={e=>setName(e.target.value)}
-                    placeholder="Your name" style={inputStyle} />
-                </label>
-                <label style={labelStyle}>
-                  Email Address
-                  <input required type="email" value={email} onChange={e=>setEmail(e.target.value)}
-                    placeholder="you@example.com" style={inputStyle} />
-                </label>
-
-                {/* Remind Me toggle */}
-                <div style={{ background:"#fff", border:"1px solid #E2E1DF", borderRadius:10, padding:"14px 16px" }}>
-                  <label style={{ display:"flex", alignItems:"center", gap:10, cursor:"pointer", marginBottom: remind ? 12 : 0 }}>
-                    <div onClick={() => setRemind(r=>!r)} style={{
-                      width:38, height:22, borderRadius:11,
-                      background: remind ? "#EF9F27" : "#D0CECC",
-                      position:"relative", transition:"background 0.2s", cursor:"pointer", flexShrink:0
-                    }}>
-                      <div style={{
-                        position:"absolute", top:3, left: remind ? 19 : 3,
-                        width:16, height:16, borderRadius:"50%",
-                        background:"#fff", transition:"left 0.2s",
-                        boxShadow:"0 1px 4px rgba(0,0,0,0.18)"
-                      }} />
-                    </div>
-                    <span style={{ fontSize:14, color:"#2C2C2A", fontWeight:500 }}>Remind me before this event</span>
-                  </label>
-                  {remind && (
-                    <input type="email" value={remEmail || email} onChange={e=>setRemEmail(e.target.value)}
-                      placeholder="Reminder email address" style={{ ...inputStyle, marginTop: 0 }} />
-                  )}
-                </div>
-
-                <button type="submit" style={btnPrimary}>Confirm Registration →</button>
-              </div>
-            </form>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-const labelStyle = { display:"flex", flexDirection:"column", gap:5, fontSize:13, fontWeight:600, color:"#2C2C2A", letterSpacing:"0.02em" };
-const inputStyle = { padding:"10px 14px", borderRadius:8, border:"1.5px solid #D8D7D4", background:"#fff", fontSize:14, color:"#2C2C2A", outline:"none", fontFamily:"inherit", marginTop:2 };
-const btnPrimary = { marginTop:8, padding:"13px 24px", background:"#EF9F27", color:"#2C2C2A", border:"none", borderRadius:10, fontWeight:800, fontSize:15, cursor:"pointer", width:"100%", letterSpacing:"0.02em", fontFamily:"inherit" };
-
 // ── Event Card ─────────────────────────────────────────────────────────────
-function EventCard({ event, onRSVP }) {
+function EventCard({ event }) {
   const d = parseDate(event.date);
   return (
     <div style={{
@@ -342,21 +230,14 @@ function EventCard({ event, onRSVP }) {
           {event.spots && <span style={{ fontSize:12, color:"#5F5E5A" }}>👥 {event.spots} spots</span>}
         </div>
         <div style={{ fontSize:13, color:"#7A7975", lineHeight:1.6, marginTop:2 }}>{event.description}</div>
-        <div style={{ marginTop:"auto", paddingTop:10 }}>
-          <button onClick={() => onRSVP(event)} style={{
-            padding:"8px 20px", background:"#EF9F27", color:"#2C2C2A",
-            border:"none", borderRadius:8, fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit"
-          }}>
-            RSVP / Register →
-          </button>
-        </div>
+
       </div>
     </div>
   );
 }
 
 // ── Calendar View ──────────────────────────────────────────────────────────
-function CalendarView({ events, onRSVP }) {
+function CalendarView({ events }) {
   const today = new Date();
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
@@ -440,7 +321,7 @@ function CalendarView({ events, onRSVP }) {
               : `No events on ${MONTHS[viewMonth]} ${selected}`}
           </div>
           <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
-            {selectedEvents.map(ev => <EventCard key={ev.id} event={ev} onRSVP={onRSVP} />)}
+            {selectedEvents.map(ev => <EventCard key={ev.id} event={ev} />)}
           </div>
         </div>
       )}
@@ -459,7 +340,6 @@ const navBtn = {
 export default function ChurchEvents() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState("list"); // list | calendar
-  const [rsvpEvent, setRsvpEvent] = useState(null);
   const [events, setEvents] = useState(fallbackEvents);
 
   useEffect(() => {
@@ -508,10 +388,6 @@ export default function ChurchEvents() {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin:0; padding:0; }
         button:focus-visible { outline: 2px solid #EF9F27; outline-offset:2px; }
-        @keyframes slideUp {
-          from { transform: translateY(20px); opacity:0; }
-          to   { transform: translateY(0);    opacity:1; }
-        }
         @keyframes fadeIn {
           from { opacity:0; transform:translateY(8px); }
           to   { opacity:1; transform:translateY(0); }
@@ -594,18 +470,15 @@ export default function ChurchEvents() {
               ? <div style={{ textAlign:"center", padding:"64px 24px", color:"#9E9D99", fontSize:15 }}>No events found in this category.</div>
               : filtered.map((ev, i) => (
                   <div key={ev.id} className="event-appear" style={{ animationDelay:`${i*0.05}s` }}>
-                    <EventCard event={ev} onRSVP={setRsvpEvent} />
+                    <EventCard event={ev} />
                   </div>
                 ))
             }
           </div>
         ) : (
-          <CalendarView events={filtered} onRSVP={setRsvpEvent} />
+          <CalendarView events={filtered} />
         )}
       </div>
-
-      {/* ── RSVP Modal ───────────────────────────────────────────────────── */}
-      {rsvpEvent && <RSVPModal event={rsvpEvent} onClose={() => setRsvpEvent(null)} />}
     </div>
   );
 }
