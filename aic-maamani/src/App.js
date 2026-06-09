@@ -10,7 +10,6 @@ import ContactPage from "./ContactPage";
 import AdminPanel from "./Adminpanel";
 
 const COPPER = "#EF9F27";
-
 const NAV_ITEMS = [
   { id: "home",    label: "Home" },
   { id: "about",   label: "About" },
