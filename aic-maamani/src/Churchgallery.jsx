@@ -115,6 +115,10 @@ function PhotoCard({ photo, onClick }) {
         alt={photo.alt}
         loading="lazy"
         onLoad={() => setLoaded(true)}
+        onError={(e) => {
+          e.currentTarget.src = mockPhoto(400, photo.h, "%234A3728", photo.alt, "✝");
+          setLoaded(true);
+        }}
         style={{
           width: "100%",
           display: "block",
@@ -184,8 +188,12 @@ function Lightbox({ photos, startIndex, onClose }) {
         <img
           src={photo.src}
           alt={photo.alt}
+          onError={(e) => {
+            e.currentTarget.src = mockPhoto(800, 500, "%234A3728", photo.alt, "✝");
+          }}
           style={{
             maxWidth: "85vw", maxHeight: "78vh",
+            minWidth: "200px", minHeight: "150px",
             borderRadius: "10px", display: "block",
             objectFit: "contain",
           }}
@@ -350,9 +358,9 @@ export default function ChurchGallery() {
           data.map((photo) => ({
             id: photo.id,
             album: photo.album || "Worship",
-            src: photo.src,
-            alt: photo.alt || "Gallery photo",
-            h: photo.height || 320,
+            src: photo.src || photo.url || photo.image_url || photo.photo_url || "",
+            alt: photo.alt || photo.caption || photo.title || "Gallery photo",
+            h: photo.height || photo.h || 320,
           }))
         );
       })
