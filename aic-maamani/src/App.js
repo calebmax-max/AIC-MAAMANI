@@ -9,8 +9,7 @@ import ChurchGallery from "./Churchgallery";
 import ContactPage from "./ContactPage";
 import AdminPanel from "./Adminpanel";
 
-const COPPER   = "#EF9F27";
-const CHARCOAL = "#2C2C2A";
+const COPPER = "#EF9F27";
 
 const NAV_ITEMS = [
   { id: "home",    label: "Home" },
