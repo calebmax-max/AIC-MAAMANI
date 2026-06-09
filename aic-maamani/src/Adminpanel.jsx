@@ -937,7 +937,7 @@ function GalleryPanel({ toast }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ alt: "", album: "Church", height: 800, image_file: null });
+  const [form, setForm] = useState({ alt: "", album: "Church", height: 400, image_file: null });
   const [confirm, setConfirm] = useState(null);
   const albums = ["Church", "Outreach", "Community"];
 
@@ -959,17 +959,12 @@ function GalleryPanel({ toast }) {
       const payload = buildFormData({
         album: form.album,
         alt: form.alt,
-        height: Number(form.height),
+        height: 400,
         image_file: form.image_file,
       });
       await apiFetch("/gallery/photos", { method: "POST", body: payload });
       toast("Photo added"); setModal(false); load();
     } catch (e) { toast(e.message); }
-  };
-
-  const del = async (id) => {
-    try { await apiFetch(`/gallery/photos/${id}`, { method: "DELETE" }); toast("Photo deleted"); setConfirm(null); load(); }
-    catch (e) { toast(e.message); }
   };
 
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -978,7 +973,7 @@ function GalleryPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery</h1>
-        <button className="btn btn-primary" onClick={() => { setForm({ alt: "", album: "Church", height: 800, image_file: null }); setModal(true); }}>+ Add Photo</button>
+        <button className="btn btn-primary" onClick={() => { setForm({ alt: "", album: "Church", height: 400, image_file: null }); setModal(true); }}>+ Add Photo</button>
       </div>
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : photos.length === 0 ? <div className="empty">No photos yet.</div> : (
@@ -1011,7 +1006,6 @@ function GalleryPanel({ toast }) {
               {albums.map(a => <option key={a} value={a}>{a}</option>)}
             </select>
           </div>
-          <div className="form-row"><label>Height (px)</label><input type="number" value={form.height} onChange={e => F("height", e.target.value)} /></div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             <button className="btn btn-ghost" onClick={() => setModal(false)}>Cancel</button>
             <button className="btn btn-primary" onClick={save}>Add Photo</button>
