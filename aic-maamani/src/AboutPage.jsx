@@ -70,8 +70,8 @@ function Nav() {
     return () => window.removeEventListener("scroll", fn);
   }, []);
   return (
-    <nav style={{
-      position:"fixed", top:0, left:0, right:0, zIndex:100, height:"68px",
+    <nav className="about-nav" style={{
+      position:"fixed", top:0, left:0, right:0, zIndex:100, minHeight:"68px",
       background: scrolled ? "rgba(44,44,42,0.96)" : C.charcoal,
       borderBottom: scrolled ? `1px solid rgba(239,159,39,0.18)` : "none",
       backdropFilter: scrolled ? "blur(14px)" : "none",
@@ -81,22 +81,22 @@ function Nav() {
       <a href="#home" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
         <span style={{ color: C.copper }}>◈</span> Grace Covenant
       </a>
-      <div style={{ display:"flex", gap:"2.2rem", alignItems:"center" }}>
+      <div className="nav-inner nav-links" style={{ display:"flex", gap:"2.2rem", alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
         {NAV_LINKS.map(({ id, label }) => (
-          <a key={id} href={`#${id}`} style={{
+          <a key={id} className="nav-link" href={`#${id}`} style={{
             fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
             letterSpacing:"0.1em", fontSize:"0.78rem", textTransform:"uppercase",
             color: label === "About" ? C.copper : "rgba(255,255,255,0.7)",
-            textDecoration:"none", transition:"color 0.2s"
+            textDecoration:"none", transition:"color 0.2s", whiteSpace:"nowrap"
           }}
-            onMouseEnter={e => { e.target.style.color = C.copper; }}
-            onMouseLeave={e => { e.target.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.7)"; }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
+            onMouseLeave={e => { e.currentTarget.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.7)"; }}
           >{label}</a>
         ))}
-        <a href="#contact" style={{
+        <a className="nav-cta" href="#contact" style={{
           background: C.copper, color: C.charcoal, padding:"0.5rem 1.4rem",
           fontFamily:"'DM Sans', sans-serif", fontWeight:500, letterSpacing:"0.12em",
-          fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none"
+          fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none", whiteSpace:"nowrap"
         }}>Contact Us</a>
       </div>
     </nav>

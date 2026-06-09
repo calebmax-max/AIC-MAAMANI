@@ -177,7 +177,7 @@ export default function App() {
         .contact-form .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
         .contact-form .form-row.full { grid-template-columns: 1fr; }
         .shared-nav .nav-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
-        .shared-nav .nav-links { display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; justify-content: flex-end; }
+        .shared-nav .nav-links { display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; justify-content: flex-end; width: 100%; }
         .shared-nav .nav-links a { white-space: nowrap; }
         .shared-nav .nav-link { font-size: 0.75rem; }
 
@@ -195,6 +195,8 @@ export default function App() {
           nav.shared-nav .nav-inner { flex-direction: column; align-items: stretch; justify-content: center; padding: 0.85rem 0; gap: 0.9rem; }
           nav.shared-nav .nav-links { justify-content: center; gap: 0.75rem; }
           nav.shared-nav .nav-link { font-size: 0.72rem; }
+          .about-nav .nav-inner { flex-direction: column; align-items: stretch; justify-content: center; padding: 0.75rem 0; gap: 0.8rem; }
+          .about-nav .nav-links { justify-content: center; }
           .contact-form .form-row { grid-template-columns: 1fr; }
           .contact-form button { width: 100%; }
           .page-shell { padding: 0 0.9rem; }
