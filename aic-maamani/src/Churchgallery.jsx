@@ -13,7 +13,7 @@ const PALETTE = {
   surfaceMuted: "#E8E6E3",
 };
 
-const ALBUMS = ["All", "Worship", "Youth", "Outreach 2024", "Community", "Missions"];
+const DEFAULT_ALBUMS = ["All"];
 
 function mockPhoto(w, h, bg, label, icon) {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>
@@ -401,6 +401,11 @@ export default function ChurchGallery() {
     };
   }, []);
 
+  const albumOptions = [
+    "All",
+    ...Array.from(new Set(photos.map((p) => p.album || "Other"))).filter((a) => a && a !== "All"),
+  ];
+
   const filtered = activeAlbum === "All"
     ? photos
     : photos.filter((p) => p.album === activeAlbum);
@@ -410,7 +415,7 @@ export default function ChurchGallery() {
     setLightboxPhoto(photo);
   };
 
-  const accentCount = ALBUMS.reduce((acc, album) => {
+  const accentCount = albumOptions.reduce((acc, album) => {
     acc[album] = album === "All" ? photos.length : photos.filter((p) => p.album === album).length;
     return acc;
   }, {});
@@ -491,7 +496,7 @@ export default function ChurchGallery() {
                 fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase",
                 color: PALETTE.secondary, fontWeight: 600, marginRight: "4px",
               }}>Album</span>
-              {ALBUMS.map((album) => {
+              {albumOptions.map((album) => {
                 const isActive = activeAlbum === album;
                 return (
                   <button

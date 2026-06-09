@@ -937,7 +937,7 @@ function GalleryPanel({ toast }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  const [form, setForm] = useState({ alt: "", album: "Church", height: 400, image_file: null });
+  const [form, setForm] = useState({ id: null, alt: "", album: "Church", height: 400, image_file: null, src: "" });
   const [confirm, setConfirm] = useState(null);
   const albums = ["Church", "Outreach", "Community"];
 
@@ -952,19 +952,31 @@ function GalleryPanel({ toast }) {
 
   const save = async () => {
     try {
-      if (!form.image_file) {
+      if (!form.image_file && !form.id) {
         toast("Upload a photo from your device");
         return;
       }
+
       const payload = buildFormData({
         album: form.album,
         alt: form.alt,
         height: 400,
-        image_file: form.image_file,
+        ...(form.image_file ? { image_file: form.image_file } : {}),
       });
-      await apiFetch("/gallery/photos", { method: "POST", body: payload });
-      toast("Photo added"); setModal(false); load();
-    } catch (e) { toast(e.message); }
+
+      if (form.id) {
+        await apiFetch(`/gallery/photos/${form.id}`, { method: "PUT", body: payload });
+        toast("Photo updated");
+      } else {
+        await apiFetch("/gallery/photos", { method: "POST", body: payload });
+        toast("Photo added");
+      }
+
+      setModal(false);
+      load();
+    } catch (e) {
+      toast(e.message);
+    }
   };
 
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -973,7 +985,7 @@ function GalleryPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery</h1>
-        <button className="btn btn-primary" onClick={() => { setForm({ alt: "", album: "Church", height: 400, image_file: null }); setModal(true); }}>+ Add Photo</button>
+        <button className="btn btn-primary" onClick={() => { setForm({ id: null, alt: "", album: "Church", height: 400, image_file: null, src: "" }); setModal(true); }}>+ Add Photo</button>
       </div>
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : photos.length === 0 ? <div className="empty">No photos yet.</div> : (
@@ -983,12 +995,18 @@ function GalleryPanel({ toast }) {
               {photos.map(p => (
                 <tr key={p.id}>
                   <td>
-                    <img src={p.src} alt={p.alt || ""} style={{ width: 80, height: 55, objectFit: "cover", border: "1px solid #E0DDD8" }}
+                    <img src={p.src} alt={p.alt || ""} style={{ width: 140, maxHeight: 90, objectFit: "contain", border: "1px solid #E0DDD8", background: "#F8F5F0" }}
                       onError={e => { e.target.style.display = "none"; }} />
                   </td>
                   <td>{p.alt || <span style={{ color: "#bbb" }}>—</span>}</td>
                   <td><span className="badge badge-gray">{p.album}</span></td>
-                  <td><button className="btn btn-danger" onClick={() => setConfirm(p.id)}>Delete</button></td>
+                  <td>
+                    <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => {
+                      setForm({ id: p.id, alt: p.alt || "", album: p.album || "Church", height: 400, image_file: null, src: p.src });
+                      setModal(true);
+                    }}>Edit</button>
+                    <button className="btn btn-danger" onClick={() => setConfirm(p.id)}>Delete</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -997,7 +1015,7 @@ function GalleryPanel({ toast }) {
       </div>
 
       {modal && (
-        <Modal title="Add Photo" onClose={() => setModal(false)}>
+        <Modal title={form.id ? "Edit Photo" : "Add Photo"} onClose={() => setModal(false)}>
           <div className="form-row"><label>Upload From Device *</label><input type="file" accept="image/*" onChange={e => F("image_file", e.target.files?.[0] || null)} /></div>
           <div className="form-row"><label>Alt Text</label><input type="text" value={form.alt} onChange={e => F("alt", e.target.value)} /></div>
           <div className="form-row">
