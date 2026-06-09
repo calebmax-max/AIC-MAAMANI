@@ -24,6 +24,35 @@ const globalStyle = `
   ::-webkit-scrollbar-thumb { background: ${C.mid}; border-radius: 3px; }
   @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
   @keyframes lineGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 640px) {
+
+    /* Nav */
+    .about-nav { padding: 0 1.25rem !important; }
+    .nav-links { display: none !important; }
+
+    /* Timeline: hide spine, stack rows cleanly */
+    .timeline-row { display: flex !important; flex-direction: column !important; padding-bottom: 1.75rem !important; margin-bottom: 0 !important; }
+    .timeline-year-col { text-align: left !important; padding-right: 0 !important; padding-bottom: 0.3rem !important; }
+    .timeline-dot { display: none !important; }
+    .timeline-spine { display: none !important; }
+
+    /* Vision & Mission: stack */
+    .grid-2 { grid-template-columns: 1fr !important; }
+    .values-grid { grid-template-columns: 1fr !important; }
+
+    /* Meet the Pastor: photo first, bio second */
+    .about-hero-grid { display: flex !important; flex-direction: column !important; gap: 2rem !important; }
+    .pastor-photo-col { order: 1 !important; }
+    .pastor-bio-col { order: 2 !important; }
+
+    /* Leadership team: left-align description */
+    .leadership-desc { text-align: left !important; max-width: 100% !important; }
+
+    /* Accordion: less indent */
+    .accordion-body { padding-left: 1rem !important; }
+  }
 `;
 
 // ── Reusable section label ──────────────────────────────
@@ -79,7 +108,7 @@ function Nav() {
       display:"flex", alignItems:"center", justifyContent:"space-between"
     }}>
       <a href="#home" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
-        <span style={{ color: C.copper }}>◈</span> Grace Covenant
+        <span style={{ color: C.copper }}>◈</span> AIC MAAMANI
       </a>
       <button
         type="button"
@@ -140,7 +169,7 @@ function PageHero() {
       <div style={{ position:"relative", animation:"fadeUp 0.8s ease both" }}>
         <SectionLabel text="Our Story" />
         <h1 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(3rem,8vw,6rem)", fontWeight:400, color:C.white, lineHeight:0.95, marginBottom:"1.25rem" }}>
-          About<br /><em style={{ color: C.copper, fontStyle:"italic" }}>Grace Covenant</em>
+          About<br /><em style={{ color: C.copper, fontStyle:"italic" }}>AIC MAAMANI</em>
         </h1>
         <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1.05rem", color:"rgba(255,255,255,0.5)", maxWidth:"520px", lineHeight:1.75 }}>
           A church planted in faith, grown through grace — serving Nairobi and the nations since 1998.
@@ -154,10 +183,10 @@ function PageHero() {
 const TIMELINE = [
   { year:"1998", title:"The Beginning", body:"Rev. Samuel Waweru and 14 founding members gather in a living room in Westlands to pray, study Scripture, and believe God for something bigger." },
   { year:"2002", title:"First Building", body:"After four years in rented halls, the congregation moves into its first permanent home on Ngong Road — a 200-seat space that fills up within months." },
-  { year:"2007", title:"Planting Missions", body:"Grace Covenant sends its first missionary family to South Sudan, beginning a cross-cultural outreach ministry now active in 12 nations." },
+  { year:"2007", title:"Planting Missions", body:"AIC MAAMANI sends its first missionary family to South Sudan, beginning a cross-cultural outreach ministry now active in 12 nations." },
   { year:"2013", title:"Upper Hill Campus", body:"The current 1,400-seat sanctuary in Upper Hill is consecrated, becoming a landmark of faith in Nairobi's heart." },
   { year:"2019", title:"City & Online", body:"Live-streamed services launch and reach 40+ countries. A second campus opens in Rongai to serve the growing south Nairobi community." },
-  { year:"2024", title:"Today", body:"With over 2,400 members, 14 active ministries, and a heart for the city, Grace Covenant continues to grow — one life at a time." },
+  { year:"2024", title:"Today", body:"With over 2,400 members, 14 active ministries, and a heart for the city, AIC MAAMANI continues to grow — one life at a time." },
 ];
 
 function Timeline() {
@@ -173,17 +202,19 @@ function Timeline() {
         </div>
         <div ref={ref} style={{ position:"relative" }}>
           {/* vertical spine */}
-          <div style={{ position:"absolute", left:"118px", top:0, bottom:0, width:"1px", background:`rgba(95,94,90,0.2)` }} />
+          <div className="timeline-spine" style={{ position:"absolute", left:"118px", top:0, bottom:0, width:"1px", background:`rgba(95,94,90,0.2)` }} />
           {TIMELINE.map((item, i) => (
             <div key={item.year} className="timeline-row" style={{
+              display:"grid", gridTemplateColumns:"118px 1fr", gap:"0",
+              paddingBottom:"2.5rem",
               opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
               transition:`opacity 0.5s ${i * 0.1}s, transform 0.5s ${i * 0.1}s`
             }}>
               {/* year col */}
-              <div style={{ textAlign:"right", paddingRight:"1.5rem", paddingTop:"4px", position:"relative" }}>
+              <div className="timeline-year-col" style={{ textAlign:"right", paddingRight:"1.5rem", paddingTop:"4px", position:"relative" }}>
                 <span style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.5rem", color: item.year === "2024" ? C.copper : C.mid, fontWeight:400 }}>{item.year}</span>
                 {/* dot on spine */}
-                <div style={{
+                <div className="timeline-dot" style={{
                   position:"absolute", right:"-6px", top:"10px",
                   width:"11px", height:"11px", borderRadius:"50%",
                   background: item.year === "2024" ? C.copper : C.stone,
@@ -192,7 +223,7 @@ function Timeline() {
                 }} />
               </div>
               {/* content col */}
-              <div style={{ paddingBottom:"0.5rem" }}>
+              <div style={{ paddingLeft:"1.5rem", paddingBottom:"0.5rem" }}>
                 <h3 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.2rem", color: C.charcoal, marginBottom:"0.4rem" }}>{item.title}</h3>
                 <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.9rem", lineHeight:1.8, color: C.mid }}>{item.body}</p>
               </div>
@@ -313,7 +344,7 @@ function Accordion() {
                   maxHeight: isOpen ? "200px" : "0",
                   transition:"max-height 0.4s ease",
                 }}>
-                  <div style={{ padding:"0 0 1.5rem 2.5rem" }}>
+                  <div className="accordion-body" style={{ padding:"0 0 1.5rem 2.5rem" }}>
                     <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.85, color: C.mid, marginBottom:"0.5rem" }}>{b.body}</p>
                     <span style={{ fontFamily:"'DM Serif Display', serif", fontStyle:"italic", fontSize:"0.85rem", color: C.copper }}>{b.ref}</span>
                   </div>
@@ -333,7 +364,7 @@ function MeetPastor() {
     <section style={{ background: C.light, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
       <div className="about-hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"min(340px, 100%) 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
         {/* photo placeholder */}
-        <div>
+        <div className="pastor-photo-col">
           <div style={{
             width:"100%", aspectRatio:"3/4",
             background: C.stone,
@@ -351,7 +382,7 @@ function MeetPastor() {
           </div>
         </div>
         {/* bio */}
-        <div>
+        <div className="pastor-bio-col">
           <SectionLabel text="Meet the Pastor" />
           <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(1.8rem,3.5vw,2.8rem)", color: C.charcoal, lineHeight:1.15, marginBottom:"1.75rem" }}>
             A shepherd with<br />a heart for the city.
@@ -369,7 +400,7 @@ function MeetPastor() {
             Samuel Waweru was born in Nyeri and came to faith at the age of 19 while studying at the University of Nairobi. He went on to earn a Bachelor of Theology from Pan Africa Christian University and a Master of Divinity from Wheaton College, Illinois.
           </p>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"1rem" }}>
-            After serving as an associate pastor in Mombasa for five years, he returned to Nairobi with a mandate to plant a church that would be a home for the spiritually hungry and the socially marginalized alike. Grace Covenant was that church.
+            After serving as an associate pastor in Mombasa for five years, he returned to Nairobi with a mandate to plant a church that would be a home for the spiritually hungry and the socially marginalized alike. AIC MAAMANI was that church.
           </p>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"2rem" }}>
             He is married to Grace (the church jokes that the name was prophetic), and they have three children: Caleb, Naomi, and Ruth. He is an avid reader, an occasional long-distance runner, and a devoted fan of Kenyan coffee.
@@ -487,7 +518,7 @@ function LeadershipTeam() {
             <SectionLabel text="The Team" />
             <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(2rem,4vw,3rem)", color: C.charcoal }}>Leadership Team</h2>
           </div>
-          <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.88rem", color: C.mid, maxWidth:"320px", lineHeight:1.7, textAlign:"right" }}>
+          <p className="leadership-desc" style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.88rem", color: C.mid, maxWidth:"320px", lineHeight:1.7, textAlign:"right" }}>
             Our elders, deacons, and ministry leads are men and women who serve with humility, integrity, and love.
           </p>
         </div>
@@ -511,7 +542,7 @@ function Footer() {
   return (
     <footer style={{ background: C.dark, borderTop:`1px solid rgba(239,159,39,0.12)`, padding:"3rem 2.5rem", textAlign:"center" }}>
       <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.35rem", color:C.white, marginBottom:"0.4rem", display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem" }}>
-        <span style={{ color: C.copper }}>◈</span> Grace Covenant
+        <span style={{ color: C.copper }}>◈</span> AIC MAAMANI
       </div>
       <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.73rem", letterSpacing:"0.12em", color:"rgba(255,255,255,0.3)", marginBottom:"1.75rem" }}>
         A Church for Every Soul · Upper Hill, Nairobi
@@ -560,7 +591,7 @@ function Footer() {
         </a>
       </div>
       <div style={{ marginTop:"2rem", fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.63rem", letterSpacing:"0.1em", color:"rgba(255,255,255,0.18)" }}>
-        © 2025 Grace Covenant Church. Built with faith & care.
+        © 2025 AIC MAAMANI Church. Built with faith & care.
       </div>
     </footer>
   );
