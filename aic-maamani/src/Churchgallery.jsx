@@ -13,7 +13,7 @@ const PALETTE = {
   surfaceMuted: "#E8E6E3",
 };
 
-const DEFAULT_ALBUMS = ["All"];
+// DEFAULT_ALBUMS removed — album options are derived from photos
 
 function mockPhoto(w, h, bg, label, icon) {
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>
