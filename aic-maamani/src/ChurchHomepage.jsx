@@ -20,6 +20,20 @@ const globalStyle = `
   ::-webkit-scrollbar { width: 5px; }
   ::-webkit-scrollbar-track { background: ${LIGHT}; }
   ::-webkit-scrollbar-thumb { background: ${MID}; border-radius: 3px; }
+
+  .church-nav { padding: 0 2.5rem; }
+  .nav-inner { display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%; }
+  .nav-links { display: flex; gap: 2.2rem; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
+  .nav-cta { font-family: 'DM Sans', sans-serif; font-weight: 500; letter-spacing: 0.12em; font-size: 0.75rem; text-transform: uppercase; color: ${CHARCOAL}; background: ${COPPER}; padding: 0.5rem 1.4rem; text-decoration: none; transition: background 0.2s; }
+  .nav-link { font-family: 'DM Sans', sans-serif; font-weight: 400; letter-spacing: 0.1em; font-size: 0.78rem; text-transform: uppercase; color: rgba(255,255,255,0.7); text-decoration: none; transition: color 0.2s; }
+  .nav-link:hover { color: ${COPPER}; }
+
+  @media (max-width: 768px) {
+    .church-nav { padding: 0 1rem; }
+    .nav-inner { flex-direction: column; align-items: stretch; justify-content: center; padding: 0.85rem 0; height: auto; }
+    .nav-links { justify-content: center; gap: 0.9rem; }
+    .nav-cta { width: 100%; text-align: center; }
+  }
 `;
 
 function useCountUp(target, duration = 2000, start = false) {
@@ -85,39 +99,26 @@ export default function ChurchHomepage({ showNav = true } = {}) {
 
       {/* ── NAV ── */}
       {showNav && (
-      <nav style={{
+      <nav className="church-nav" style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         background: scrolled ? "rgba(44,44,42,0.96)" : "transparent",
         borderBottom: scrolled ? `1px solid rgba(239,159,39,0.18)` : "none",
         backdropFilter: scrolled ? "blur(14px)" : "none",
         transition: "all 0.35s ease",
-        padding: "0 2.5rem",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        height: "68px"
+        minHeight: "68px"
       }}>
-        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", color: WHITE, letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
-          <span style={{ color: COPPER, fontSize: "1.1rem" }}>◈</span> AIC MAAMANI
-        </div>
-        <div style={{ display: "flex", gap: "2.2rem", alignItems: "center" }}>
-          {NAV_LINKS.map(({ id, label }) => (
-            <a key={id} href={`#${id}`} style={{
-              fontFamily: "'DM Sans', sans-serif", fontWeight: 400, letterSpacing: "0.1em",
-              fontSize: "0.78rem", textTransform: "uppercase", color: "rgba(255,255,255,0.7)",
-              textDecoration: "none", transition: "color 0.2s"
-            }}
-              onMouseEnter={e => { e.target.style.color = COPPER; }}
-              onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.7)"; }}
-            >{label}</a>
-          ))}
-          <a href="#contact" style={{
-            fontFamily: "'DM Sans', sans-serif", fontWeight: 500, letterSpacing: "0.12em",
-            fontSize: "0.75rem", textTransform: "uppercase", color: CHARCOAL,
-            background: COPPER, padding: "0.5rem 1.4rem",
-            textDecoration: "none", transition: "background 0.2s"
-          }}
-            onMouseEnter={e => { e.target.style.background = "#d48e1f"; }}
-            onMouseLeave={e => { e.target.style.background = COPPER; }}
-          >Contact Us</a>
+        <div className="nav-inner">
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", color: WHITE, letterSpacing: "0.02em", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span style={{ color: COPPER, fontSize: "1.1rem" }}>◈</span> AIC MAAMANI
+          </div>
+          <div className="nav-links">
+            {NAV_LINKS.map(({ id, label }) => (
+              <a key={id} className="nav-link" href={`#${id}`}>
+                {label}
+              </a>
+            ))}
+            <a href="#contact" className="nav-cta">Contact Us</a>
+          </div>
         </div>
       </nav>
       )}
@@ -250,7 +251,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
               fontSize: "4.5rem", color: MID
             }}>◈</div>
             <div style={{ textAlign: "center" }}>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.05rem", color: CHARCOAL }}>Rev. Daniel Mutinda</div>
+              <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.05rem", color: CHARCOAL }}>Pr. Daniel Mutinda</div>
               <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER, marginTop: "0.3rem" }}>Senior Pastor</div>
             </div>
           </div>
@@ -268,7 +269,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID }}>
              Come tired. Come curious. Just come.
             </p>
-            <div style={{ marginTop: "1.5rem", fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: COPPER }}>— Rev. Daniel Mutinda</div>
+            <div style={{ marginTop: "1.5rem", fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: COPPER }}>— Pr. Daniel Mutinda</div>
           </div>
         </div>
       </section>
