@@ -132,6 +132,45 @@ function SharedNav({ current }) {
   );
 }
 
+/* ── Shared footer ───────────────────────────────────────────── */
+function SharedFooter() {
+  return (
+    <footer className="site-footer" style={{ background: "#1A1918", borderTop: "1px solid rgba(239,159,39,0.12)", padding: "3rem 2.5rem", textAlign: "center" }}>
+      <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.35rem", color: "#fff", marginBottom: "0.4rem", display: "flex", alignItems: "center", justifyContent: "center", gap: "0.5rem" }}>
+        <span style={{ color: COPPER }}>◇</span> AIC MAAMANI
+      </div>
+      <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.73rem", letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", marginBottom: "1.75rem" }}>
+        A Church for Every Soul · Upper Hill, Nairobi
+      </p>
+      <div className="footer-links">
+        {NAV_ITEMS.map(({ id, label }) => (
+          <a key={id} href={`#${id}`} style={{
+            fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem",
+            letterSpacing: "0.14em", textTransform: "uppercase",
+            color: "rgba(255,255,255,0.35)", textDecoration: "none", transition: "color 0.2s"
+          }}
+            onMouseEnter={e => { e.target.style.color = COPPER; }}
+            onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.35)"; }}
+          >{label}</a>
+        ))}
+        <a href="#admin" aria-label="Admin panel" title="Admin panel" style={{
+          width: "30px", height: "30px", borderRadius: "50%",
+          border: "1px solid rgba(239,159,39,0.28)", display: "inline-flex",
+          alignItems: "center", justifyContent: "center",
+          color: "rgba(255,255,255,0.35)", textDecoration: "none",
+          transition: "all 0.2s", fontSize: "0.82rem",
+        }}
+          onMouseEnter={e => { e.currentTarget.style.color = COPPER; e.currentTarget.style.borderColor = COPPER; e.currentTarget.style.background = "rgba(239,159,39,0.08)"; }}
+          onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.35)"; e.currentTarget.style.borderColor = "rgba(239,159,39,0.28)"; e.currentTarget.style.background = "transparent"; }}
+        >◈</a>
+      </div>
+      <div style={{ marginTop: "2rem", fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.63rem", letterSpacing: "0.1em", color: "rgba(255,255,255,0.18)" }}>
+        © 2025 AIC MAAMANI Church. Built with faith & care.
+      </div>
+    </footer>
+  );
+}
+
 /* ── Root app ────────────────────────────────────────────────── */
 export default function App() {
   const route          = useHashRoute();
@@ -155,7 +194,6 @@ export default function App() {
 
       {/* ── Page content ─────────────────────────────── */}
       <main
-        className="page-shell"
         style={{
           /* push content below fixed nav on all non-home, non-admin pages */
           paddingTop: !isAdmin && !isHome ? "var(--nav-h)" : 0,
@@ -163,6 +201,9 @@ export default function App() {
       >
         <RouteComponent showNav={false} />
       </main>
+
+      {/* ── Shared footer (hidden on admin) ──────────── */}
+      {!isAdmin && <SharedFooter />}
     </>
   );
 }
