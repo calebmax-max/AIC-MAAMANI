@@ -354,15 +354,20 @@ export default function ChurchGallery() {
   const [activeAlbum, setActiveAlbum] = useState("All");
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [photos, setPhotos] = useState(fallbackPhotos);
+  const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState(fallbackVideos);
+  const [loadingGallery, setLoadingGallery] = useState(true);
 
   useEffect(() => {
     let mounted = true;
 
     fetchJson("/api/gallery/photos")
       .then((data) => {
-        if (!mounted || !Array.isArray(data) || !data.length) return;
+        if (!mounted) return;
+        if (!Array.isArray(data) || !data.length) {
+          setPhotos(fallbackPhotos);
+          return;
+        }
         setPhotos(
           data.map((photo) => {
             const source = photo.src || photo.url || photo.image_url || photo.photo_url || "";
@@ -378,6 +383,9 @@ export default function ChurchGallery() {
       })
       .catch(() => {
         if (mounted) setPhotos(fallbackPhotos);
+      })
+      .finally(() => {
+        if (mounted) setLoadingGallery(false);
       });
 
     fetchJson("/api/gallery/videos")
@@ -531,11 +539,28 @@ export default function ChurchGallery() {
               fontSize: "12px", color: PALETTE.secondary,
               margin: "0 0 20px",
             }}>
-              Showing {filtered.length} photo{filtered.length !== 1 ? "s" : ""}
-              {activeAlbum !== "All" ? ` in "${activeAlbum}"` : ""}
+              {loadingGallery
+                ? "Loading gallery..."
+                : `Showing ${filtered.length} photo${filtered.length !== 1 ? "s" : ""}${activeAlbum !== "All" ? ` in "${activeAlbum}"` : ""}`}
             </p>
 
-            <MasonryGrid photos={filtered} onPhotoClick={openLightbox} />
+            {loadingGallery ? (
+              <div style={{
+                minHeight: "220px",
+                borderRadius: "16px",
+                background: "rgba(239,159,39,0.08)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: PALETTE.secondary,
+                fontFamily: "'DM Sans', sans-serif",
+                fontSize: "14px",
+              }}>
+                Loading gallery...
+              </div>
+            ) : (
+              <MasonryGrid photos={filtered} onPhotoClick={openLightbox} />
+            )}
           </>
         )}
 
