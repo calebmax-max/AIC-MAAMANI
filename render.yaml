@@ -31,7 +31,7 @@ services:
       - key: AIC_MAAMANI_SESSION_SECURE
         value: "true"
       - key: AIC_MAAMANI_SESSION_SAMESITE
-        value: lax
+        value: none
       - key: AIC_MAAMANI_SESSION_MAX_AGE_SECONDS
         value: "28800"
 
