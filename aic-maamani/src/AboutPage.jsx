@@ -585,6 +585,7 @@ export default function AboutPage({ showNav = true } = {}) {
       <Accordion />
       <MeetPastor />
       <LeadershipTeam />
+      <Footer />
     </>
   );
 }
