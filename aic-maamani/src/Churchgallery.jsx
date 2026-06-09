@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { fetchJson } from "./api";
+import { fetchJson, API_BASE } from "./api";
 
 const PALETTE = {
   bg: "#F2F1EF",
@@ -22,6 +22,15 @@ function mockPhoto(w, h, bg, label, icon) {
     <text x='50%' y='62%' font-family='Georgia,serif' font-size='13' fill='white' opacity='0.5' text-anchor='middle' dominant-baseline='middle'>${label}</text>
   </svg>`;
   return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
+function resolveGalleryUrl(src) {
+  if (!src) return "";
+  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) {
+    return src;
+  }
+  const base = API_BASE.replace(/\/$/, "");
+  return `${base}${src}`;
 }
 
 const PHOTO_STYLES = [
@@ -355,13 +364,16 @@ export default function ChurchGallery() {
       .then((data) => {
         if (!mounted || !Array.isArray(data) || !data.length) return;
         setPhotos(
-          data.map((photo) => ({
-            id: photo.id,
-            album: photo.album || "Worship",
-            src: photo.src || photo.url || photo.image_url || photo.photo_url || "",
-            alt: photo.alt || photo.caption || photo.title || "Gallery photo",
-            h: photo.height || photo.h || 320,
-          }))
+          data.map((photo) => {
+            const source = photo.src || photo.url || photo.image_url || photo.photo_url || "";
+            return {
+              id: photo.id,
+              album: photo.album || "Worship",
+              src: resolveGalleryUrl(source),
+              alt: photo.alt || photo.caption || photo.title || "Gallery photo",
+              h: photo.height || photo.h || 320,
+            };
+          })
         );
       })
       .catch(() => {
