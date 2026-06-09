@@ -212,61 +212,7 @@ function PageHero() {
   );
 }
 
-// ── OUR STORY + TIMELINE ─────────────────────────────────
-const TIMELINE = [
-  { year:"1998", title:"The Beginning", body:"Rev. Samuel Waweru and 14 founding members gather in a living room in Westlands to pray, study Scripture, and believe God for something bigger." },
-  { year:"2002", title:"First Building", body:"After four years in rented halls, the congregation moves into its first permanent home on Ngong Road — a 200-seat space that fills up within months." },
-  { year:"2007", title:"Planting Missions", body:"AIC MAAMANI sends its first missionary family to South Sudan, beginning a cross-cultural outreach ministry now active in 12 nations." },
-  { year:"2013", title:"Upper Hill Campus", body:"The current 1,400-seat sanctuary in Upper Hill is consecrated, becoming a landmark of faith in Nairobi's heart." },
-  { year:"2019", title:"City & Online", body:"Live-streamed services launch and reach 40+ countries. A second campus opens in Rongai to serve the growing south Nairobi community." },
-  { year:"2024", title:"Today", body:"With over 2,400 members, 14 active ministries, and a heart for the city, AIC MAAMANI continues to grow — one life at a time." },
-];
 
-function Timeline() {
-  const [ref, visible] = useInView(0.1);
-  return (
-    <section style={{ background: C.light, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
-      <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
-        <div style={{ marginBottom:"4rem" }}>
-          <SectionLabel text="Our History" />
-          <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(2rem,4vw,3rem)", color: C.charcoal }}>
-            How We Got Here
-          </h2>
-        </div>
-        <div ref={ref} style={{ position:"relative" }}>
-          {/* vertical spine */}
-          <div className="timeline-spine" style={{ position:"absolute", left:"118px", top:0, bottom:0, width:"1px", background:`rgba(95,94,90,0.2)` }} />
-          {TIMELINE.map((item, i) => (
-            <div key={item.year} className="timeline-row" style={{
-              display:"grid", gridTemplateColumns:"118px 1fr", gap:"0",
-              paddingBottom:"2.5rem",
-              opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-              transition:`opacity 0.5s ${i * 0.1}s, transform 0.5s ${i * 0.1}s`
-            }}>
-              {/* year col */}
-              <div className="timeline-year-col" style={{ textAlign:"right", paddingRight:"1.5rem", paddingTop:"4px", position:"relative" }}>
-                <span style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.5rem", color: item.year === "2024" ? C.copper : C.mid, fontWeight:400 }}>{item.year}</span>
-                {/* dot on spine */}
-                <div className="timeline-dot" style={{
-                  position:"absolute", right:"-6px", top:"10px",
-                  width:"11px", height:"11px", borderRadius:"50%",
-                  background: item.year === "2024" ? C.copper : C.stone,
-                  border: `2px solid ${item.year === "2024" ? C.copper : C.mid}`,
-                  zIndex:1
-                }} />
-              </div>
-              {/* content col */}
-              <div style={{ paddingLeft:"1.5rem", paddingBottom:"0.5rem" }}>
-                <h3 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.2rem", color: C.charcoal, marginBottom:"0.4rem" }}>{item.title}</h3>
-                <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.9rem", lineHeight:1.8, color: C.mid }}>{item.body}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
 
 // ── VISION & MISSION ─────────────────────────────────────
 const VALUES = [
@@ -410,7 +356,7 @@ function MeetPastor() {
           </div>
           {/* name plate */}
           <div style={{ marginTop:"1.25rem", paddingLeft:"0.25rem" }}>
-            <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.3rem", color: C.charcoal }}>Rev. Samuel Waweru</div>
+            <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.3rem", color: C.charcoal }}>Pr. Daniel Mutinda</div>
             <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:"0.68rem", letterSpacing:"0.18em", textTransform:"uppercase", color: C.copper, marginTop:"0.3rem" }}>Senior Pastor · Lead Elder</div>
           </div>
         </div>
@@ -430,17 +376,14 @@ function MeetPastor() {
             </p>
           </blockquote>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"1rem" }}>
-            Samuel Waweru was born in Nyeri and came to faith at the age of 19 while studying at the University of Nairobi. He went on to earn a Bachelor of Theology from Pan Africa Christian University and a Master of Divinity from Wheaton College, Illinois.
-          </p>
-          <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"1rem" }}>
-            After serving as an associate pastor in Mombasa for five years, he returned to Nairobi with a mandate to plant a church that would be a home for the spiritually hungry and the socially marginalized alike. AIC MAAMANI was that church.
+            Pastor Daniel Mutinda has served in full-time ministry for over two decades, with a calling rooted in expository preaching, discipleship, and community transformation. He holds a Bachelor of Theology from Pan Africa Christian University and has pursued advanced ministerial training focused on church leadership and urban mission.
           </p>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"2rem" }}>
-            He is married to Grace (the church jokes that the name was prophetic), and they have three children: Caleb, Naomi, and Ruth. He is an avid reader, an occasional long-distance runner, and a devoted fan of Kenyan coffee.
+            Under his leadership, AIC MAAMANI has grown into a vibrant, multigenerational congregation committed to sound doctrine, active service, and reaching the unreached in Kitui and beyond. Pastor Daniel is known for his accessible teaching style, pastoral accessibility, and deep commitment to equipping every believer for ministry — not just the ordained few.
           </p>
           {/* credentials row */}
           <div style={{ display:"flex", gap:"2rem", flexWrap:"wrap" }}>
-            {["B.Th · Pan Africa Christian University","M.Div · Wheaton College, IL","26 Years in Ministry"].map(t => (
+            {["B.Th · Pan Africa Christian University","20+ Years in Ministry","Senior Pastor · AIC MAAMANI"].map(t => (
               <div key={t} style={{ padding:"0.55rem 1rem", border:`1px solid rgba(95,94,90,0.25)` }}>
                 <span style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.73rem", color: C.mid }}>{t}</span>
               </div>
@@ -638,7 +581,6 @@ export default function AboutPage({ showNav = true } = {}) {
       <style>{globalStyle}</style>
       {showNav && <Nav />}
       <PageHero />
-      <Timeline />
       <VisionMission />
       <Accordion />
       <MeetPastor />
