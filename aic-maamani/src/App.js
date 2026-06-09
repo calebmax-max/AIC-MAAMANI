@@ -57,14 +57,14 @@ function SharedNav({ current }) {
   }, []);
 
   return (
-    <nav
+    <nav className="shared-nav"
       style={{
         position: "fixed",
         top: 0,
         left: 0,
         right: 0,
         zIndex: 200,
-        height: "68px",
+        minHeight: "68px",
         background: current === "home" && !scrolled ? "transparent" : CHARCOAL,
         borderBottom:
           current === "home" && !scrolled
@@ -95,8 +95,9 @@ function SharedNav({ current }) {
         <span style={{ color: COPPER }}>◇</span> AIC MAAMANI
       </a>
 
-      <div style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
-        {NAV_ITEMS.map(({ id, label }) => {
+      <div className="nav-inner" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+        <div className="nav-links" style={{ display: "flex", gap: "2rem", alignItems: "center" }}>
+          {NAV_ITEMS.map(({ id, label }) => {
           const active = current === id;
           const linkColor =
             current === "home" && !scrolled
@@ -110,6 +111,7 @@ function SharedNav({ current }) {
           return (
             <a
               key={id}
+              className="nav-link"
               href={`#${id}`}
               style={{
                 fontFamily: "'DM Sans', sans-serif",
@@ -138,7 +140,8 @@ function SharedNav({ current }) {
           );
         })}
       </div>
-    </nav>
+    </div>
+  </nav>
   );
 }
 
@@ -162,11 +165,45 @@ export default function App() {
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-thumb { background: ${MID}; border-radius: 3px; }
         a { -webkit-tap-highlight-color: transparent; }
+
+        .page-shell { width: min(1200px, 100%); margin: 0 auto; }
+        .page-shell > section { width: 100%; }
+        .grid-stack { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem; }
+        .timeline-row { display: grid; grid-template-columns: 118px 1fr; gap: 0 2.5rem; }
+        .timeline-row .timeline-meta { text-align: right; padding-right: 1.5rem; }
+        .timeline-row .timeline-dot { position: absolute; right: -6px; top: 10px; }
+        .hero-grid { display: grid; grid-template-columns: 340px 1fr; gap: 5rem; align-items: start; }
+        .values-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+        .contact-form .form-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .contact-form .form-row.full { grid-template-columns: 1fr; }
+        .shared-nav .nav-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .shared-nav .nav-links { display: flex; flex-wrap: wrap; gap: 0.85rem; align-items: center; justify-content: flex-end; }
+        .shared-nav .nav-links a { white-space: nowrap; }
+        .shared-nav .nav-link { font-size: 0.75rem; }
+
+        @media (max-width: 1024px) {
+          .page-shell { padding: 0 1.2rem; }
+          .grid-stack { grid-template-columns: 1fr; }
+          .hero-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+          .values-grid { grid-template-columns: 1fr; }
+          .timeline-row { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 768px) {
+          nav.shared-nav { padding: 0 1rem; }
+          nav.shared-nav { min-height: auto; }
+          nav.shared-nav .nav-inner { flex-direction: column; align-items: stretch; justify-content: center; padding: 0.85rem 0; gap: 0.9rem; }
+          nav.shared-nav .nav-links { justify-content: center; gap: 0.75rem; }
+          nav.shared-nav .nav-link { font-size: 0.72rem; }
+          .contact-form .form-row { grid-template-columns: 1fr; }
+          .contact-form button { width: 100%; }
+          .page-shell { padding: 0 0.9rem; }
+        }
       `}</style>
 
       {route !== "admin" && <SharedNav current={route} />}
 
-      <main style={{ paddingTop: needsTopOffset && route !== "admin" ? "68px" : 0 }}>
+      <main className="page-shell" style={{ paddingTop: needsTopOffset && route !== "admin" ? "68px" : 0 }}>
         {route === "home" ? (
           <RouteComponent showNav={false} />
         ) : route === "about" ? (

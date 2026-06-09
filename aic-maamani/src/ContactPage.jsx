@@ -87,8 +87,8 @@ function ContactForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+    <form className="contact-form" onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <Field label="Full Name *" error={errors.name}>
           <input value={fields.name} onChange={set("name")} placeholder="Your name"
             style={inputBase(errors.name)}
@@ -102,7 +102,7 @@ function ContactForm() {
             onBlur={e => e.target.style.borderColor = errors.email ? "#C0392B" : "#D8D7D4"} />
         </Field>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <Field label="Phone (optional)" error={null}>
           <input value={fields.phone} onChange={set("phone")} placeholder="+254 700 000 000"
             style={inputBase(false)}

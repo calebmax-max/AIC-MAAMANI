@@ -153,9 +153,7 @@ function Timeline() {
           {/* vertical spine */}
           <div style={{ position:"absolute", left:"118px", top:0, bottom:0, width:"1px", background:`rgba(95,94,90,0.2)` }} />
           {TIMELINE.map((item, i) => (
-            <div key={item.year} style={{
-              display:"grid", gridTemplateColumns:"118px 1fr",
-              gap:"0 2.5rem", marginBottom:"3rem",
+            <div key={item.year} className="timeline-row" style={{
               opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
               transition:`opacity 0.5s ${i * 0.1}s, transform 0.5s ${i * 0.1}s`
             }}>
@@ -197,7 +195,7 @@ function VisionMission() {
   return (
     <section style={{ background: C.charcoal, padding:"6rem 2.5rem" }}>
       <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"5rem", alignItems:"start" }}>
+        <div className="grid-stack" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"5rem", alignItems:"start" }}>
           {/* left: big statement */}
           <div>
             <SectionLabel text="Vision & Mission" />
@@ -218,7 +216,7 @@ function VisionMission() {
             </div>
           </div>
           {/* right: values grid */}
-          <div ref={ref} style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1.25rem" }}>
+          <div ref={ref} className="values-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1.25rem" }}>
             {VALUES.map((v, i) => (
               <div key={v.label} style={{
                 background:"rgba(255,255,255,0.04)", border:`1px solid rgba(239,159,39,0.12)`,
@@ -311,7 +309,7 @@ function Accordion() {
 function MeetPastor() {
   return (
     <section style={{ background: C.light, padding:"6rem 2.5rem" }}>
-      <div style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"340px 1fr", gap:"5rem", alignItems:"start" }}>
+      <div className="hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"340px 1fr", gap:"5rem", alignItems:"start" }}>
         {/* photo placeholder */}
         <div>
           <div style={{
