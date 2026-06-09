@@ -17,6 +17,7 @@ from about import router as about_router
 from migrations import ensure_media_columns
 from storage import UPLOADS_DIR, ensure_upload_dirs
 from seed import seed_database
+from token_auth import verify_token as verify_jwt_token
 
 app = FastAPI(
     title="AIC Maamani Church API",

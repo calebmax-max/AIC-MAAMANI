@@ -72,13 +72,16 @@ async function apiFetch(path, opts = {}) {
   const isFormData = typeof FormData !== "undefined" && opts.body instanceof FormData;
   const { headers: customHeaders, ...restOpts } = opts;
   const hasJsonBody = !isFormData && restOpts.body !== undefined && restOpts.body !== null;
+  const token = typeof window !== 'undefined' ? localStorage.getItem('aic_maamani_token') : null;
+  const headers = {
+    ...(hasJsonBody ? { "Content-Type": "application/json" } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...customHeaders,
+  };
   const res = await fetch(`${API}${path}`, {
     ...restOpts,
-    credentials: "include",
-    headers: {
-      ...(hasJsonBody ? { "Content-Type": "application/json" } : {}),
-      ...customHeaders,
-    },
+    credentials: token ? "omit" : "include",
+    headers,
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({ detail: res.statusText }));
@@ -1313,6 +1316,8 @@ export default function AdminPanel() {
     } catch {
       // Best effort only; local state still clears.
     }
+    // Remove any token stored for token-based auth
+    try { localStorage.removeItem('aic_maamani_token'); } catch {}
     setAuthed(false);
     setCurrentUser(null);
     setPassword("");
@@ -1373,6 +1378,10 @@ export default function AdminPanel() {
         method: "POST",
         body: JSON.stringify({ username, password }),
       });
+      // If server returned a token, store it and use token-based auth going forward
+      if (data.token) {
+        localStorage.setItem('aic_maamani_token', data.token);
+      }
       setAuthed(true);
       setCurrentUser({ username: data.username || username, role: data.role || "full_admin" });
       setPassword("");

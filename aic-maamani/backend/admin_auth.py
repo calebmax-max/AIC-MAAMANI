@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from admin_security import create_password_record, verify_password
 from database import get_db
 from models import AdminUser, BlogPost, ContactMessage, Event, GalleryPhoto, GalleryVideo, Sermon, TeamMember
+from token_auth import create_access_token
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -21,6 +22,7 @@ class AdminLoginOut(BaseModel):
     detail: str = "Signed in"
     username: str
     role: str
+    token: str | None = None
 
 
 class AdminCurrentOut(BaseModel):
@@ -74,6 +76,26 @@ def require_admin(
     request: Request,
     db: Session = Depends(get_db),
 ) -> AdminUser:
+    # Try Authorization: Bearer <token> first (token-based auth)
+    auth_header = request.headers.get("authorization") or request.headers.get("Authorization")
+    if auth_header and auth_header.lower().startswith("bearer "):
+        token = auth_header.split(None, 1)[1]
+        try:
+            username, role = verify_jwt_token(token)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid or expired token",
+            )
+        user = db.query(AdminUser).filter(AdminUser.username == username, AdminUser.is_active.is_(True)).first()
+        if not user:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Admin authentication required",
+            )
+        return user
+
+    # Fallback to session cookie-based auth
     username = request.session.get(ADMIN_SESSION_KEY)
     if not username:
         raise HTTPException(
@@ -98,12 +120,13 @@ def login_admin(payload: AdminLoginIn, request: Request, db: Session = Depends(g
     if not user or not verify_password(payload.password, user.password_salt, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid admin credentials")
 
-    request.session[ADMIN_SESSION_KEY] = user.username
-    request.session["admin_role"] = user.role
+    # Create a JWT access token for token-based auth
+    token = create_access_token(user.username, user.role)
     return {
         "detail": "Signed in",
         "username": user.username,
         "role": user.role,
+        "token": token,
     }
 
 
