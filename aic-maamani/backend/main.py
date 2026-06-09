@@ -28,7 +28,7 @@ frontend_origins = [
     origin.strip()
     for origin in os.getenv(
         "AIC_MAAMANI_CORS_ORIGINS",
-        "http://localhost:3000,http://127.0.0.1:3000",
+        "https://aic-maamani-web.onrender.com,https://aic-maamani.vercel.app,http://localhost:3000,http://127.0.0.1:3000",
     ).split(",")
     if origin.strip()
 ]
