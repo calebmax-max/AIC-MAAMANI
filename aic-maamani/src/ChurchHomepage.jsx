@@ -195,11 +195,44 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       </section>
 
       {/* ── WELCOME MESSAGE ── */}
+      <style>{`
+        @media (max-width: 640px) {
+          .pastor-grid { display: flex !important; flex-direction: column !important; gap: 1.75rem !important; }
+          .pastor-image-col { order: 2 !important; align-self: center !important; }
+          .pastor-heading-col { order: 1 !important; }
+          .pastor-body-col { order: 3 !important; }
+          .split-layout { grid-template-columns: 1fr !important; }
+          .find-layout { grid-template-columns: 1fr !important; }
+          .map-frame { height: 260px !important; }
+          .sermon-layout { grid-template-columns: 1fr !important; }
+        }
+        @media (min-width: 641px) {
+          .pastor-body-col { display: none !important; }
+          .pastor-desktop-text { display: flex !important; }
+        }
+        @media (max-width: 640px) {
+          .pastor-desktop-text { display: none !important; }
+          .pastor-body-col { display: block !important; }
+        }
+      `}</style>
       <section style={{ background: LIGHT, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
-        <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "min(220px, 100%) 1fr", gap: "clamp(2rem, 5vw, 5rem)", alignItems: "center" }}
-          className="hero-layout"
+        <div
+          className="pastor-grid"
+          style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gridTemplateColumns: "min(220px, 100%) 1fr", gap: "clamp(2rem, 5vw, 5rem)", alignItems: "center" }}
         >
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
+          {/* MOBILE ONLY: Heading first (order 1) */}
+          <div className="pastor-heading-col" style={{ display: "none" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
+              <div style={{ width: "28px", height: "2px", background: COPPER }} />
+              <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.22em", textTransform: "uppercase", color: COPPER }}>A Word from the Pastor</span>
+            </div>
+            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(1.7rem,3.2vw,2.6rem)", fontWeight: 400, color: CHARCOAL, lineHeight: 1.2 }}>
+              You are not too broken,<br />too lost, or too late.
+            </h2>
+          </div>
+
+          {/* Image column (order 2 on mobile) */}
+          <div className="pastor-image-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
             <div style={{
               width: "160px", height: "190px",
               background: STONE,
@@ -212,7 +245,9 @@ export default function ChurchHomepage({ showNav = true } = {}) {
               <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER, marginTop: "0.3rem" }}>Senior Pastor</div>
             </div>
           </div>
-          <div>
+
+          {/* DESKTOP ONLY: Full text column */}
+          <div className="pastor-desktop-text" style={{ display: "none", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1.25rem" }}>
               <div style={{ width: "28px", height: "2px", background: COPPER }} />
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.22em", textTransform: "uppercase", color: COPPER }}>A Word from the Pastor</span>
@@ -220,6 +255,17 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(1.7rem,3.2vw,2.6rem)", fontWeight: 400, color: CHARCOAL, lineHeight: 1.2, marginBottom: "1.5rem" }}>
               You are not too broken,<br />too lost, or too late.
             </h2>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID, marginBottom: "1rem" }}>
+              AIC MAAMANI was founded on a single conviction: that the love of God meets people exactly where they are. Whether you're stepping inside a church for the first time or returning after years away — this is a place of radical welcome, honest community, and life-transforming faith.
+            </p>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID }}>
+             Come tired. Come curious. Just come.
+            </p>
+            <div style={{ marginTop: "1.5rem", fontFamily: "'DM Serif Display', serif", fontStyle: "italic", fontSize: "1.05rem", color: COPPER }}>— Pr. Daniel Mutinda</div>
+          </div>
+
+          {/* MOBILE ONLY: Body text last (order 3) */}
+          <div className="pastor-body-col" style={{ display: "none" }}>
             <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "1rem", lineHeight: 1.85, color: MID, marginBottom: "1rem" }}>
               AIC MAAMANI was founded on a single conviction: that the love of God meets people exactly where they are. Whether you're stepping inside a church for the first time or returning after years away — this is a place of radical welcome, honest community, and life-transforming faith.
             </p>
@@ -362,40 +408,69 @@ export default function ChurchHomepage({ showNav = true } = {}) {
 
       {/* ── LATEST BLOG ── */}
       <section id="blog" style={{ background: LIGHT, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
-        <div style={{ maxWidth: "1100px", margin: "0 auto", display: "grid", gridTemplateColumns: "1fr 1.65fr", gap: "clamp(2rem, 5vw, 5rem)", alignItems: "center" }} className="split-layout">
-          <div>
+        <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
+          {/* Section header */}
+          <div style={{ marginBottom: "2.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.6rem" }}>
               <div style={{ width: "22px", height: "2px", background: COPPER }} />
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.22em", textTransform: "uppercase", color: COPPER }}>Devotional</span>
             </div>
-            <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: CHARCOAL, marginBottom: "1rem" }}>From the Blog</h2>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.9rem", color: MID, lineHeight: 1.8, marginBottom: "1.5rem" }}>
+            <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: "1rem" }}>
+              <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: CHARCOAL }}>From the Blog</h2>
+              <a href="#blog" style={{
+                fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.73rem",
+                letterSpacing: "0.15em", textTransform: "uppercase", color: COPPER2,
+                textDecoration: "none", borderBottom: `1px solid ${COPPER2}`, paddingBottom: "2px"
+              }}>Read All Posts →</a>
+            </div>
+            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.9rem", color: MID, lineHeight: 1.8, marginTop: "0.75rem" }}>
               Weekly reflections, pastoral letters, and devotionals to nourish your faith between Sundays.
             </p>
-            <a href="#blog" style={{
-              fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.73rem",
-              letterSpacing: "0.15em", textTransform: "uppercase", color: COPPER2,
-              textDecoration: "none", borderBottom: `1px solid ${COPPER2}`, paddingBottom: "2px"
-            }}>Read All Posts →</a>
           </div>
-          <div style={{
-            background: WHITE, border: `1px solid rgba(95,94,90,0.15)`,
-            padding: "2.5rem",
-            borderLeft: `4px solid ${COPPER}`
-          }}>
-            <span style={{ background: CHARCOAL, color: COPPER, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "4px 10px", display: "inline-block", marginBottom: "1.1rem" }}>Devotional</span>
-            <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.55rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25, marginBottom: "0.75rem" }}>
-              When Silence Feels Like God Has Left the Room
-            </h3>
-            <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: MID, marginBottom: "1rem" }}>By Pastor Samuel · June 5, 2025 · 4 min read</div>
-            <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.95rem", lineHeight: 1.85, color: MID }}>
-              There are seasons when our prayers seem to bounce off the ceiling. When the Word feels dry and the presence of God, distant. This is not the end of your faith — it may be the beginning of a deeper one. The Psalmist knew this valley intimately…
-            </p>
-            <a href="#blog" style={{
-              display: "inline-block", marginTop: "1.25rem",
-              fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
-              letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
-            }}>Continue reading →</a>
+
+          {/* Two blog cards */}
+          <div className="split-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+            {/* Card 1 */}
+            <div style={{
+              background: WHITE, border: `1px solid rgba(95,94,90,0.15)`,
+              padding: "2.5rem",
+              borderLeft: `4px solid ${COPPER}`
+            }}>
+              <span style={{ background: CHARCOAL, color: COPPER, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "4px 10px", display: "inline-block", marginBottom: "1.1rem" }}>Devotional</span>
+              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25, marginBottom: "0.75rem" }}>
+                When Silence Feels Like God Has Left the Room
+              </h3>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: MID, marginBottom: "1rem" }}>By Pastor Samuel · June 5, 2025 · 4 min read</div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.92rem", lineHeight: 1.85, color: MID }}>
+                There are seasons when our prayers seem to bounce off the ceiling. When the Word feels dry and the presence of God, distant. This is not the end of your faith — it may be the beginning of a deeper one…
+              </p>
+              <a href="#blog" style={{
+                display: "inline-block", marginTop: "1.25rem",
+                fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
+                letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
+              }}>Continue reading →</a>
+            </div>
+
+            {/* Card 2 */}
+            <div style={{
+              background: WHITE, border: `1px solid rgba(95,94,90,0.15)`,
+              padding: "2.5rem",
+              borderLeft: `4px solid ${COPPER}`
+            }}>
+              <span style={{ background: CHARCOAL, color: COPPER, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "4px 10px", display: "inline-block", marginBottom: "1.1rem" }}>Pastoral Letter</span>
+              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25, marginBottom: "0.75rem" }}>
+                The Gift of an Ordinary Sunday
+              </h3>
+              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: MID, marginBottom: "1rem" }}>By Pr. Daniel Mutinda · May 29, 2025 · 3 min read</div>
+              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.92rem", lineHeight: 1.85, color: MID }}>
+                Not every Sunday is marked by a miracle. Some are quiet, unremarkable — and yet that ordinariness may be the holiest gift of all. A reflection on faithful, steady worship through every season of life…
+              </p>
+              <a href="#blog" style={{
+                display: "inline-block", marginTop: "1.25rem",
+                fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
+                letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
+              }}>Continue reading →</a>
+            </div>
           </div>
         </div>
       </section>
