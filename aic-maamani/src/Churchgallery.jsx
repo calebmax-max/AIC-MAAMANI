@@ -1,5 +1,10 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { fetchJson, API_BASE } from "./api";
+import { fetchJson } from "./api";
+
+// MEDIA_BASE resolves uploaded file URLs to the backend server.
+// API_BASE falls back to window.location.origin (the Vercel frontend) which
+// cannot serve uploaded files — so we read the env var directly here.
+const MEDIA_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
 
 const PALETTE = {
   bg: "#F2F1EF",
@@ -15,11 +20,14 @@ const PALETTE = {
 
 function resolveGalleryUrl(src) {
   if (!src) return "";
-  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) {
-    return src;
-  }
-  const base = API_BASE.replace(/\/$/, "");
-  return `${base}${src}`;
+  // Already an absolute URL or data URI — return as-is
+  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
+  // No backend configured — leave relative paths as-is
+  if (!MEDIA_BASE) return src;
+  // Prevent double-prefix
+  if (src.startsWith(MEDIA_BASE)) return src;
+  const path = src.startsWith("/") ? src : `/${src}`;
+  return `${MEDIA_BASE}${path}`;
 }
 
 
