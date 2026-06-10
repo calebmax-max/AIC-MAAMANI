@@ -228,12 +228,13 @@ function PrayerForm() {
           </div>
         </div>
       </label>
-      <button type="submit" style={{
-        padding: "12px 24px", background: "#2C2C2A", color: "#F2F1EF",
+      <button type="submit" disabled={status === "sending"} style={{
+        padding: "12px 24px", background: status === "sending" ? "#5F5E5A" : "#2C2C2A", color: "#F2F1EF",
         border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14,
-        cursor: "pointer", fontFamily: "inherit", letterSpacing: "0.02em",
+        cursor: status === "sending" ? "not-allowed" : "pointer", fontFamily: "inherit", letterSpacing: "0.02em",
+        opacity: status === "sending" ? 0.7 : 1, transition: "all 0.2s",
       }}>
-        🙏 Submit Prayer Request
+        {status === "sending" ? "Submitting…" : "🙏 Submit Prayer Request"}
       </button>
     </form>
   );
