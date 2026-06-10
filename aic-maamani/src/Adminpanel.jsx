@@ -264,6 +264,7 @@ const emptySermon = {
   scripture: "",
   topic: "",
   series_id: "",
+  thumbnail: "",
   video_file: null,
   audio_file: null,
   document_file: null,
@@ -348,6 +349,7 @@ function SermonsPanel({ toast }) {
       scripture: s.scripture || "",
       topic: s.topic || "",
       duration: s.duration || "",
+      thumbnail: s.thumbnail || "",
       video_file: null,
       audio_file: null,
       document_file: null,
@@ -381,6 +383,7 @@ function SermonsPanel({ toast }) {
         scripture: form.scripture,
         topic: form.topic,
         series_id: form.series_id,
+        thumbnail: form.thumbnail,
         has_notes: form.has_notes,
         featured: form.featured,
         video_file: form.video_file,
@@ -433,7 +436,9 @@ function SermonsPanel({ toast }) {
       };
       try {
         await apiFetch(`/sermons/${notesModal.id}/notes`, { method: "PUT", body: JSON.stringify(payload) });
-      } catch {
+      } catch (putErr) {
+        // Only create new notes if they don't exist yet (404). Re-throw all other errors.
+        if (!putErr.message?.includes("404") && !putErr.message?.toLowerCase().includes("not found")) throw putErr;
         await apiFetch(`/sermons/${notesModal.id}/notes`, { method: "POST", body: JSON.stringify(payload) });
       }
       toast("Sermon notes saved");
@@ -480,12 +485,23 @@ function SermonsPanel({ toast }) {
 
       {modal && (
         <Modal title={modal === "new" ? "New Sermon" : "Edit Sermon"} onClose={() => setModal(null)}>
-          {[["title", "Title *"], ["speaker", "Speaker *"], ["date", "Date *"], ["duration", "Duration"], ["scripture", "Scripture"], ["topic", "Topic"]].map(([k, label]) => (
+          {[["title", "Title *"], ["speaker", "Speaker *"], ["date", "Date *"], ["scripture", "Scripture"], ["topic", "Topic"]].map(([k, label]) => (
             <div className="form-row" key={k}>
               <label>{label}</label>
               <input type={k === "date" ? "date" : "text"} value={form[k] || ""} onChange={e => F(k, e.target.value)} />
             </div>
           ))}
+          <div className="form-row">
+            <label>Duration</label>
+            <input type="text" value={form.duration || ""} onChange={e => F("duration", e.target.value)} placeholder="e.g. 45 min, 1h 20m, 1:20" />
+          </div>
+          <div className="form-row">
+            <label>Thumbnail URL</label>
+            <input type="text" value={form.thumbnail || ""} onChange={e => F("thumbnail", e.target.value)} placeholder="https://…" />
+            {form.thumbnail && (
+              <img src={form.thumbnail} alt="thumbnail preview" style={{ marginTop: 8, width: "100%", maxHeight: 120, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8" }} onError={e => { e.currentTarget.style.display = "none"; }} />
+            )}
+          </div>
           <div className="form-row">
             <label>Video File</label>
             <input type="file" accept="video/*" onChange={e => F("video_file", e.target.files?.[0] || null)} />
@@ -827,7 +843,23 @@ function EventsPanel({ toast }) {
 
 // ─── Blog ─────────────────────────────────────────────────────────────────────
 
-const emptyPost = { title: "", category: "devotional", excerpt: "", author: "", initials: "", date: "", read_time: "", bio_role: "", bio: "", tags: "", emoji: "", hero_bg: "", body: "[]" };
+const emptyPost = { title: "", category: "devotional", date: "", tags: "", body: "" };
+
+// Convert plain paragraphs to the body array format the API expects.
+// Lines separated by blank lines become separate paragraph blocks.
+function bodyTextToBlocks(text) {
+  return text
+    .split(/\n{2,}/)
+    .map(p => p.trim())
+    .filter(Boolean)
+    .map(p => ({ type: "paragraph", text: p }));
+}
+
+// Convert body array back to plain text for editing.
+function bodyBlocksToText(blocks) {
+  if (!Array.isArray(blocks)) return "";
+  return blocks.map(b => b.text || "").join("\n\n");
+}
 
 function BlogPanel({ toast }) {
   const [posts, setPosts] = useState([]);
@@ -846,15 +878,22 @@ function BlogPanel({ toast }) {
   useEffect(() => { load(); }, [load]);
 
   const openEdit = (p) => {
-    setForm({ ...p, tags: (p.tags || []).join(", "), body: JSON.stringify(p.body || [], null, 2) });
+    setForm({
+      ...p,
+      tags: (p.tags || []).join(", "),
+      body: bodyBlocksToText(p.body || []),
+    });
     setModal("edit");
   };
 
   const save = async () => {
+    if (!form.title.trim()) { toast("Title is required"); return; }
+    const payload = {
+      ...form,
+      tags: form.tags.split(",").map(t => t.trim()).filter(Boolean),
+      body: bodyTextToBlocks(form.body),
+    };
     try {
-      let parsedBody = [];
-      try { parsedBody = JSON.parse(form.body); } catch { toast("Invalid JSON in body field"); return; }
-      const payload = { ...form, tags: form.tags.split(",").map(t => t.trim()).filter(Boolean), body: parsedBody };
       if (modal === "new") { await apiFetch("/blog", { method: "POST", body: JSON.stringify(payload) }); toast("Post created"); }
       else { await apiFetch(`/blog/${form.id}`, { method: "PUT", body: JSON.stringify(payload) }); toast("Post updated"); }
       setModal(null); load();
@@ -878,17 +917,14 @@ function BlogPanel({ toast }) {
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : posts.length === 0 ? <div className="empty">No posts yet.</div> : (
           <table>
-            <thead><tr><th>Title</th><th>Author</th><th>Category</th><th>Date</th><th></th></tr></thead>
+            <thead><tr><th>Title</th><th>Category</th><th>Date</th><th>Tags</th><th></th></tr></thead>
             <tbody>
               {posts.map(p => (
                 <tr key={p.id}>
-                  <td>
-                    <strong style={{ fontWeight: 500 }}>{p.title}</strong><br />
-                    <span style={{ fontSize: "0.75rem", color: MID }}>{p.excerpt?.slice(0, 60)}{p.excerpt?.length > 60 ? "…" : ""}</span>
-                  </td>
-                  <td>{p.author || "—"}</td>
+                  <td><strong style={{ fontWeight: 500 }}>{p.title}</strong></td>
                   <td><span className="badge badge-gray">{p.category}</span></td>
                   <td style={{ whiteSpace: "nowrap" }}>{p.date}</td>
+                  <td style={{ fontSize: "0.75rem", color: MID }}>{(p.tags || []).join(", ") || "—"}</td>
                   <td style={{ whiteSpace: "nowrap" }}>
                     <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => openEdit(p)}>Edit</button>
                     <button className="btn btn-danger" onClick={() => setConfirm(p.id)}>Delete</button>
@@ -902,29 +938,35 @@ function BlogPanel({ toast }) {
 
       {modal && (
         <Modal title={modal === "new" ? "New Post" : "Edit Post"} onClose={() => setModal(null)}>
-          {[["title", "Title *"], ["author", "Author"], ["initials", "Initials (e.g. GW)"], ["date", "Date"], ["read_time", "Read Time (e.g. 4 min read)"], ["bio_role", "Author Role"], ["tags", "Tags (comma-separated)"], ["emoji", "Emoji label"], ["hero_bg", "Hero background color (#hex)"]].map(([k, label]) => (
-            <div className="form-row" key={k}>
-              <label>{label}</label>
-              <input type="text" value={form[k] || ""} onChange={e => F(k, e.target.value)} />
-            </div>
-          ))}
+          <div className="form-row">
+            <label>Title *</label>
+            <input type="text" value={form.title || ""} onChange={e => F("title", e.target.value)} placeholder="e.g. Walking in Faith" />
+          </div>
+          <div className="form-row">
+            <label>Date</label>
+            <input type="date" value={form.date || ""} onChange={e => F("date", e.target.value)} />
+          </div>
           <div className="form-row">
             <label>Category</label>
-            <select value={form.category || ""} onChange={e => F("category", e.target.value)}>
-              {cats.map(c => <option key={c} value={c}>{c}</option>)}
+            <select value={form.category || "devotional"} onChange={e => F("category", e.target.value)}>
+              {cats.map(c => <option key={c} value={c}>{c.charAt(0).toUpperCase() + c.slice(1)}</option>)}
             </select>
           </div>
           <div className="form-row">
-            <label>Excerpt</label>
-            <textarea value={form.excerpt || ""} onChange={e => F("excerpt", e.target.value)} style={{ minHeight: 70 }} />
+            <label>Tags (separate with commas)</label>
+            <input type="text" value={form.tags || ""} onChange={e => F("tags", e.target.value)} placeholder="e.g. faith, prayer, community" />
           </div>
           <div className="form-row">
-            <label>Author Bio</label>
-            <textarea value={form.bio || ""} onChange={e => F("bio", e.target.value)} style={{ minHeight: 60 }} />
-          </div>
-          <div className="form-row">
-            <label>Body (JSON array of {`{type, text}`} objects)</label>
-            <textarea value={form.body || ""} onChange={e => F("body", e.target.value)} style={{ minHeight: 130, fontFamily: "monospace", fontSize: "0.8rem" }} />
+            <label>Post Content</label>
+            <p style={{ fontSize: "0.75rem", color: MID, marginBottom: 6, lineHeight: 1.6 }}>
+              Type the full post here. Leave a blank line between paragraphs.
+            </p>
+            <textarea
+              value={form.body || ""}
+              onChange={e => F("body", e.target.value)}
+              style={{ minHeight: 220, lineHeight: 1.7, fontSize: "0.9rem" }}
+              placeholder={"Write your devotional here...\n\nLeave a blank line to start a new paragraph."}
+            />
           </div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button>
@@ -957,8 +999,7 @@ function GalleryPanel({ toast }) {
     try { setPhotos(await apiFetch("/gallery/photos")); }
     catch (e) { toast("Failed to load photos"); }
     setLoading(false);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [toast]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -1950,7 +1991,7 @@ export default function AdminPanel() {
         }
       }
     })();
-  }, [authed, page, logout]);
+  }, [authed, logout]);
 
   const login = async () => {
     setAuthLoading(true);

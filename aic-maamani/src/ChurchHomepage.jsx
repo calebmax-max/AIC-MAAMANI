@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { fetchJson } from "./api";
 
 const COPPER  = "#EF9F27";
 const COPPER2 = "#BA7517";
@@ -66,6 +67,20 @@ function AnimatedCounter({ target, label, suffix = "" }) {
 }
 
 export default function ChurchHomepage({ showNav = true } = {}) {
+  const [blogPosts, setBlogPosts] = useState([]);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/blog")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data)) return;
+        // Sort by date descending and take the 2 most recent
+        const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+        setBlogPosts(sorted.slice(0, 2));
+      })
+      .catch(() => { if (mounted) setBlogPosts([]); });
+    return () => { mounted = false; };
+  }, []);
 
   return (
     <>
@@ -424,49 +439,53 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             </p>
           </div>
 
-          {/* Two blog cards */}
+          {/* Two most recent blog cards — live from /api/blog */}
           <div className="split-layout" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
-            {/* Card 1 */}
-            <div style={{
-              background: WHITE, border: `1px solid rgba(95,94,90,0.15)`,
-              padding: "2.5rem",
-              borderLeft: `4px solid ${COPPER}`
-            }}>
-              <span style={{ background: CHARCOAL, color: COPPER, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "4px 10px", display: "inline-block", marginBottom: "1.1rem" }}>Devotional</span>
-              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25, marginBottom: "0.75rem" }}>
-                When Silence Feels Like God Has Left the Room
-              </h3>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: MID, marginBottom: "1rem" }}>By Pastor Samuel · June 5, 2025 · 4 min read</div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.92rem", lineHeight: 1.85, color: MID }}>
-                There are seasons when our prayers seem to bounce off the ceiling. When the Word feels dry and the presence of God, distant. This is not the end of your faith — it may be the beginning of a deeper one…
-              </p>
-              <a href="#blog" style={{
-                display: "inline-block", marginTop: "1.25rem",
-                fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
-                letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
-              }}>Continue reading →</a>
-            </div>
+            {blogPosts.length === 0 ? (
+              <div style={{ gridColumn: "1/-1", padding: "2rem 0", color: MID, fontFamily: "'DM Sans', sans-serif", fontSize: "0.9rem", fontStyle: "italic" }}>
+                No posts yet — check back soon.
+              </div>
+            ) : blogPosts.map((post) => {
+              // Build a short excerpt from the first body paragraph if no excerpt field
+              const excerpt = post.excerpt
+                || (Array.isArray(post.body) && post.body[0]?.text
+                    ? post.body[0].text.slice(0, 180) + (post.body[0].text.length > 180 ? "…" : "")
+                    : "");
+              // Build meta line
+              const meta = [post.author && `By ${post.author}`, post.date].filter(Boolean).join(" · ");
 
-            {/* Card 2 */}
-            <div style={{
-              background: WHITE, border: `1px solid rgba(95,94,90,0.15)`,
-              padding: "2.5rem",
-              borderLeft: `4px solid ${COPPER}`
-            }}>
-              <span style={{ background: CHARCOAL, color: COPPER, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "4px 10px", display: "inline-block", marginBottom: "1.1rem" }}>Pastoral Letter</span>
-              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25, marginBottom: "0.75rem" }}>
-                The Gift of an Ordinary Sunday
-              </h3>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: MID, marginBottom: "1rem" }}>By Pr. Daniel Mutinda · May 29, 2025 · 3 min read</div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.92rem", lineHeight: 1.85, color: MID }}>
-                Not every Sunday is marked by a miracle. Some are quiet, unremarkable — and yet that ordinariness may be the holiest gift of all. A reflection on faithful, steady worship through every season of life…
-              </p>
-              <a href="#blog" style={{
-                display: "inline-block", marginTop: "1.25rem",
-                fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
-                letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
-              }}>Continue reading →</a>
-            </div>
+              return (
+                <div key={post.id} style={{
+                  background: WHITE, border: `1px solid rgba(95,94,90,0.15)`,
+                  padding: "2.5rem",
+                  borderLeft: `4px solid ${COPPER}`
+                }}>
+                  {post.category && (
+                    <span style={{ background: CHARCOAL, color: COPPER, fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.62rem", letterSpacing: "0.15em", textTransform: "uppercase", padding: "4px 10px", display: "inline-block", marginBottom: "1.1rem" }}>
+                      {post.category}
+                    </span>
+                  )}
+                  <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.45rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25, marginBottom: "0.75rem" }}>
+                    {post.title}
+                  </h3>
+                  {meta && (
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.7rem", letterSpacing: "0.1em", textTransform: "uppercase", color: MID, marginBottom: "1rem" }}>
+                      {meta}
+                    </div>
+                  )}
+                  {excerpt && (
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.92rem", lineHeight: 1.85, color: MID }}>
+                      {excerpt}
+                    </p>
+                  )}
+                  <a href="#blog" style={{
+                    display: "inline-block", marginTop: "1.25rem",
+                    fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.75rem",
+                    letterSpacing: "0.1em", color: COPPER, textDecoration: "none"
+                  }}>Continue reading →</a>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { fetchJson } from "./api";
 
 const COPPER = "#EF9F27";
@@ -124,7 +124,7 @@ function SermonNotesReader({ sermon, notesMap, onClose }) {
           </div>
 
           {/* Download — hide label on mobile */}
-          <button style={{ display: "flex", alignItems: "center", gap: 7, background: COPPER_LIGHT, color: COPPER_DARK, border: "none", borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>
+          <button onClick={() => window.print()} style={{ display: "flex", alignItems: "center", gap: 7, background: COPPER_LIGHT, color: COPPER_DARK, border: "none", borderRadius: 8, padding: "9px 12px", cursor: "pointer", fontSize: 13, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", flexShrink: 0 }}>
             <DownloadIcon size={14} /> {!isMobile && "Download PDF"}
           </button>
 
@@ -242,9 +242,23 @@ function SermonNotesReader({ sermon, notesMap, onClose }) {
 }
 
 // ─── Audio Player ─────────────────────────────────────────────────────────────
+// Safely parse a duration string like "45 min", "1h 20m", "1:20" into total minutes.
+function parseDurationMinutes(duration) {
+  if (!duration || duration === "—") return 0;
+  const hm = duration.match(/(\d+)\s*h(?:r|ours?)?\s*(\d+)?\s*m?/i);
+  if (hm) return parseInt(hm[1]) * 60 + parseInt(hm[2] || 0);
+  const colons = duration.match(/^(\d+):(\d+)(?::\d+)?$/);
+  if (colons) return parseInt(colons[1]) * 60 + parseInt(colons[2]);
+  const mins = duration.match(/(\d+)\s*min/i);
+  if (mins) return parseInt(mins[1]);
+  const plain = parseInt(duration);
+  return isNaN(plain) ? 0 : plain;
+}
+
 function AudioPlayer({ duration }) {
   const [playing, setPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const totalMinutes = parseDurationMinutes(duration);
   return (
     <div style={{ background: CHARCOAL, borderRadius: 10, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16 }}>
       <button onClick={() => setPlaying(!playing)} style={{ width: 44, height: 44, borderRadius: "50%", background: COPPER, border: "none", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, transition: "transform 0.15s" }} onMouseEnter={e => e.currentTarget.style.transform = "scale(1.08)"} onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}>
@@ -255,7 +269,7 @@ function AudioPlayer({ duration }) {
           <div style={{ height: "100%", width: `${progress}%`, background: COPPER, borderRadius: 2 }} />
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-          <span style={{ fontSize: 12, color: "#888", fontFamily: "'DM Sans', sans-serif" }}>{Math.floor(progress / 100 * parseInt(duration))} min</span>
+          <span style={{ fontSize: 12, color: "#888", fontFamily: "'DM Sans', sans-serif" }}>{Math.floor(progress / 100 * totalMinutes)} min</span>
           <span style={{ fontSize: 12, color: "#888", fontFamily: "'DM Sans', sans-serif" }}>{duration}</span>
         </div>
       </div>
@@ -374,8 +388,15 @@ function SermonCard({ sermon, onReadNotes }) {
 
   return (
     <div onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} style={{ background: "white", borderRadius: 14, overflow: "hidden", border: `1px solid ${hovered ? "#D9C4A8" : "#E6E5E2"}`, transition: "border-color 0.2s, transform 0.2s, box-shadow 0.2s", transform: hovered ? "translateY(-3px)" : "none", boxShadow: hovered ? "0 8px 32px rgba(44,44,42,0.1)" : "none" }}>
-      <div style={{ position: "relative", overflow: "hidden" }}>
-        <img src={sermon.thumbnail} alt={sermon.title} style={{ width: "100%", height: 170, objectFit: "cover", display: "block", transition: "transform 0.4s", transform: hovered ? "scale(1.04)" : "scale(1)" }} />
+      <div style={{ position: "relative", overflow: "hidden", height: 170, background: "#3A3A38" }}>
+        {sermon.thumbnail && (
+          <img
+            src={sermon.thumbnail}
+            alt={sermon.title}
+            style={{ width: "100%", height: 170, objectFit: "cover", display: "block", transition: "transform 0.4s", transform: hovered ? "scale(1.04)" : "scale(1)" }}
+            onError={e => { e.currentTarget.style.display = "none"; }}
+          />
+        )}
         <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to top, rgba(44,44,42,0.6), transparent)" }} />
         <div style={{ position: "absolute", bottom: 10, left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
           <span style={{ background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.9)", fontSize: 11, padding: "3px 9px", borderRadius: 12 }}>{sermon.duration}</span>
@@ -526,8 +547,10 @@ export default function SermonsPage() {
 
   const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
   const paged = filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
-  const handleFilter = () => setPage(1);
   const hasActiveFilters = searchQuery || filterSeries !== "all" || filterSpeaker !== "all" || filterTopic !== "all" || dateRange.from || dateRange.to;
+
+  // Reset to page 1 whenever any filter changes
+  useEffect(() => { setPage(1); }, [searchQuery, filterSeries, filterSpeaker, filterTopic, dateRange]);
 
   const selectStyle = {
     padding: "10px 14px",
@@ -572,7 +595,7 @@ export default function SermonsPage() {
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <div style={{ position: "relative", flex: 1 }}>
                 <div style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)" }}><SearchIcon /></div>
-                <input value={searchQuery} onChange={e => { setSearchQuery(e.target.value); handleFilter(); }} placeholder={isMobile ? "Search sermons…" : "Search by title, speaker, scripture, or topic…"} style={{ width: "100%", padding: "10px 14px 10px 42px", border: "1px solid #E0DFDb", borderRadius: 9, fontSize: 13, color: CHARCOAL, outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
+                <input value={searchQuery} onChange={e => setSearchQuery(e.target.value)} placeholder={isMobile ? "Search sermons…" : "Search by title, speaker, scripture, or topic…"} style={{ width: "100%", padding: "10px 14px 10px 42px", border: "1px solid #E0DFDb", borderRadius: 9, fontSize: 13, color: CHARCOAL, outline: "none", fontFamily: "'DM Sans', sans-serif" }} />
               </div>
               {/* Filter toggle on mobile */}
               {isMobile && (
@@ -586,22 +609,22 @@ export default function SermonsPage() {
             {/* Filters — always visible on tablet+, collapsible on mobile */}
             {(!isMobile || showFilters) && (
               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : isTablet ? "1fr 1fr" : "1fr 1fr 1fr", gap: 10, marginTop: 12 }}>
-                <select value={filterSeries} onChange={e => { setFilterSeries(e.target.value); handleFilter(); }} style={selectStyle}>
+                <select value={filterSeries} onChange={e => setFilterSeries(e.target.value)} style={selectStyle}>
                   <option value="all">All Series</option>
                   {seriesData.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
                 </select>
-                <select value={filterSpeaker} onChange={e => { setFilterSpeaker(e.target.value); handleFilter(); }} style={selectStyle}>
+                <select value={filterSpeaker} onChange={e => setFilterSpeaker(e.target.value)} style={selectStyle}>
                   <option value="all">All Speakers</option>
                   {speakers.map(s => <option key={s} value={s}>{s}</option>)}
                 </select>
-                <select value={filterTopic} onChange={e => { setFilterTopic(e.target.value); handleFilter(); }} style={selectStyle}>
+                <select value={filterTopic} onChange={e => setFilterTopic(e.target.value)} style={selectStyle}>
                   <option value="all">All Topics</option>
                   {topics.map(t => <option key={t} value={t}>{t}</option>)}
                 </select>
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                  <input type="date" value={dateRange.from} onChange={e => { setDateRange(p => ({ ...p, from: e.target.value })); handleFilter(); }} style={{ ...selectStyle, flex: 1, paddingRight: 14, backgroundImage: "none" }} />
+                  <input type="date" value={dateRange.from} onChange={e => setDateRange(p => ({ ...p, from: e.target.value }))} style={{ ...selectStyle, flex: 1, paddingRight: 14, backgroundImage: "none" }} />
                   <span style={{ fontSize: 12, color: MID_GRAY, flexShrink: 0 }}>to</span>
-                  <input type="date" value={dateRange.to} onChange={e => { setDateRange(p => ({ ...p, to: e.target.value })); handleFilter(); }} style={{ ...selectStyle, flex: 1, paddingRight: 14, backgroundImage: "none" }} />
+                  <input type="date" value={dateRange.to} onChange={e => setDateRange(p => ({ ...p, to: e.target.value }))} style={{ ...selectStyle, flex: 1, paddingRight: 14, backgroundImage: "none" }} />
                 </div>
                 {hasActiveFilters && (
                   <button onClick={() => { setSearchQuery(""); setFilterSeries("all"); setFilterSpeaker("all"); setFilterTopic("all"); setDateRange({ from: "", to: "" }); setPage(1); }} style={{ fontSize: 12, color: MID_GRAY, background: "none", border: "1px solid #E0DFDb", borderRadius: 9, padding: "10px 14px", cursor: "pointer", textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}>Clear filters</button>
@@ -615,7 +638,7 @@ export default function SermonsPage() {
           {/* Tabs */}
           <div style={{ display: "flex", gap: 0, marginBottom: 28, borderBottom: "2px solid #E6E5E2", overflowX: "auto" }}>
             {[["archive", "Sermon Archive"], ["series", "By Series"]].map(([id, label]) => (
-              <button key={id} onClick={() => setActiveTab(id)} style={{ padding: isMobile ? "10px 16px" : "12px 24px", background: "none", border: "none", borderBottom: activeTab === id ? `2px solid ${COPPER}` : "2px solid transparent", marginBottom: -2, cursor: "pointer", fontSize: 14, fontWeight: 500, color: activeTab === id ? COPPER_DARK : MID_GRAY, fontFamily: "'DM Sans', sans-serif", transition: "color 0.15s", whiteSpace: "nowrap" }}>{label}</button>
+              <button key={id} onClick={() => { setActiveTab(id); setPage(1); }} style={{ padding: isMobile ? "10px 16px" : "12px 24px", background: "none", border: "none", borderBottom: activeTab === id ? `2px solid ${COPPER}` : "2px solid transparent", marginBottom: -2, cursor: "pointer", fontSize: 14, fontWeight: 500, color: activeTab === id ? COPPER_DARK : MID_GRAY, fontFamily: "'DM Sans', sans-serif", transition: "color 0.15s", whiteSpace: "nowrap" }}>{label}</button>
             ))}
             <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", paddingBottom: 10, paddingRight: 4 }}>
               <span style={{ fontSize: 13, color: MID_GRAY, whiteSpace: "nowrap" }}>{filtered.length} message{filtered.length !== 1 ? "s" : ""}</span>
@@ -638,10 +661,10 @@ export default function SermonsPage() {
                 <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                   <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #E0DFDb", background: page === 1 ? "#F5F4F2" : "white", color: page === 1 ? "#C0BFBC" : CHARCOAL, cursor: page === 1 ? "default" : "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>←</button>
                   {pageNumbers.map((n, idx) => (
-                    <>
-                      {idx > 0 && pageNumbers[idx - 1] !== n - 1 && <span key={`ellipsis-${n}`} style={{ fontSize: 13, color: MID_GRAY, padding: "0 2px" }}>…</span>}
-                      <button key={n} onClick={() => setPage(n)} style={{ width: 38, height: 38, borderRadius: 8, border: `1px solid ${n === page ? COPPER : "#E0DFDb"}`, background: n === page ? COPPER : "white", color: n === page ? "white" : CHARCOAL, cursor: "pointer", fontSize: 13, fontWeight: n === page ? 600 : 400, fontFamily: "'DM Sans', sans-serif" }}>{n}</button>
-                    </>
+                    <React.Fragment key={n}>
+                      {idx > 0 && pageNumbers[idx - 1] !== n - 1 && <span style={{ fontSize: 13, color: MID_GRAY, padding: "0 2px" }}>…</span>}
+                      <button onClick={() => setPage(n)} style={{ width: 38, height: 38, borderRadius: 8, border: `1px solid ${n === page ? COPPER : "#E0DFDb"}`, background: n === page ? COPPER : "white", color: n === page ? "white" : CHARCOAL, cursor: "pointer", fontSize: 13, fontWeight: n === page ? 600 : 400, fontFamily: "'DM Sans', sans-serif" }}>{n}</button>
+                    </React.Fragment>
                   ))}
                   <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page === totalPages} style={{ padding: "8px 14px", borderRadius: 8, border: "1px solid #E0DFDb", background: page === totalPages ? "#F5F4F2" : "white", color: page === totalPages ? "#C0BFBC" : CHARCOAL, cursor: page === totalPages ? "default" : "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif" }}>→</button>
                 </div>
