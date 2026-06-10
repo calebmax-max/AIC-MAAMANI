@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from admin_auth import require_admin
-from database import get_db
-from models import TeamMember
-from schemas import AboutPageOut, TeamMemberCreate, TeamMemberOut
+from .admin_auth import require_admin
+from .database import get_db
+from .models import TeamMember
+from .schemas import AboutPageOut, TeamMemberCreate, TeamMemberOut
 
 router = APIRouter()
 

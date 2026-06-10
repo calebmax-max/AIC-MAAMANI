@@ -97,7 +97,7 @@ async function apiFetch(path, opts = {}) {
   };
   const res = await fetch(`${API}${path}`, {
     ...restOpts,
-    credentials: token ? "omit" : "include",
+    credentials: "include",
     headers,
   });
   if (!res.ok) {
@@ -986,13 +986,13 @@ function GalleryPanel({ toast }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  const [editForm, setEditForm] = useState({ id: null, alt: "", album: "Church", src: "" });
-  const [multiForm, setMultiForm] = useState({ album: "Church", files: [], previews: [] });
+  const [editForm, setEditForm] = useState({ id: null, alt: "", album: "Worship", src: "" });
+  const [multiForm, setMultiForm] = useState({ album: "Worship", files: [], previews: [] });
   const [uploadProgress, setUploadProgress] = useState(null);
   const [confirm, setConfirm] = useState(null); // "delete-one:<id>" | "delete-all" | null
   const [deleteAllProgress, setDeleteAllProgress] = useState(null);
   const savingRef = useRef(false);
-  const albums = ["Church", "Outreach", "Community"];
+  const albums = ["Worship", "Church", "Youth", "Outreach", "Outreach 2024", "Community", "Missions"];
 
   const load = useCallback(async () => {
     setLoading(true);

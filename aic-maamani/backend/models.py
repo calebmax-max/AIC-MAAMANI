@@ -4,7 +4,7 @@ from sqlalchemy import (
     String, Text, Date, JSON
 )
 from sqlalchemy.orm import relationship
-from database import Base
+from .database import Base
 
 
 class AdminUser(Base):
@@ -49,8 +49,9 @@ class Sermon(Base):
     thumbnail    = Column(String(255))
     video_url    = Column(String(255))
     audio_url    = Column(String(255))
-    document_url = Column(String(255))
-    has_notes    = Column(Boolean, default=False)
+    document_url  = Column(String(255))
+    document_text = Column(Text, nullable=True)
+    has_notes     = Column(Boolean, default=False)
     featured     = Column(Boolean, default=False)
 
     series_rel  = relationship("SermonSeries", back_populates="sermons")

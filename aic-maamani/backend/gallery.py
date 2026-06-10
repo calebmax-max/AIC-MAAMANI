@@ -2,18 +2,18 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from admin_auth import require_admin
-from database import get_db
-from models import GalleryPhoto, GalleryVideo
-from schemas import (
+from .admin_auth import require_admin
+from .database import get_db
+from .models import GalleryPhoto, GalleryVideo
+from .schemas import (
     GalleryPhotoCreate, GalleryPhotoOut,
     GalleryVideoCreate, GalleryVideoOut,
 )
-from storage import save_upload
+from .storage import save_upload
 
 router = APIRouter()
 
-VALID_ALBUMS = {"Church", "Outreach", "Community"}
+VALID_ALBUMS = {"Worship", "Church", "Youth", "Outreach", "Outreach 2024", "Community", "Missions"}
 
 
 def _clean_text(value: Optional[str]) -> Optional[str]:

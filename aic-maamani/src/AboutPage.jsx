@@ -85,7 +85,7 @@ function useInView(threshold = 0.15) {
 // ── NAV ─────────────────────────────────────────────────
 const NAV_LINKS = [
   { id: "home", label: "Home" },
-  { id: "about", label: "About" },
+  { id: "about", label: "About Us" },
   { id: "sermons", label: "Sermons" },
   { id: "events", label: "Events" },
   { id: "blog", label: "Blog" },
@@ -137,13 +137,13 @@ function Nav() {
       <div className="nav-inner nav-links" style={{ display:"flex", gap:"2.2rem", alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
         {NAV_LINKS.map(({ id, label }) => (
           <a key={id} className="nav-link" href={`#${id}`} style={{
-            fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
+            fontFamily:"'DM Sans', sans-serif", fontWeight: id === "about" ? 500 : 400,
             letterSpacing:"0.1em", fontSize:"0.78rem", textTransform:"uppercase",
-            color: label === "About" ? C.copper : "rgba(255,255,255,0.7)",
+            color: id === "about" ? C.copper : "rgba(255,255,255,0.7)",
             textDecoration:"none", transition:"color 0.2s", whiteSpace:"nowrap"
           }}
             onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
-            onMouseLeave={e => { e.currentTarget.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.7)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = id === "about" ? C.copper : "rgba(255,255,255,0.7)"; }}
           >{label}</a>
         ))}
         <a className="nav-cta" href="#contact" style={{
@@ -165,14 +165,14 @@ function Nav() {
       }}>
         {NAV_LINKS.map(({ id, label }) => (
           <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)} style={{
-            fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
+            fontFamily:"'DM Sans', sans-serif", fontWeight: id === "about" ? 500 : 400,
             letterSpacing:"0.12em", fontSize:"0.88rem", textTransform:"uppercase",
-            color: label === "About" ? C.copper : "rgba(255,255,255,0.75)",
+            color: id === "about" ? C.copper : "rgba(255,255,255,0.75)",
             textDecoration:"none", padding:"0.9rem 0",
             borderBottom:"1px solid rgba(255,255,255,0.06)", transition:"color 0.2s",
           }}
             onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
-            onMouseLeave={e => { e.currentTarget.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.75)"; }}
+            onMouseLeave={e => { e.currentTarget.style.color = id === "about" ? C.copper : "rgba(255,255,255,0.75)"; }}
           >{label}</a>
         ))}
         <a href="#contact" onClick={() => setMenuOpen(false)} style={{

@@ -1,12 +1,16 @@
 import os
+import logging
 from pathlib import Path
 
 from sqlalchemy import create_engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
 from dotenv import load_dotenv
 
 
 load_dotenv(Path(__file__).resolve().parent / ".env")
+
+logger = logging.getLogger(__name__)
 
 
 def _build_database_url() -> str:
@@ -32,12 +36,34 @@ def _build_database_url() -> str:
 
 
 DATABASE_URL = _build_database_url()
+DEFAULT_SQLITE_URL = "sqlite:///./aic_maamani.db"
 
-engine_kwargs = {"pool_pre_ping": True}
-if DATABASE_URL.startswith("sqlite"):
-    engine_kwargs["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL, **engine_kwargs)
+def _engine_kwargs(url: str) -> dict:
+    kwargs = {"pool_pre_ping": True}
+    if url.startswith("sqlite"):
+        kwargs["connect_args"] = {"check_same_thread": False}
+    return kwargs
+
+
+def _build_engine(url: str):
+    return create_engine(url, **_engine_kwargs(url))
+
+
+engine = _build_engine(DATABASE_URL)
+
+if not DATABASE_URL.startswith("sqlite"):
+    strict_db = os.getenv("AIC_MAAMANI_STRICT_DB", "").lower() in {"1", "true", "yes"}
+    try:
+        with engine.connect():
+            pass
+    except SQLAlchemyError as exc:
+        if strict_db:
+            raise
+        logger.warning("Falling back to local SQLite database because the configured DB is unreachable: %s", exc)
+        DATABASE_URL = DEFAULT_SQLITE_URL
+        engine = _build_engine(DATABASE_URL)
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 

@@ -410,7 +410,9 @@ footer.site-footer .footer-links {
     border-bottom: 1px solid rgba(239,159,39,0.18);
   }
 
-  .nav-links.open { display: flex; }
+  .nav-links.open {
+    display: flex !important;
+  }
 
   nav.shared-nav {
     /* Keep brand + toggle on one row */

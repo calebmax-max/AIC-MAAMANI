@@ -1,17 +1,17 @@
 from typing import List
 import logging
 import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import os
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from admin_auth import require_admin
-from database import get_db
-from models import ContactMessage
-from schemas import ContactMessageCreate, ContactMessageOut
+from .admin_auth import require_admin
+from .database import get_db
+from .models import ContactMessage
+from .schemas import ContactMessageCreate, ContactMessageOut
 
 router = APIRouter()
 
@@ -25,22 +25,21 @@ VALID_SUBJECTS = {
     "other",
 }
 
-
 PASTOR_EMAIL = "danielmutinda320@gmail.com"
-NOTIFY_FROM  = os.getenv("NOTIFY_FROM_EMAIL", "")   # e.g. noreply@aicmaamani.org
-SMTP_HOST    = os.getenv("SMTP_HOST", "")
-SMTP_PORT    = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER    = os.getenv("SMTP_USER", "")
-SMTP_PASS    = os.getenv("SMTP_PASS", "")
+NOTIFY_FROM = os.getenv("NOTIFY_FROM_EMAIL", "")
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
 
 SUBJECT_LABELS = {
-    "general":       "General Enquiry",
+    "general": "General Enquiry",
     "prayer-request": "Prayer Request",
-    "pastoral-care":  "Pastoral Care",
-    "volunteering":   "Volunteering",
-    "events":         "Events & Programmes",
-    "media":          "Media",
-    "other":          "Other",
+    "pastoral-care": "Pastoral Care",
+    "volunteering": "Volunteering",
+    "events": "Events & Programmes",
+    "media": "Media",
+    "other": "Other",
 }
 
 logger = logging.getLogger(__name__)
@@ -49,23 +48,24 @@ logger = logging.getLogger(__name__)
 def _send_notification(msg: "ContactMessage") -> None:
     """Fire-and-forget email to the pastor. Silently logs on failure."""
     if not all([NOTIFY_FROM, SMTP_HOST, SMTP_USER, SMTP_PASS]):
-        logger.warning("Email notification skipped — SMTP env vars not configured")
+        logger.warning("Email notification skipped - SMTP env vars not configured")
         return
 
     subject_label = SUBJECT_LABELS.get(msg.subject, msg.subject)
     is_private = isinstance(msg.message, str) and "[This prayer request is private" in msg.message
     display_message = (
         msg.message.split("\n\n[This prayer request is private")[0]
-        if is_private else msg.message
+        if is_private
+        else msg.message
     )
 
     html_body = f"""
     <div style="font-family:sans-serif;max-width:600px;margin:0 auto">
       <div style="background:#2C2C2A;padding:20px 28px;border-bottom:4px solid #EF9F27">
-        <h2 style="color:#F2F1EF;margin:0;font-size:20px">New Message — AIC Maamani</h2>
+        <h2 style="color:#F2F1EF;margin:0;font-size:20px">New Message - AIC Maamani</h2>
       </div>
       <div style="padding:24px 28px;background:#fff;border:1px solid #E0DDD8">
-        {'<div style="background:#FEF3D9;border:1px solid #F5D88A;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#BA7517;font-weight:600;">🔒 Private prayer request — handle with care</div>' if is_private else ''}
+        {'<div style="background:#FEF3D9;border:1px solid #F5D88A;padding:10px 14px;margin-bottom:16px;font-size:13px;color:#BA7517;font-weight:600;">Private prayer request - handle with care</div>' if is_private else ''}
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px">
           <tr><td style="padding:6px 0;color:#5F5E5A;width:120px">From</td><td style="padding:6px 0;font-weight:600">{msg.name or 'Anonymous'}</td></tr>
           <tr><td style="padding:6px 0;color:#5F5E5A">Subject</td><td style="padding:6px 0">{subject_label}</td></tr>
@@ -83,8 +83,8 @@ def _send_notification(msg: "ContactMessage") -> None:
 
     email = MIMEMultipart("alternative")
     email["Subject"] = f"[AIC Maamani] New {subject_label}{' (Private)' if is_private else ''}"
-    email["From"]    = NOTIFY_FROM
-    email["To"]      = PASTOR_EMAIL
+    email["From"] = NOTIFY_FROM
+    email["To"] = PASTOR_EMAIL
     email.attach(MIMEText(html_body, "html"))
 
     try:
@@ -112,8 +112,6 @@ def submit_message(payload: ContactMessageCreate, db: Session = Depends(get_db))
     _send_notification(msg)
     return msg
 
-
-# ─── Admin-style read endpoints (protect with auth in production) ─────────────
 
 @router.get("", response_model=List[ContactMessageOut], dependencies=[Depends(require_admin)])
 def get_messages(unread_only: bool = False, skip: int = 0, limit: int = 50, db: Session = Depends(get_db)):

@@ -2,11 +2,11 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from admin_security import create_password_record, verify_password
-from database import get_db
-from models import AdminUser, BlogPost, ContactMessage, Event, GalleryPhoto, GalleryVideo, Sermon, TeamMember
-from token_auth import create_access_token, verify_token as verify_jwt_token
-from schemas import MessagesPinVerify, MessagesPinChange, MessagesPinStatus
+from .admin_security import create_password_record, verify_password
+from .database import get_db
+from .models import AdminUser, BlogPost, ContactMessage, Event, GalleryPhoto, GalleryVideo, Sermon, TeamMember
+from .token_auth import create_access_token, verify_token as verify_jwt_token
+from .schemas import MessagesPinVerify, MessagesPinChange, MessagesPinStatus
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -83,18 +83,13 @@ def require_admin(
         token = auth_header.split(None, 1)[1]
         try:
             username, role = verify_jwt_token(token)
+            user = db.query(AdminUser).filter(AdminUser.username == username, AdminUser.is_active.is_(True)).first()
+            if user:
+                return user
         except Exception:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid or expired token",
-            )
-        user = db.query(AdminUser).filter(AdminUser.username == username, AdminUser.is_active.is_(True)).first()
-        if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Admin authentication required",
-            )
-        return user
+            # Fall back to the session cookie below. This keeps a valid session
+            # working even if an old token has expired or been cleared locally.
+            pass
 
     # Fallback to session cookie-based auth
     username = request.session.get(ADMIN_SESSION_KEY)

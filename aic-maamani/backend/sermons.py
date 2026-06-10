@@ -4,15 +4,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from admin_auth import require_admin
-from database import get_db
-from models import Sermon, SermonSeries, SermonNotes
-from schemas import (
+from .admin_auth import require_admin
+from .database import get_db
+from .models import Sermon, SermonSeries, SermonNotes
+from .schemas import (
     SermonCreate, SermonOut,
     SermonSeriesCreate, SermonSeriesOut,
     SermonNotesCreate, SermonNotesOut,
 )
-from storage import save_upload
+from .storage import save_upload
 
 router = APIRouter()
 
@@ -101,6 +101,7 @@ async def create_sermon(
     video_url: Optional[str] = Form(None),
     audio_url: Optional[str] = Form(None),
     document_url: Optional[str] = Form(None),
+    document_text: Optional[str] = Form(None),
     has_notes: bool = Form(False),
     featured: bool = Form(False),
     thumbnail_file: UploadFile | None = File(None),
@@ -130,6 +131,7 @@ async def create_sermon(
         video_url=_clean_text(video_url),
         audio_url=_clean_text(audio_url),
         document_url=_clean_text(document_url),
+        document_text=_clean_text(document_text),
         has_notes=has_notes,
         featured=featured,
     )
@@ -153,6 +155,7 @@ async def update_sermon(
     video_url: Optional[str] = Form(None),
     audio_url: Optional[str] = Form(None),
     document_url: Optional[str] = Form(None),
+    document_text: Optional[str] = Form(None),
     has_notes: bool = Form(False),
     featured: bool = Form(False),
     thumbnail_file: UploadFile | None = File(None),
@@ -185,6 +188,7 @@ async def update_sermon(
     sermon.video_url = _clean_text(video_url) if video_url is not None else sermon.video_url
     sermon.audio_url = _clean_text(audio_url) if audio_url is not None else sermon.audio_url
     sermon.document_url = _clean_text(document_url) if document_url is not None else sermon.document_url
+    sermon.document_text = _clean_text(document_text) if document_text is not None else sermon.document_text
     sermon.has_notes = has_notes
     sermon.featured = featured
     db.commit()

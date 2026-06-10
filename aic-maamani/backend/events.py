@@ -3,10 +3,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from admin_auth import require_admin
-from database import get_db
-from models import Event, EventRegistration
-from schemas import (
+from .admin_auth import require_admin
+from .database import get_db
+from .models import Event, EventRegistration
+from .schemas import (
     EventCreate, EventOut,
     EventRegistrationCreate, EventRegistrationOut,
 )

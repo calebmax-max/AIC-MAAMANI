@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy import inspect, text
 
-from database import engine
+from .database import engine
 
 
 def _existing_columns(table_name: str) -> set[str]:

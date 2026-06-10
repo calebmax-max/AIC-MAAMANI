@@ -52,6 +52,7 @@ class SermonBase(BaseModel):
     video_url: Optional[str] = None
     audio_url: Optional[str] = None
     document_url: Optional[str] = None
+    document_text: Optional[str] = None
     has_notes: bool = False
     featured: bool = False
 
@@ -215,7 +216,7 @@ class TeamMemberOut(TeamMemberBase):
     model_config = {"from_attributes": True}
 
 
-# â”€â”€ About / Site Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# About / Site Content
 
 class AboutSectionOut(BaseModel):
     title: str
