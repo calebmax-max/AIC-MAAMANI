@@ -121,8 +121,6 @@ function PhotoCard({ photo, onClick }) {
 
 function Lightbox({ photos, startIndex, onClose }) {
   const [index, setIndex] = useState(startIndex);
-  const photo = photos[index];
-  if (!photo) { onClose(); return null; }
 
   const prev = useCallback(() => setIndex((i) => (i - 1 + photos.length) % photos.length), [photos.length]);
   const next = useCallback(() => setIndex((i) => (i + 1) % photos.length), [photos.length]);
@@ -136,6 +134,9 @@ function Lightbox({ photos, startIndex, onClose }) {
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
   }, [onClose, prev, next]);
+
+  const photo = photos[index];
+  if (!photo) { onClose(); return null; }
 
   return (
     <div
