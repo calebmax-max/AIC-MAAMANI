@@ -39,189 +39,6 @@ function useBreakpoint() {
   return { bp, isMobile, isTablet, isDesktop };
 }
 
-// ─── Sample rich sermon notes ─────────────────────────────────────────────────
-const fallbackSermonNotes = {
-  1: {
-    outline: [
-      { ref: "John 1:1–3", point: "The Pre-Existent Word", sub: "Jesus existed before creation, as the agent of all things." },
-      { ref: "John 1:4–5", point: "Light and Darkness", sub: "The contrast between divine light and the darkness that cannot overcome it." },
-      { ref: "John 1:14–18", point: "The Word Became Flesh", sub: "The incarnation — God dwelling among us in tangible human form." },
-    ],
-    keyScriptures: [
-      { ref: "John 1:1", text: "In the beginning was the Word, and the Word was with God, and the Word was God." },
-      { ref: "John 1:14", text: "The Word became flesh and made his dwelling among us. We have seen his glory, the glory of the one and only Son, who came from the Father, full of grace and truth." },
-    ],
-    sections: [
-      { heading: "Introduction", body: "John's Gospel opens not with a birth narrative, but with a breathtaking theological declaration that echoes Genesis. Where Genesis begins 'In the beginning God created,' John begins 'In the beginning was the Word.' Before anything existed, the Word already was." },
-      { heading: "Who Is the Word?", body: "The Greek term 'Logos' carried enormous weight in both Jewish and Greek thought. For the Greek philosopher, logos was the rational principle ordering the universe. For the Jewish reader, it recalled the spoken Word by which God created the heavens. John takes both audiences by the hand and says: this Word is a Person — and you can know Him." },
-      { heading: "Three Truths About the Word", body: "First, He is eternal: 'In the beginning was the Word' — the imperfect 'was' implies continuous pre-existence, not origin. Second, He is relational: 'the Word was with God' — face to face, in intimate communion. Third, He is divine: 'the Word was God' — not a lesser deity, but sharing the very nature of God." },
-      { heading: "The Stunning Descent", body: "Verse 14 is the hinge of the prologue. The eternal, omnipotent, infinite Word took on flesh — the Greek word is 'sarx,' the fragile, mortal stuff of human experience. He pitched His tent among us. This is the miracle of the incarnation: the Creator entering His creation, not as a visitor, but as one of us." },
-      { heading: "Application", body: "Because the Word became flesh, we know that God is not distant or indifferent. He is the God who draws near. Every question you bring, every wound you carry — He has experienced the weight of human life and can meet you in it. Rest in the scandalous nearness of God." },
-    ],
-    reflectionQuestions: [
-      "What does it mean to you personally that Jesus is described as both 'with God' and 'God'?",
-      "How does the incarnation — God becoming flesh — change how you approach God in prayer?",
-      "Where in your life do you need to experience the light of Christ pushing back darkness?",
-    ],
-    prayer: "Lord Jesus, Word made flesh — thank You for not staying in heaven. Thank You for entering our mess, our limitations, our sorrow. Open our eyes to see Your glory in the ordinary fabric of life. Amen.",
-  },
-  2: {
-    outline: [
-      { ref: "John 1:35–37", point: "The Transfer of Disciples", sub: "John the Baptist points two of his disciples to Jesus." },
-      { ref: "John 1:38–39", point: "The First Invitation", sub: "'Come and see' — the simplest and most profound invitation in the Gospels." },
-      { ref: "John 1:40–51", point: "A Chain of Witness", sub: "Andrew tells Peter, Philip tells Nathanael — discipleship spreads person to person." },
-    ],
-    keyScriptures: [
-      { ref: "John 1:39", text: "'Come,' he replied, 'and you will see.' So they went and saw where he was staying, and they spent that day with him." },
-      { ref: "John 1:46", text: "'Nazareth! Can anything good come from there?' Nathanael asked. 'Come and see,' said Philip." },
-    ],
-    sections: [
-      { heading: "Introduction", body: "In this passage we see how Jesus gathers His first followers — not through a recruitment campaign, but through a simple, personal invitation: 'Come and see.' No pressure. No pitch. Just an open door." },
-      { heading: "The Question Jesus Asked", body: "When two disciples begin to follow Him, Jesus turns and asks: 'What do you want?' It is the most searching question in all of Scripture. What are you really after? What hunger drives you? Jesus always deals with the deep question beneath the surface question." },
-      { heading: "Come and See", body: "Their answer was a question: 'Where are you staying?' And His reply was not an address or a theology — it was an invitation into relationship. 'Come, and you will see.' The Christian life begins not with mastery of doctrine, but with proximity to Jesus. Everything flows from simply being with Him." },
-      { heading: "The Chain of Witness", body: "Andrew immediately finds his brother Simon and says, 'We have found the Messiah.' Philip finds Nathanael. Notice the pattern: encounter Jesus → tell someone close to you. Evangelism in John's Gospel is not a program; it is the natural overflow of discovery. You cannot keep this to yourself." },
-    ],
-    reflectionQuestions: [
-      "If Jesus asked you today, 'What do you want?' — what would your honest answer be?",
-      "Who is your 'Andrew' — the person who first pointed you toward Jesus?",
-      "Who is your 'Nathanael' — someone in your life you could invite to 'come and see'?",
-    ],
-    prayer: "Jesus, You still ask 'What do you want?' Teach us to want You above all else. Make us people who naturally and joyfully bring others into Your presence. Amen.",
-  },
-  4: {
-    outline: [
-      { ref: "Psalm 121:1–2", point: "Looking Up", sub: "The pilgrim lifts their eyes to the hills — but help comes from the Maker of the hills." },
-      { ref: "Psalm 121:3–4", point: "The Unwearied Keeper", sub: "God neither slumbers nor sleeps — constant, vigilant, attentive." },
-      { ref: "Psalm 121:5–8", point: "Coverage From All Sides", sub: "The Lord guards your going out and your coming in, now and forever." },
-    ],
-    keyScriptures: [
-      { ref: "Psalm 121:1–2", text: "I lift up my eyes to the mountains — where does my help come from? My help comes from the Lord, the Maker of heaven and earth." },
-      { ref: "Psalm 121:7–8", text: "The Lord will keep you from all harm — he will watch over your life; the Lord will watch over your coming and going both now and forevermore." },
-    ],
-    sections: [
-      { heading: "A Song for the Road", body: "Psalm 121 is a song of ascent — one of fifteen psalms sung by pilgrims making the long upward journey to Jerusalem for the feasts. The road was dangerous: bandits, heat, treacherous mountain paths. The pilgrim needed more than courage; they needed a protector." },
-      { heading: "The Right Direction", body: "The opening verse is sometimes misread as the hills being the source of help. But the question corrects us: help does not come from the hills themselves — it comes from the God who made them. Our instinct is to look to human strength, systems, or resources. The psalm trains our gaze upward — past the mountains to the Maker." },
-      { heading: "A God Who Does Not Sleep", body: "Verses 3–4 are striking: 'He who watches over you will not slumber; indeed, he who watches over Israel will neither slumber nor sleep.' The pagan gods of the ancient world were notoriously absent — sleeping, on a journey, or distracted. The Lord is none of these. There is never a moment when His attention lapses." },
-    ],
-    reflectionQuestions: [
-      "What 'mountains' are you currently looking at for help instead of looking to God?",
-      "How does it change your anxiety to know that God neither sleeps nor slumbers?",
-      "What aspect of 'going out and coming in' (work, relationships, decisions) do you need to entrust to God today?",
-    ],
-    prayer: "Maker of heaven and earth — we lift our eyes to You. In a world that offers a thousand substitutes for Your presence, keep our gaze fixed upward. Guard our going and our coming. Amen.",
-  },
-  5: {
-    outline: [
-      { ref: "James 2:14–17", point: "The Useless Faith", sub: "A faith that does nothing for the suffering neighbor is a dead faith." },
-      { ref: "James 2:18–20", point: "The Challenge", sub: "Even demons believe — intellectual assent alone is not saving faith." },
-      { ref: "James 2:21–26", point: "Abraham and Rahab", sub: "Two very different people, both justified by works that flowed from genuine faith." },
-    ],
-    keyScriptures: [
-      { ref: "James 2:17", text: "In the same way, faith by itself, if it is not accompanied by action, is dead." },
-      { ref: "James 2:26", text: "As the body without the spirit is dead, so faith without deeds is dead." },
-    ],
-    sections: [
-      { heading: "Introduction", body: "James is not contradicting Paul's teaching on justification by faith — he is confronting a counterfeit version of faith that has no transforming power. The issue is not faith versus works; it is living faith versus dead faith." },
-      { heading: "The Test Case", body: "James presents a concrete scenario: a brother or sister without food or clothing. You say 'Go in peace, be warm and well-fed' — but you do nothing. What good is that? The words ring hollow. James says the same is true of a faith that produces no deeds: it is a beautiful-sounding nothing." },
-      { heading: "Deeper Than Belief", body: "The demons believe that God is one — and they shudder. Intellectual assent to theological facts is not saving faith. Saving faith is a trust and reliance upon Christ that necessarily reshapes the direction of a life." },
-      { heading: "Two Witnesses", body: "Abraham offered Isaac — not to earn justification, but because his faith in God's promise was so real that obedience was the natural expression of it. Rahab hid the spies — a pagan woman whose tiny act of faith in Israel's God was counted as righteousness. Works are faith in motion." },
-    ],
-    reflectionQuestions: [
-      "Is there an area of your life where you hold a correct belief but it has not yet shaped your behavior?",
-      "Think of someone in genuine need around you — what would 'faith in action' look like this week?",
-      "How would you describe the difference between earning salvation and faith that naturally produces good works?",
-    ],
-    prayer: "Father, forgive us for a faith that stays safely in our heads. Give us the courage to let our trust in You spill into costly, visible love for the people around us. Amen.",
-  },
-  7: {
-    outline: [
-      { ref: "Psalm 122:1", point: "The Joy of the Invitation", sub: "David rejoiced when invited to go up to God's house." },
-      { ref: "Psalm 122:2–5", point: "The City of God", sub: "Jerusalem as the gathering point of the tribes and the seat of judgment." },
-      { ref: "Psalm 122:6–9", point: "The Prayers of the Pilgrim", sub: "Praying for the peace of Jerusalem — and for all who love it." },
-    ],
-    keyScriptures: [
-      { ref: "Psalm 122:1", text: "I rejoiced with those who said to me, 'Let us go to the house of the Lord.'" },
-      { ref: "Psalm 122:6", text: "Pray for the peace of Jerusalem: 'May those who love you be secure.'" },
-    ],
-    sections: [
-      { heading: "Introduction", body: "Of all the songs of ascent, Psalm 122 is perhaps the most joyful. The journey is over. The city is in view. And David's response is not relief — it is praise. The destination produced delight." },
-      { heading: "The Joy of Gathering", body: "The psalm opens with a communal invitation: 'Let us go.' Faith is not a solo expedition. We are summoned together, and we travel together. The community of pilgrims is itself part of the gift. One of the marks of a living faith is that corporate worship feels like arrival, not obligation." },
-      { heading: "Praying for the City", body: "The psalm closes with a charge to pray for Jerusalem's peace — shalom. Not just security from enemies, but wholeness, flourishing, the thriving of all who dwell within her gates. The pilgrim's love for the city is expressed in intercession. This is the pattern for how we should love our own communities." },
-    ],
-    reflectionQuestions: [
-      "When did you last feel genuine joy at the prospect of gathering with God's people? What made it feel that way?",
-      "What city, neighborhood, or community has God placed you in — and are you praying for its shalom?",
-      "What would it look like for your church to be a place of 'binding together' for your city?",
-    ],
-    prayer: "Lord, restore to us the joy of Your house. Make us people who run toward gathering, not away from it. And give us hearts that pray and work for the peace of the places You have planted us. Amen.",
-  },
-  8: {
-    outline: [
-      { ref: "Isaiah 7:14", point: "The Sign Given to Ahaz", sub: "A virgin will conceive and bear a son — Immanuel, God with us." },
-      { ref: "Matthew 1:22–23", point: "The Fulfillment", sub: "Matthew sees Isaiah's word fulfilled in the birth of Jesus." },
-      { ref: "Revelation 21:3", point: "The Final Advent", sub: "The dwelling of God is with man — the ultimate Immanuel moment." },
-    ],
-    keyScriptures: [
-      { ref: "Isaiah 7:14", text: "Therefore the Lord himself will give you a sign: The virgin will conceive and give birth to a son, and will call him Immanuel." },
-      { ref: "Matthew 1:23", text: "'The virgin will conceive and give birth to a son, and they will call him Immanuel' (which means 'God with us')." },
-    ],
-    sections: [
-      { heading: "Introduction", body: "Advent is the season of waiting. The word itself means 'coming.' And the whole of the Old Testament is one long, aching anticipation of the God who promised to come. Isaiah 7:14 is one of the most luminous points in that waiting." },
-      { heading: "The Name That Changes Everything", body: "Immanuel. God with us. Not God above us, observing from a safe distance. Not God against us, tallying our failures. God with us — present, near, involved. The name is a theology compressed into two syllables." },
-      { heading: "Advent Is for the Weary", body: "King Ahaz was facing national catastrophe. The sign was given not to the triumphant but to the terrified. Advent is not a season for those who have it together — it is for those who know they do not. The coming of Immanuel is precisely for the dark places." },
-      { heading: "Still Coming", body: "Advent teaches us to hold two things at once: Christ has come — the incarnation is history. And Christ is coming — the final advent, when the dwelling of God will be with man permanently (Rev 21:3). We live in the overlap, celebrating what God has done and leaning into what He will do." },
-    ],
-    reflectionQuestions: [
-      "Where in your life do you most need the reality of 'God with us' this Advent season?",
-      "How does knowing that the sign was given to a frightened king change how you receive this promise?",
-      "How do you hold together celebrating Christ's first coming while still longing for His return?",
-    ],
-    prayer: "Come, Lord Jesus. Come into the frightened places. Come into the waiting. You are Immanuel — God with us — and we need You now as much as Israel ever did. Amen.",
-  },
-  9: {
-    outline: [
-      { ref: "John 1:9", point: "The True Light", sub: "Jesus is the light that gives light to every person." },
-      { ref: "John 1:10–11", point: "The Rejection", sub: "He came to His own, and His own did not receive Him." },
-      { ref: "John 1:12–14", point: "The Welcome", sub: "All who receive Him are given the right to become children of God." },
-    ],
-    keyScriptures: [
-      { ref: "John 1:9", text: "The true light that gives light to everyone was coming into the world." },
-      { ref: "John 1:12", text: "Yet to all who did receive him, to those who believed in his name, he gave the right to become children of God." },
-    ],
-    sections: [
-      { heading: "Introduction", body: "We return to John's prologue in the second week of Advent to consider one of its most painful verses: 'He came to His own, and His own did not receive Him.' The incarnation is a story of love — but also of rejection. And somehow, both truths are necessary for the full picture." },
-      { heading: "The Light That Cannot Be Owned", body: "Jesus is called 'the true light' — the authentic, original source of all illumination. Every candle we light this Advent season is a shadow of the real thing. And this light came into the world not to hide in a corner, but to give light to every person." },
-      { heading: "The Tragedy of Rejection", body: "Israel was the keeper of the promises, the custodians of the covenants. And yet when the Promise arrived, they did not recognize Him. John records this not to shame Israel but to name a pattern as old as humanity: we resist the light because it exposes us." },
-      { heading: "The Extraordinary Welcome", body: "But then — verse 12. To all who received Him. The door is open. The invitation is universal. And to those who do receive Him, who trust in His name, He gives the most extravagant gift imaginable: the right to be called children of God. Not servants. Not subjects. Children." },
-    ],
-    reflectionQuestions: [
-      "Is there any area of your life where you have been 'not receiving' Jesus — keeping Him at the door?",
-      "What does it mean to you to be called a child of God, not just a follower or a believer?",
-      "How does the contrast between rejection and welcome in this passage shape how you treat 'outsiders'?",
-    ],
-    prayer: "True Light — thank You for coming into the world even knowing how many would turn away. Thank You that Your welcome was and is unconditional. Help us receive You fully, in every room of our lives. Amen.",
-  },
-};
-
-const fallbackSeriesData = [
-  { id: "john", title: "The Book of John", cover: "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80", count: 12, description: "A journey through the Gospel of John" },
-  { id: "psalms", title: "Songs of Ascent", cover: "https://images.unsplash.com/photo-1519741497674-611481863552?w=400&q=80", count: 8, description: "Psalms 120–134 for the pilgrim soul" },
-  { id: "faith", title: "Faith That Works", cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&q=80", count: 6, description: "The epistle of James unpacked" },
-  { id: "advent", title: "Advent 2024", cover: "https://images.unsplash.com/photo-1512389142860-9c449e58a543?w=400&q=80", count: 4, description: "Waiting, hoping, expecting" },
-];
-
-const fallbackSermonsData = [
-  { id: 1, title: "In the Beginning Was the Word", speaker: "Pastor David Kimani", date: "2025-06-01", duration: "42 min", scripture: "John 1:1–18", topic: "Christology", series: "john", thumbnail: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: true, featured: true },
-  { id: 2, title: "Come and See", speaker: "Pastor David Kimani", date: "2025-05-25", duration: "38 min", scripture: "John 1:35–51", topic: "Discipleship", series: "john", thumbnail: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?w=600&q=80", videoUrl: null, hasNotes: true },
-  { id: 3, title: "Water Into Wine", speaker: "Pastor Grace Mwangi", date: "2025-05-18", duration: "45 min", scripture: "John 2:1–12", topic: "Miracles", series: "john", thumbnail: "https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: false },
-  { id: 4, title: "I Will Lift My Eyes", speaker: "Pastor Grace Mwangi", date: "2025-05-11", duration: "35 min", scripture: "Psalm 121", topic: "Worship", series: "psalms", thumbnail: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=600&q=80", videoUrl: null, hasNotes: true },
-  { id: 5, title: "Faith Without Works Is Dead", speaker: "Dr. Samuel Ochieng", date: "2025-05-04", duration: "50 min", scripture: "James 2:14–26", topic: "Faith", series: "faith", thumbnail: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: true },
-  { id: 6, title: "Taming the Tongue", speaker: "Dr. Samuel Ochieng", date: "2025-04-27", duration: "44 min", scripture: "James 3:1–12", topic: "Character", series: "faith", thumbnail: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=600&q=80", videoUrl: null, hasNotes: false },
-  { id: 7, title: "A Pilgrim's Song", speaker: "Pastor David Kimani", date: "2025-04-20", duration: "40 min", scripture: "Psalm 122", topic: "Worship", series: "psalms", thumbnail: "https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=600&q=80", videoUrl: null, hasNotes: true },
-  { id: 8, title: "O Come, O Come Emmanuel", speaker: "Pastor Grace Mwangi", date: "2024-12-01", duration: "37 min", scripture: "Isaiah 7:14", topic: "Advent", series: "advent", thumbnail: "https://images.unsplash.com/photo-1543525238-54e3d131f629?w=600&q=80", videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", hasNotes: true },
-  { id: 9, title: "The Light Has Come", speaker: "Pastor David Kimani", date: "2024-12-08", duration: "41 min", scripture: "John 1:9–14", topic: "Advent", series: "advent", thumbnail: "https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=600&q=80", videoUrl: null, hasNotes: true },
-];
-
 // ─── Icons ────────────────────────────────────────────────────────────────────
 function PlayIcon({ size = 20, color = "white" }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><polygon points="5,3 19,12 5,21" /></svg>;
@@ -238,7 +55,7 @@ function SearchIcon({ size = 18 }) {
 
 // ─── Sermon Notes Reader Modal ───────────────────────────────────────────────
 function SermonNotesReader({ sermon, notesMap, onClose }) {
-  const notes = notesMap[sermon.id] || fallbackSermonNotes[sermon.id];
+  const notes = notesMap[sermon.id];
   const scrollRef = useRef(null);
   const [readProgress, setReadProgress] = useState(0);
   const [fontSize, setFontSize] = useState(16);
@@ -492,10 +309,22 @@ function FeaturedSermon({ sermon, seriesData, onReadNotes }) {
   const { isMobile, isTablet } = useBreakpoint();
   const stackLayout = isMobile || isTablet;
 
+  if (!sermon) {
+    return (
+      <div style={{ background: CHARCOAL, borderRadius: 16, padding: "32px 24px", marginBottom: 40, color: "white", fontFamily: "'DM Sans', sans-serif" }}>
+        Sermon data will appear here once it is connected.
+      </div>
+    );
+  }
+
   return (
     <div style={{ background: CHARCOAL, borderRadius: 16, overflow: "hidden", display: "grid", gridTemplateColumns: stackLayout ? "1fr" : "1fr 1fr", gap: 0, marginBottom: 40 }}>
       <div style={{ position: "relative" }}>
-        <img src={sermon.thumbnail} alt={sermon.title} style={{ width: "100%", height: stackLayout ? 220 : "100%", objectFit: "cover", minHeight: stackLayout ? "unset" : 360, display: "block" }} />
+        {sermon.thumbnail ? (
+          <img src={sermon.thumbnail} alt={sermon.title} style={{ width: "100%", height: stackLayout ? 220 : "100%", objectFit: "cover", minHeight: stackLayout ? "unset" : 360, display: "block" }} />
+        ) : (
+          <div style={{ width: "100%", height: stackLayout ? 220 : 360, background: "#3A3A38" }} />
+        )}
         <div style={{ position: "absolute", inset: 0, background: stackLayout ? "linear-gradient(to bottom, transparent 40%, rgba(44,44,42,0.85))" : `linear-gradient(to right, transparent 60%, ${CHARCOAL})` }} />
         <div style={{ position: "absolute", top: 16, left: 16 }}>
           <span style={{ background: COPPER, color: CHARCOAL, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", padding: "5px 12px", borderRadius: 20 }}>Latest Sermon</span>
@@ -629,9 +458,9 @@ export default function SermonsPage() {
   const { isMobile, isTablet } = useBreakpoint();
   const px = isMobile ? "16px" : isTablet ? "28px" : "48px";
 
-  const [seriesData, setSeriesData] = useState(fallbackSeriesData);
-  const [sermonsData, setSermonsData] = useState(fallbackSermonsData);
-  const [sermonNotesMap, setSermonNotesMap] = useState(fallbackSermonNotes);
+  const [seriesData, setSeriesData] = useState([]);
+  const [sermonsData, setSermonsData] = useState([]);
+  const [sermonNotesMap, setSermonNotesMap] = useState({});
   const [searchQuery, setSearchQuery] = useState("");
   const [filterSeries, setFilterSeries] = useState("all");
   const [filterSpeaker, setFilterSpeaker] = useState("all");
@@ -651,27 +480,27 @@ export default function SermonsPage() {
           fetchJson("/api/sermons"),
         ]);
         if (!mounted) return;
-        if (Array.isArray(series) && series.length) {
-          setSeriesData(series.map(item => ({ id: item.id, title: item.title, cover: item.cover_url || "https://images.unsplash.com/photo-1504052434569-70ad5836ab65?w=400&q=80", count: item.count || 0, description: item.description || "" })));
+        if (Array.isArray(series)) {
+          setSeriesData(series.map(item => ({ id: item.id, title: item.title, cover: item.cover_url || "", count: item.count || 0, description: item.description || "" })));
         }
-        if (Array.isArray(sermons) && sermons.length) {
-          const mappedSermons = sermons.map(item => ({ id: item.id, title: item.title, speaker: item.speaker, date: item.date, duration: item.duration || "—", scripture: item.scripture || "", topic: item.topic || "", series: item.series_id || "", thumbnail: item.thumbnail || "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=600&q=80", videoUrl: item.video_url || null, audioUrl: item.audio_url || null, documentUrl: item.document_url || null, hasNotes: Boolean(item.has_notes), featured: Boolean(item.featured) }));
+        if (Array.isArray(sermons)) {
+          const mappedSermons = sermons.map(item => ({ id: item.id, title: item.title, speaker: item.speaker, date: item.date, duration: item.duration || "—", scripture: item.scripture || "", topic: item.topic || "", series: item.series_id || "", thumbnail: item.thumbnail || "", videoUrl: item.video_url || null, audioUrl: item.audio_url || null, documentUrl: item.document_url || null, hasNotes: Boolean(item.has_notes), featured: Boolean(item.featured) }));
           setSermonsData(mappedSermons);
           const notesEntries = await Promise.all(mappedSermons.filter(item => item.hasNotes).map(async item => {
             try {
               const notes = await fetchJson(`/api/sermons/${item.id}/notes`);
               return [item.id, { outline: notes.outline || [], keyScriptures: notes.key_scriptures || [], sections: notes.sections || [], reflectionQuestions: notes.reflection_questions || [], prayer: notes.prayer || "" }];
-            } catch { return [item.id, fallbackSermonNotes[item.id] || null]; }
+            } catch { return [item.id, null]; }
           }));
-          const notesMap = { ...fallbackSermonNotes };
+          const notesMap = {};
           notesEntries.forEach(([id, notes]) => { if (notes) notesMap[id] = notes; });
           setSermonNotesMap(notesMap);
         }
       } catch {
         if (!mounted) return;
-        setSeriesData(fallbackSeriesData);
-        setSermonsData(fallbackSermonsData);
-        setSermonNotesMap(fallbackSermonNotes);
+        setSeriesData([]);
+        setSermonsData([]);
+        setSermonNotesMap({});
       }
     };
     load();
@@ -680,7 +509,7 @@ export default function SermonsPage() {
 
   const speakers = useMemo(() => [...new Set(sermonsData.map(s => s.speaker))], [sermonsData]);
   const topics = useMemo(() => [...new Set(sermonsData.map(s => s.topic))], [sermonsData]);
-  const featured = useMemo(() => sermonsData.find(s => s.featured) || sermonsData[0], [sermonsData]);
+  const featured = useMemo(() => sermonsData.find(s => s.featured) || sermonsData[0] || null, [sermonsData]);
 
   const filtered = useMemo(() => {
     const q = searchQuery.toLowerCase();

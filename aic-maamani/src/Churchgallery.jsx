@@ -15,15 +15,6 @@ const PALETTE = {
 
 // DEFAULT_ALBUMS removed — album options are derived from photos
 
-function mockPhoto(w, h, bg, label, icon) {
-  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${w}' height='${h}'>
-    <rect width='${w}' height='${h}' fill='${bg}'/>
-    <text x='50%' y='46%' font-family='Georgia,serif' font-size='32' fill='white' opacity='0.6' text-anchor='middle' dominant-baseline='middle'>${icon}</text>
-    <text x='50%' y='62%' font-family='Georgia,serif' font-size='13' fill='white' opacity='0.5' text-anchor='middle' dominant-baseline='middle'>${label}</text>
-  </svg>`;
-  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
-}
-
 function resolveGalleryUrl(src) {
   if (!src) return "";
   if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) {
@@ -33,42 +24,6 @@ function resolveGalleryUrl(src) {
   return `${base}${src}`;
 }
 
-const PHOTO_STYLES = [
-  { bg: "%234A3728", icon: "✝", label: "Sunday worship service" },
-  { bg: "%23285A3E", icon: "☀", label: "Youth group gathering" },
-  { bg: "%23A0531A", icon: "🤝", label: "Community outreach" },
-  { bg: "%232C4A5A", icon: "🏠", label: "Church community" },
-  { bg: "%234A3728", icon: "♪", label: "Choir performance" },
-  { bg: "%23284A38", icon: "✈", label: "Mission trip abroad" },
-  { bg: "%23285A3E", icon: "✝", label: "Youth worship night" },
-  { bg: "%235A4228", icon: "🍽", label: "Potluck Sunday" },
-  { bg: "%23A0531A", icon: "📦", label: "Food bank volunteers" },
-  { bg: "%234A3728", icon: "★", label: "Christmas Eve service" },
-  { bg: "%23284A38", icon: "🔨", label: "Building project" },
-  { bg: "%232C4A5A", icon: "👶", label: "Children's ministry" },
-  { bg: "%23285A3E", icon: "⛺", label: "Youth camp retreat" },
-  { bg: "%23A0531A", icon: "🌿", label: "Neighborhood cleanup" },
-  { bg: "%234A3728", icon: "🌅", label: "Easter sunrise service" },
-];
-
-const HEIGHTS = [320, 240, 380, 260, 300, 280, 350, 220, 290, 340, 260, 310, 270, 230, 360];
-
-const PHOTO_ALBUMS = ["Worship","Youth","Outreach 2024","Community","Worship","Missions","Youth","Community","Outreach 2024","Worship","Missions","Community","Youth","Outreach 2024","Worship"];
-
-const fallbackPhotos = PHOTO_STYLES.map((s, i) => ({
-  id: i + 1,
-  album: PHOTO_ALBUMS[i],
-  src: mockPhoto(400, HEIGHTS[i], s.bg, s.label, s.icon),
-  alt: s.label,
-  h: HEIGHTS[i],
-}));
-
-const fallbackVideos = [
-  { id: 1, title: "Sunday Message — Walking in Faith", videoUrl: null, date: "June 2, 2024" },
-  { id: 2, title: "Youth Night Highlights — Spring 2024", videoUrl: null, date: "May 18, 2024" },
-  { id: 3, title: "Outreach 2024 — Community Impact Reel", videoUrl: null, date: "April 30, 2024" },
-  { id: 4, title: "Christmas Cantata 2023", videoUrl: null, date: "December 24, 2023" },
-];
 
 function MasonryGrid({ photos, onPhotoClick }) {
   const [columns, setColumns] = useState(3);
@@ -125,7 +80,7 @@ function PhotoCard({ photo, onClick }) {
         loading="lazy"
         onLoad={() => setLoaded(true)}
         onError={(e) => {
-          e.currentTarget.src = mockPhoto(400, photo.h, "%234A3728", photo.alt, "✝");
+          e.currentTarget.style.visibility = "hidden";
           setLoaded(true);
         }}
         style={{
@@ -198,7 +153,7 @@ function Lightbox({ photos, startIndex, onClose }) {
           src={photo.src}
           alt={photo.alt}
           onError={(e) => {
-            e.currentTarget.src = mockPhoto(800, 500, "%234A3728", photo.alt, "✝");
+            e.currentTarget.style.visibility = "hidden";
           }}
           style={{
             maxWidth: "85vw", maxHeight: "78vh",
@@ -355,7 +310,7 @@ export default function ChurchGallery() {
   const [lightboxPhoto, setLightboxPhoto] = useState(null);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [photos, setPhotos] = useState([]);
-  const [videos, setVideos] = useState(fallbackVideos);
+  const [videos, setVideos] = useState([]);
   const [loadingGallery, setLoadingGallery] = useState(true);
 
   useEffect(() => {
@@ -364,8 +319,7 @@ export default function ChurchGallery() {
     fetchJson("/api/gallery/photos")
       .then((data) => {
         if (!mounted) return;
-        if (!Array.isArray(data) || !data.length) {
-          setPhotos(fallbackPhotos);
+        if (!Array.isArray(data)) {
           return;
         }
         setPhotos(
@@ -373,7 +327,7 @@ export default function ChurchGallery() {
             const source = photo.src || photo.url || photo.image_url || photo.photo_url || "";
             return {
               id: photo.id,
-              album: photo.album || "Worship",
+              album: photo.album || "",
               src: resolveGalleryUrl(source),
               alt: photo.alt || photo.caption || photo.title || "Gallery photo",
               h: photo.height || photo.h || 320,
@@ -382,7 +336,7 @@ export default function ChurchGallery() {
         );
       })
       .catch(() => {
-        if (mounted) setPhotos(fallbackPhotos);
+        if (mounted) setPhotos([]);
       })
       .finally(() => {
         if (mounted) setLoadingGallery(false);
@@ -390,7 +344,7 @@ export default function ChurchGallery() {
 
     fetchJson("/api/gallery/videos")
       .then((data) => {
-        if (!mounted || !Array.isArray(data) || !data.length) return;
+        if (!mounted || !Array.isArray(data)) return;
         setVideos(
           data.map((video) => ({
             id: video.id,
@@ -401,7 +355,7 @@ export default function ChurchGallery() {
         );
       })
       .catch(() => {
-        if (mounted) setVideos(fallbackVideos);
+        if (mounted) setVideos([]);
       });
 
     return () => {

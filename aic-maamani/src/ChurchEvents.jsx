@@ -3,146 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchJson } from "./api";
 
-// ── Palette ────────────────────────────────────────────────────────────────
-// #F2F1EF  light gray bg
-// #2C2C2A  dark charcoal primary
-// #EF9F27  warm copper accent
-// #5F5E5A  mid gray secondary
-
-// ── Seed data ──────────────────────────────────────────────────────────────
-const fallbackEvents = [
-  {
-    id: 1,
-    title: "Sunday Worship Service",
-    category: "worship",
-    date: "2026-06-14",
-    time: "10:00 AM",
-    end: "11:30 AM",
-    location: "Main Sanctuary",
-    online: false,
-    description:
-      "Join us for an uplifting morning of praise, prayer, and the Word. All are welcome — bring a friend.",
-    spots: null,
-  },
-  {
-    id: 2,
-    title: "Youth Night: Unshakeable",
-    category: "youth",
-    date: "2026-06-16",
-    time: "6:30 PM",
-    end: "8:30 PM",
-    location: "Youth Hall",
-    online: false,
-    description:
-      "An energetic evening for teenagers — games, worship, and a message on building an unshakeable faith.",
-    spots: 40,
-  },
-  {
-    id: 3,
-    title: "Community Outreach: Food Drive",
-    category: "outreach",
-    date: "2026-06-17",
-    time: "8:00 AM",
-    end: "12:00 PM",
-    location: "Church Parking Lot",
-    online: false,
-    description:
-      "Help us collect and distribute non-perishable goods to families in need across the city.",
-    spots: 20,
-  },
-  {
-    id: 4,
-    title: "Men's Small Group",
-    category: "small-groups",
-    date: "2026-06-18",
-    time: "7:00 PM",
-    end: "8:30 PM",
-    location: "Online (Zoom)",
-    online: true,
-    description:
-      "A bi-weekly deep-dive into the book of James. New members welcome — link sent on registration.",
-    spots: 15,
-  },
-  {
-    id: 5,
-    title: "Prayer & Fasting Morning",
-    category: "worship",
-    date: "2026-06-21",
-    time: "7:00 AM",
-    end: "9:00 AM",
-    location: "Chapel Room B",
-    online: false,
-    description:
-      "Dedicated corporate prayer across the ministries of our church. Come prepared to intercede.",
-    spots: null,
-  },
-  {
-    id: 6,
-    title: "Women's Bible Study",
-    category: "small-groups",
-    date: "2026-06-19",
-    time: "10:00 AM",
-    end: "11:30 AM",
-    location: "Fellowship Hall",
-    online: false,
-    description:
-      "Continuing our series through Ruth — exploring themes of loyalty, redemption, and grace.",
-    spots: 30,
-  },
-  {
-    id: 7,
-    title: "Sunday Worship Service",
-    category: "worship",
-    date: "2026-06-21",
-    time: "10:00 AM",
-    end: "11:30 AM",
-    location: "Main Sanctuary",
-    online: false,
-    description:
-      "Our weekly gathering to worship, hear the Word, and connect as a church family.",
-    spots: null,
-  },
-  {
-    id: 8,
-    title: "Neighbourhood Cleanup Drive",
-    category: "outreach",
-    date: "2026-06-22",
-    time: "9:00 AM",
-    end: "1:00 PM",
-    location: "Eastside Park Entrance",
-    online: false,
-    description:
-      "Gloves, bags, and snacks provided. Let's love our neighbours with our hands and feet.",
-    spots: 50,
-  },
-  {
-    id: 9,
-    title: "Youth Leadership Workshop",
-    category: "youth",
-    date: "2026-06-25",
-    time: "4:00 PM",
-    end: "6:00 PM",
-    location: "Online (Google Meet)",
-    online: true,
-    description:
-      "Equipping the next generation of servant-leaders. Open to ages 15–25.",
-    spots: 25,
-  },
-  {
-    id: 10,
-    title: "Newcomers Welcome Lunch",
-    category: "outreach",
-    date: "2026-06-28",
-    time: "12:00 PM",
-    end: "2:00 PM",
-    location: "Fellowship Hall",
-    online: false,
-    description:
-      "A warm, relaxed meal to help newcomers meet our pastoral team and find their place here.",
-    spots: 35,
-  },
-];
-
 const CATEGORIES = [
   { id: "all", label: "All Events" },
   { id: "worship", label: "Worship" },
@@ -340,13 +200,13 @@ const navBtn = {
 export default function ChurchEvents() {
   const [activeCategory, setActiveCategory] = useState("all");
   const [viewMode, setViewMode] = useState("list"); // list | calendar
-  const [events, setEvents] = useState(fallbackEvents);
+  const [events, setEvents] = useState([]);
 
   useEffect(() => {
     let mounted = true;
     fetchJson("/api/events")
       .then((data) => {
-        if (!mounted || !Array.isArray(data) || !data.length) return;
+        if (!mounted || !Array.isArray(data)) return;
         setEvents(
           data.map((event) => ({
             id: event.id,
@@ -363,7 +223,7 @@ export default function ChurchEvents() {
         );
       })
       .catch(() => {
-        if (mounted) setEvents(fallbackEvents);
+        if (mounted) setEvents([]);
       });
     return () => {
       mounted = false;

@@ -395,15 +395,6 @@ function MeetPastor() {
   );
 }
 
-// ── LEADERSHIP TEAM ──────────────────────────────────────
-const fallbackTeam = [
-  { name:"Pr. Daniel Mutinda", role:"Senior Pastor", dept:"Pastor In-charge", initials:"SP", accent: "#EF9F27" },
-  { name:"Pr. Grace Viata", role:"Associate Pastor", dept:"Associate Pastor", initials:"AP", accent: "#5F5E5A" },
-  { name:"Robert Kioko", role:"Treasurer", dept:"Finance", initials:"TF", accent: "#EF9F27" },
-  { name:"Jennifer Samuel", role:"Chairlady", dept:"Women Committee", initials:"WC", accent: "#5F5E5A" },
-  { name:"Ruth Kitheka", role:"Youth Leader", dept:"Next Gen", initials:"YL", accent: "#EF9F27" },
-];
-
 function TeamCard({ member, delay }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -453,13 +444,13 @@ function TeamCard({ member, delay }) {
 
 function LeadershipTeam() {
   const [ref, visible] = useInView(0.1);
-  const [team, setTeam] = useState(fallbackTeam);
+  const [team, setTeam] = useState([]);
 
   useEffect(() => {
     let mounted = true;
     fetchJson("/api/about/team")
       .then((data) => {
-        if (!mounted || !Array.isArray(data) || !data.length) return;
+        if (!mounted || !Array.isArray(data)) return;
         setTeam(
           data.map((member, index) => ({
             name: member.name,
@@ -478,7 +469,7 @@ function LeadershipTeam() {
         );
       })
       .catch(() => {
-        if (mounted) setTeam(fallbackTeam);
+        if (mounted) setTeam([]);
       });
     return () => {
       mounted = false;
@@ -498,14 +489,20 @@ function LeadershipTeam() {
           </p>
         </div>
         <div ref={ref} style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(270px, 1fr))", gap:"1.25rem" }}>
-          {team.map((m, i) => (
-            <div key={m.name} style={{
-              opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
-              transition:`opacity 0.45s ${i * 0.08}s, transform 0.45s ${i * 0.08}s`
-            }}>
-              <TeamCard member={m} delay={i * 0.08} />
+          {team.length === 0 ? (
+            <div style={{ gridColumn:"1 / -1", textAlign:"center", padding:"48px 20px", color:C.mid, fontFamily:"'DM Sans', sans-serif" }}>
+              Leadership data will appear here once it is connected.
             </div>
-          ))}
+          ) : (
+            team.map((m, i) => (
+              <div key={m.name} style={{
+                opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
+                transition:`opacity 0.45s ${i * 0.08}s, transform 0.45s ${i * 0.08}s`
+              }}>
+                <TeamCard member={m} delay={i * 0.08} />
+              </div>
+            ))
+          )}
         </div>
       </div>
     </section>

@@ -11,98 +11,6 @@ const palette = {
   accentLight: "#FDF3E0",
 };
 
-const fallbackPosts = [
-  {
-    id: 1, category: "devotional", tags: ["faith", "prayer"],
-    emoji: "🌅", heroBg: "#FDF3E0",
-    title: "Finding Peace in the Morning Hour",
-    excerpt: "There is something sacred about the stillness before the world awakes — a quiet invitation to draw near and listen.",
-    author: "Pastor Grace Wanjiku", initials: "GW", date: "June 2, 2026", readTime: "4 min read",
-    bioRole: "Lead Women's Pastor",
-    bio: "Pastor Grace Wanjiku serves as the lead pastor of our women's ministry and has been with the congregation for 12 years. Her heart is for contemplative faith in a busy world.",
-    body: [
-      { type: "p", text: "The morning holds a particular kind of grace. Before the noise of the day rises and demands crowd our hearts, there is a window — brief but luminous — where the soul can breathe." },
-      { type: "quote", text: '"Be still, and know that I am God." — Psalm 46:10' },
-      { type: "p", text: "Many of us rush past this holy threshold, phone in hand before our feet touch the floor. But what might happen if we paused? What if the first voice we listened to was not the notification ping, but the quiet whisper of the Spirit?" },
-      { type: "p", text: "Begin small. Five minutes of stillness. One verse. A single honest prayer. Watch how the whole day is reoriented when you anchor it in the morning hour." },
-    ],
-  },
-  {
-    id: 2, category: "teaching", tags: ["faith", "community"],
-    emoji: "📖", heroBg: "#EAF0FB",
-    title: "What the Sermon on the Mount Still Teaches Us",
-    excerpt: "Two thousand years have passed, yet the Beatitudes speak with startling freshness to our fractured, hurried age.",
-    author: "Elder David Kariuki", initials: "DK", date: "May 28, 2026", readTime: "7 min read",
-    bioRole: "Elder & Bible Teacher",
-    bio: "Elder David Kariuki has taught systematic theology in our midweek school of ministry for over a decade. He holds a Masters in Biblical Studies from Nairobi Evangelical Graduate School.",
-    body: [
-      { type: "p", text: "When Jesus ascended that hillside and opened his mouth, he delivered not a programme or a policy, but a portrait of what it means to be human under God's reign." },
-      { type: "quote", text: '"Blessed are the poor in spirit, for theirs is the kingdom of heaven." — Matthew 5:3' },
-      { type: "p", text: "The word \"blessed\" in Greek — makarios — carried the sense of a deep, settled joy; not the fizzy happiness of circumstance, but the weight-bearing contentment of knowing who you are and whose you are." },
-      { type: "p", text: "In our pursuit of influence and comfort, we have largely reversed the Beatitudes. We prize the assertive over the meek, the loud over the mournful. Jesus inverts every metric — and therein lies his teaching's enduring power to disturb and to heal." },
-    ],
-  },
-  {
-    id: 3, category: "testimony", tags: ["faith", "prayer", "community"],
-    emoji: "🕊️", heroBg: "#EEF5EE",
-    title: "He Heard Me in the Valley",
-    excerpt: "When my business collapsed and my marriage was strained, I discovered that God does his deepest work in the places we least expect.",
-    author: "Samuel Odhiambo", initials: "SO", date: "May 22, 2026", readTime: "5 min read",
-    bioRole: "Lay Leader, Men's Fellowship",
-    bio: "Samuel Odhiambo is a business consultant and lay leader in our men's fellowship. He and his wife Janet are based in Westlands and have three children.",
-    body: [
-      { type: "p", text: "I will not dress this up: 2024 was the hardest year of my life. The business I had built over seven years closed in March. By June, my wife and I were barely speaking." },
-      { type: "quote", text: '"Even though I walk through the darkest valley, I will fear no evil, for you are with me." — Psalm 23:4' },
-      { type: "p", text: "A brother from this congregation showed up at my door with groceries and no agenda. My wife and I attended a couples retreat facilitated by the church. Slowly, grace came — not as a rescue from the valley, but as company inside it." },
-      { type: "p", text: "Today I stand here not because the road became easy, but because I learned that Emmanuel — God with us — means exactly that." },
-    ],
-  },
-  {
-    id: 4, category: "announcement", tags: ["community"],
-    emoji: "📣", heroBg: "#F5EEFA",
-    title: "Youth Camp 2026 — Registration Now Open",
-    excerpt: "Three days in the Aberdares, built around worship, community, and the question: Who am I in Christ?",
-    author: "Youth Ministry Team", initials: "YM", date: "May 18, 2026", readTime: "2 min read",
-    bioRole: "Youth Ministry",
-    bio: "The Youth Ministry Team is led by Minister Ruth Achieng and a team of six volunteer coordinators passionate about equipping the next generation.",
-    body: [
-      { type: "p", text: "We are thrilled to announce that Youth Camp 2026 — themed Rooted — is officially open for registration!" },
-      { type: "quote", text: '"So then, just as you received Christ Jesus as Lord, continue to live your lives in him, rooted and built up in him." — Colossians 2:6–7' },
-      { type: "p", text: "This year's camp runs August 14–17 at Brackenhurst Conference Centre in Limuru. Spaces are limited to 120 young people aged 15–25. Registration closes July 30; a deposit of KSh 3,500 secures your place." },
-    ],
-  },
-  {
-    id: 5, category: "devotional", tags: ["prayer"],
-    emoji: "🌿", heroBg: "#EAF5EF",
-    title: "The Practice of Gratitude as Resistance",
-    excerpt: "In a culture engineered to make us feel perpetually lacking, thanksgiving is a quietly radical act of trust.",
-    author: "Deaconess Anne Muthoni", initials: "AM", date: "May 14, 2026", readTime: "3 min read",
-    bioRole: "Deaconess & Prayer Leader",
-    bio: "Deaconess Anne Muthoni leads our intercessory prayer team and facilitates a weekly ladies' Bible study. She is a trained counsellor and spiritual director.",
-    body: [
-      { type: "p", text: "The algorithm is designed to produce one feeling: not-enough. Not enough money, beauty, travel, status. The economy of comparison runs on dissatisfaction." },
-      { type: "quote", text: '"Give thanks in all circumstances; for this is God\'s will for you in Christ Jesus." — 1 Thessalonians 5:18' },
-      { type: "p", text: "Gratitude is an act of memory: recalling goodness already given, even when goodness feels absent now. It is also an act of trust: believing that the Giver has not forgotten us." },
-      { type: "p", text: "Try this: before you open social media tomorrow morning, name three specific gifts — no matter how small. Notice what happens to your hour." },
-    ],
-  },
-  {
-    id: 6, category: "teaching", tags: ["faith", "community"],
-    emoji: "🔥", heroBg: "#FDE8E8",
-    title: "Understanding Spiritual Gifts in the Local Church",
-    excerpt: "Every believer has been given something for the common good. The question is not whether you are gifted, but how you are stewarding your gift.",
-    author: "Pastor Daniel Njoroge", initials: "DN", date: "May 6, 2026", readTime: "8 min read",
-    bioRole: "Senior Pastor",
-    bio: "Pastor Daniel Njoroge is the senior pastor and has shepherded this congregation for 19 years. He holds a DMin from Africa International University.",
-    body: [
-      { type: "p", text: "The New Testament is unambiguous: every member of the body of Christ has been given gifts by the Spirit — not as trophies, but as tools for service." },
-      { type: "quote", text: '"Now to each one the manifestation of the Spirit is given for the common good." — 1 Corinthians 12:7' },
-      { type: "p", text: "Yet in many congregations, 20% of the people do 80% of the work. Part of this imbalance stems from a misunderstanding of what gifts are for: they are given to distribute, not to distinguish." },
-      { type: "p", text: "If you have not yet discovered your spiritual gifts, examine what energises rather than depletes you, ask those who know you what they see, and simply begin serving — gifts often reveal themselves in use." },
-    ],
-  },
-];
-
 const CATEGORIES = ["all", "devotional", "announcement", "teaching", "testimony"];
 const TAGS = ["faith", "prayer", "community"];
 
@@ -278,17 +186,17 @@ export default function BlogDevotionals() {
   const [activeFilter, setActiveFilter] = useState("all");
   const [activeTag, setActiveTag] = useState(null);
   const [openPost, setOpenPost] = useState(null);
-  const [posts, setPosts] = useState(fallbackPosts);
+  const [posts, setPosts] = useState([]);
 
   useEffect(() => {
     let mounted = true;
     fetchJson("/api/blog")
       .then((data) => {
-        if (!mounted || !Array.isArray(data) || !data.length) return;
+        if (!mounted || !Array.isArray(data)) return;
         setPosts(data);
       })
       .catch(() => {
-        if (mounted) setPosts(fallbackPosts);
+        if (mounted) setPosts([]);
       });
     return () => {
       mounted = false;
