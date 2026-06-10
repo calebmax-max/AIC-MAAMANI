@@ -6,6 +6,7 @@ from admin_security import create_password_record, verify_password
 from database import get_db
 from models import AdminUser, BlogPost, ContactMessage, Event, GalleryPhoto, GalleryVideo, Sermon, TeamMember
 from token_auth import create_access_token, verify_token as verify_jwt_token
+from schemas import MessagesPinVerify, MessagesPinChange, MessagesPinStatus
 
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
@@ -122,6 +123,8 @@ def login_admin(payload: AdminLoginIn, request: Request, db: Session = Depends(g
 
     # Create a JWT access token for token-based auth
     token = create_access_token(user.username, user.role)
+    # Also set session cookie so session-based auth (require_admin fallback) works
+    request.session[ADMIN_SESSION_KEY] = user.username
     return {
         "detail": "Signed in",
         "username": user.username,
@@ -153,7 +156,6 @@ def change_password(
     salt, password_hash = create_password_record(payload.new_password)
     current_admin.password_salt = salt
     current_admin.password_hash = password_hash
-    db.add(current_admin)
     db.commit()
     return {"detail": "Password updated successfully"}
 
@@ -169,3 +171,40 @@ def get_admin_stats(db: Session = Depends(get_db), _: AdminUser = Depends(requir
         messages=db.query(ContactMessage).count(),
         team=db.query(TeamMember).count(),
     )
+
+# ─── Messages PIN endpoints ───────────────────────────────────────────────────
+
+@router.get("/messages-pin/status", response_model=MessagesPinStatus)
+def messages_pin_status(current_admin: AdminUser = Depends(require_admin)):
+    return {"is_set": bool(current_admin.messages_pin_hash)}
+
+
+@router.post("/messages-pin/verify")
+def verify_messages_pin(
+    payload: MessagesPinVerify,
+    current_admin: AdminUser = Depends(require_admin),
+):
+    if not current_admin.messages_pin_hash:
+        raise HTTPException(status_code=400, detail="Messages PIN has not been set yet")
+    if not verify_password(payload.pin, current_admin.messages_pin_salt, current_admin.messages_pin_hash):
+        raise HTTPException(status_code=401, detail="Incorrect PIN")
+    return {"detail": "PIN verified"}
+
+
+@router.put("/messages-pin")
+def change_messages_pin(
+    payload: MessagesPinChange,
+    db: Session = Depends(get_db),
+    current_admin: AdminUser = Depends(require_admin),
+):
+    # If a PIN is already set, require current_pin to change it
+    if current_admin.messages_pin_hash:
+        if not payload.current_pin:
+            raise HTTPException(status_code=400, detail="Current PIN is required")
+        if not verify_password(payload.current_pin, current_admin.messages_pin_salt, current_admin.messages_pin_hash):
+            raise HTTPException(status_code=401, detail="Current PIN is incorrect")
+    salt, pin_hash = create_password_record(payload.new_pin)
+    current_admin.messages_pin_salt = salt
+    current_admin.messages_pin_hash = pin_hash
+    db.commit()
+    return {"detail": "Messages PIN updated"}

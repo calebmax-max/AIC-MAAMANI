@@ -1144,7 +1144,218 @@ function VideosPanel({ toast }) {
     </div>
   );
 }
-function MessagesPanel({ toast }) {
+// ─── Messages PIN gate ───────────────────────────────────────────────────────
+
+/**
+ * MessagesPinGate
+ * Requires a separate Messages PIN (stored in the DB) before showing messages.
+ * Falls back to a first-time setup screen if no PIN has been set yet.
+ * Auto-locks after 30 minutes of inactivity.
+ */
+function MessagesPinGate({ toast, children }) {
+  const SESSION_KEY  = "aic_messages_unlocked_until";
+  const LOCK_MINUTES = 30;
+
+  const isUnlocked = () => {
+    try {
+      const exp = parseInt(sessionStorage.getItem(SESSION_KEY) || "0", 10);
+      return Date.now() < exp;
+    } catch { return false; }
+  };
+
+  const [unlocked,    setUnlocked]    = useState(isUnlocked);
+  const [pinSet,      setPinSet]      = useState(null);   // null = checking
+  const [pin,         setPin]         = useState("");
+  const [currentPin,  setCurrentPin]  = useState("");
+  const [newPin,      setNewPin]      = useState("");
+  const [confirmPin,  setConfirmPin]  = useState("");
+  const [checking,    setChecking]    = useState(false);
+  const [pinError,    setPinError]    = useState("");
+  const [mode,        setMode]        = useState("unlock"); // unlock | change
+  const inputRef = useRef(null);
+
+  // Check if PIN has been set yet
+  useEffect(() => {
+    apiFetch("/admin/messages-pin/status")
+      .then(d => setPinSet(d.is_set))
+      .catch(() => setPinSet(false));
+  }, []);
+
+  useEffect(() => {
+    if (!unlocked && pinSet !== null) {
+      setPin(""); setPinError("");
+      setTimeout(() => inputRef.current?.focus(), 80);
+    }
+  }, [unlocked, pinSet]);
+
+  const unlock = async () => {
+    if (!pin) { setPinError("Please enter your PIN"); return; }
+    setChecking(true); setPinError("");
+    try {
+      await apiFetch("/admin/messages-pin/verify", {
+        method: "POST",
+        body: JSON.stringify({ pin }),
+      });
+      const exp = Date.now() + LOCK_MINUTES * 60 * 1000;
+      sessionStorage.setItem(SESSION_KEY, String(exp));
+      setUnlocked(true);
+      toast("Messages unlocked");
+    } catch {
+      setPinError("Incorrect PIN. Please try again.");
+      setPin("");
+      inputRef.current?.focus();
+    }
+    setChecking(false);
+  };
+
+  const setFirstPin = async () => {
+    if (newPin.length < 4) { setPinError("PIN must be at least 4 characters"); return; }
+    if (newPin !== confirmPin) { setPinError("PINs do not match"); return; }
+    setChecking(true); setPinError("");
+    try {
+      await apiFetch("/admin/messages-pin", {
+        method: "PUT",
+        body: JSON.stringify({ new_pin: newPin }),
+      });
+      setPinSet(true);
+      toast("Messages PIN set");
+      // Auto-unlock after setting for the first time
+      const exp = Date.now() + LOCK_MINUTES * 60 * 1000;
+      sessionStorage.setItem(SESSION_KEY, String(exp));
+      setUnlocked(true);
+    } catch (e) { setPinError(e.message || "Failed to set PIN"); }
+    setChecking(false);
+  };
+
+  const changePin = async () => {
+    if (!currentPin) { setPinError("Enter your current PIN"); return; }
+    if (newPin.length < 4) { setPinError("New PIN must be at least 4 characters"); return; }
+    if (newPin !== confirmPin) { setPinError("New PINs do not match"); return; }
+    setChecking(true); setPinError("");
+    try {
+      await apiFetch("/admin/messages-pin", {
+        method: "PUT",
+        body: JSON.stringify({ current_pin: currentPin, new_pin: newPin }),
+      });
+      toast("Messages PIN updated");
+      setMode("unlock");
+      setCurrentPin(""); setNewPin(""); setConfirmPin(""); setPin("");
+    } catch (e) { setPinError(e.message || "Failed to update PIN"); }
+    setChecking(false);
+  };
+
+  const lock = () => {
+    sessionStorage.removeItem(SESSION_KEY);
+    setUnlocked(false);
+    setMode("unlock");
+  };
+
+  // Still checking PIN status
+  if (pinSet === null) {
+    return <div className="empty">Checking access…</div>;
+  }
+
+  // First-time PIN setup
+  if (!pinSet) {
+    return (
+      <div style={{ display: "grid", placeItems: "center", minHeight: "60vh", padding: "2rem" }}>
+        <div style={{ background: WHITE, border: "1px solid #E0DDD8", borderTop: `4px solid ${COPPER}`, padding: "2.25rem 2rem", width: "100%", maxWidth: 400, boxShadow: "0 8px 32px rgba(44,44,42,0.08)" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem", textAlign: "center" }}>🔐</div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.35rem", color: CHARCOAL, textAlign: "center", marginBottom: "0.35rem" }}>Set a Messages PIN</div>
+          <p style={{ fontSize: "0.82rem", color: MID, textAlign: "center", lineHeight: 1.7, marginBottom: "1.5rem" }}>
+            Create a separate PIN just for viewing messages.<br />This is different from your admin login password.
+          </p>
+          <div className="form-row">
+            <label>New PIN (min. 4 characters)</label>
+            <input ref={inputRef} type="password" value={newPin} onChange={e => setNewPin(e.target.value)} onKeyDown={e => e.key === "Enter" && setFirstPin()} placeholder="Create a PIN" autoComplete="new-password" />
+          </div>
+          <div className="form-row">
+            <label>Confirm PIN</label>
+            <input type="password" value={confirmPin} onChange={e => setConfirmPin(e.target.value)} onKeyDown={e => e.key === "Enter" && setFirstPin()} placeholder="Repeat your PIN" autoComplete="new-password" />
+          </div>
+          {pinError && <div style={{ fontSize: "0.8rem", color: DANGER, marginBottom: "0.85rem" }}>⚠ {pinError}</div>}
+          <button className="btn btn-primary" onClick={setFirstPin} disabled={checking} style={{ width: "100%", justifyContent: "center" }}>
+            {checking ? "Saving…" : "Set PIN & View Messages →"}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Change-PIN mode (accessible once unlocked)
+  if (mode === "change") {
+    return (
+      <div style={{ display: "grid", placeItems: "center", minHeight: "60vh", padding: "2rem" }}>
+        <div style={{ background: WHITE, border: "1px solid #E0DDD8", borderTop: `4px solid ${COPPER}`, padding: "2.25rem 2rem", width: "100%", maxWidth: 400, boxShadow: "0 8px 32px rgba(44,44,42,0.08)" }}>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.35rem", color: CHARCOAL, marginBottom: "1.5rem" }}>Change Messages PIN</div>
+          <div className="form-row">
+            <label>Current PIN</label>
+            <input type="password" value={currentPin} onChange={e => setCurrentPin(e.target.value)} placeholder="Current PIN" autoComplete="current-password" />
+          </div>
+          <div className="form-row">
+            <label>New PIN</label>
+            <input type="password" value={newPin} onChange={e => setNewPin(e.target.value)} placeholder="New PIN (min. 4 chars)" autoComplete="new-password" />
+          </div>
+          <div className="form-row">
+            <label>Confirm New PIN</label>
+            <input type="password" value={confirmPin} onChange={e => setConfirmPin(e.target.value)} onKeyDown={e => e.key === "Enter" && changePin()} placeholder="Repeat new PIN" autoComplete="new-password" />
+          </div>
+          {pinError && <div style={{ fontSize: "0.8rem", color: DANGER, marginBottom: "0.85rem" }}>⚠ {pinError}</div>}
+          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+            <button className="btn btn-ghost" onClick={() => { setMode("unlock"); setPinError(""); }}>Cancel</button>
+            <button className="btn btn-primary" onClick={changePin} disabled={checking}>{checking ? "Saving…" : "Update PIN"}</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Locked — show PIN entry
+  if (!unlocked) {
+    return (
+      <div style={{ display: "grid", placeItems: "center", minHeight: "60vh", padding: "2rem" }}>
+        <div style={{ background: WHITE, border: "1px solid #E0DDD8", borderTop: `4px solid ${COPPER}`, padding: "2.25rem 2rem", width: "100%", maxWidth: 400, boxShadow: "0 8px 32px rgba(44,44,42,0.08)" }}>
+          <div style={{ fontSize: "2rem", marginBottom: "0.5rem", textAlign: "center" }}>🔒</div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.35rem", color: CHARCOAL, textAlign: "center", marginBottom: "0.35rem" }}>Messages</div>
+          <p style={{ fontSize: "0.82rem", color: MID, textAlign: "center", lineHeight: 1.7, marginBottom: "1.5rem" }}>
+            This section contains private messages from the congregation.<br />Enter your Messages PIN to continue.
+          </p>
+          <div className="form-row">
+            <label>Messages PIN</label>
+            <input ref={inputRef} type="password" value={pin} onChange={e => setPin(e.target.value)} onKeyDown={e => e.key === "Enter" && unlock()} placeholder="Enter your Messages PIN" autoComplete="current-password" />
+          </div>
+          {pinError && <div style={{ fontSize: "0.8rem", color: DANGER, marginBottom: "0.85rem" }}>⚠ {pinError}</div>}
+          <button className="btn btn-primary" onClick={unlock} disabled={checking} style={{ width: "100%", justifyContent: "center" }}>
+            {checking ? "Verifying…" : "Unlock Messages →"}
+          </button>
+          <p style={{ fontSize: "0.7rem", color: MID, textAlign: "center", marginTop: "1rem", lineHeight: 1.6 }}>
+            Access expires automatically after {LOCK_MINUTES} minutes.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Unlocked — show banner + children
+  return (
+    <div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.5rem", marginBottom: "0.5rem" }}>
+        <span style={{ fontSize: "0.72rem", color: MID, letterSpacing: "0.06em" }}>
+          🔓 Messages unlocked · auto-locks in {LOCK_MINUTES} min
+        </span>
+        <button className="btn btn-ghost" style={{ padding: "0.3rem 0.75rem", fontSize: "0.72rem" }} onClick={() => setMode("change")}>
+          Change PIN
+        </button>
+        <button className="btn btn-ghost" style={{ padding: "0.3rem 0.75rem", fontSize: "0.72rem" }} onClick={lock}>
+          Lock Now
+        </button>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function MessagesInner({ toast }) {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
@@ -1170,12 +1381,27 @@ function MessagesPanel({ toast }) {
     catch (e) { toast(e.message); }
   };
 
+  // Label map so subject keys look nice in the table
+  const SUBJECT_LABELS = {
+    "general": "General Enquiry",
+    "prayer-request": "Prayer Request",
+    "pastoral-care": "Pastoral Care",
+    "volunteering": "Volunteering",
+    "events": "Events & Programmes",
+    "media": "Media",
+    "other": "Other",
+  };
+
   const unread = messages.filter(m => !m.read).length;
 
   return (
     <div>
       <div className="section-header">
-        <h1 className="page-title">Contact Messages {unread > 0 && <span className="badge badge-gold" style={{ fontSize: "0.75rem", marginLeft: 8 }}>{unread} unread</span>}</h1>
+        <h1 className="page-title">
+          Contact Messages{unread > 0 && (
+            <span className="badge badge-gold" style={{ fontSize: "0.75rem", marginLeft: 8 }}>{unread} unread</span>
+          )}
+        </h1>
         <label style={{ display: "flex", alignItems: "center", gap: 7, textTransform: "none", letterSpacing: 0, fontSize: "0.85rem", cursor: "pointer" }}>
           <input type="checkbox" checked={unreadOnly} onChange={e => setUnreadOnly(e.target.checked)} style={{ width: "auto" }} /> Unread only
         </label>
@@ -1183,17 +1409,21 @@ function MessagesPanel({ toast }) {
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : messages.length === 0 ? <div className="empty">No messages.</div> : (
           <table>
-            <thead><tr><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Status</th><th></th></tr></thead>
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Status</th><th></th></tr>
+            </thead>
             <tbody>
               {messages.map(m => (
                 <tr key={m.id} style={{ cursor: "pointer" }} onClick={() => setSelected(m)}>
                   <td><strong style={{ fontWeight: m.read ? 400 : 600 }}>{m.name}</strong></td>
-                  <td>{m.email}</td>
-                  <td>{m.subject}</td>
+                  <td style={{ fontSize: "0.82rem" }}>{m.email || "—"}</td>
+                  <td>{SUBJECT_LABELS[m.subject] || m.subject}</td>
                   <td style={{ fontSize: "0.75rem", whiteSpace: "nowrap" }}>{new Date(m.created_at).toLocaleDateString()}</td>
                   <td>{m.read ? <span className="badge badge-gray">Read</span> : <span className="badge badge-gold">Unread</span>}</td>
                   <td onClick={e => e.stopPropagation()} style={{ whiteSpace: "nowrap" }}>
-                    {!m.read && <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => markRead(m.id)}>Mark Read</button>}
+                    {!m.read && (
+                      <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => markRead(m.id)}>Mark Read</button>
+                    )}
                     <button className="btn btn-danger" onClick={() => setConfirm(m.id)}>Delete</button>
                   </td>
                 </tr>
@@ -1206,25 +1436,52 @@ function MessagesPanel({ toast }) {
       {selected && (
         <Modal title={`Message from ${selected.name}`} onClose={() => setSelected(null)}>
           <div style={{ marginBottom: "1.25rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-            {[["Email", selected.email], ["Phone", selected.phone || "—"], ["Subject", selected.subject], ["Date", new Date(selected.created_at).toLocaleString()]].map(([k, v]) => (
+            {[
+              ["Email", selected.email || "—"],
+              ["Phone", selected.phone || "—"],
+              ["Subject", SUBJECT_LABELS[selected.subject] || selected.subject],
+              ["Date", new Date(selected.created_at).toLocaleString()],
+            ].map(([k, v]) => (
               <div key={k}>
                 <div style={{ fontSize: "0.65rem", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: MID, marginBottom: 3 }}>{k}</div>
                 <div style={{ fontSize: "0.88rem" }}>{v}</div>
               </div>
             ))}
           </div>
+          {/* Private prayer flag */}
+          {selected.message?.includes("[This prayer request is private") && (
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: "0.75rem", background: "#FEF3D9", border: "1px solid #F5D88A", padding: "0.5rem 0.85rem", fontSize: "0.78rem", color: COPPER2, fontWeight: 600 }}>
+              🔒 Private prayer request — handle with care
+            </div>
+          )}
           <div style={{ background: LIGHT, padding: "1rem 1.25rem", borderLeft: `3px solid ${COPPER}`, marginBottom: "1.25rem" }}>
-            <p style={{ fontSize: "0.9rem", lineHeight: 1.8, color: CHARCOAL }}>{selected.message}</p>
+            <p style={{ fontSize: "0.9rem", lineHeight: 1.8, color: CHARCOAL }}>
+              {selected.message?.replace(/\n\n\[This prayer request is private[^\]]*\]/, "").trim()}
+            </p>
           </div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-            {!selected.read && <button className="btn btn-ghost" onClick={() => { markRead(selected.id); setSelected(s => ({ ...s, read: true })); }}>Mark Read</button>}
+            {!selected.read && (
+              <button className="btn btn-ghost" onClick={() => { markRead(selected.id); setSelected(s => ({ ...s, read: true })); }}>
+                Mark Read
+              </button>
+            )}
             <button className="btn btn-danger" onClick={() => setConfirm(selected.id)}>Delete</button>
           </div>
         </Modal>
       )}
 
-      {confirm && <Confirm message="Delete this message permanently?" onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+      {confirm && (
+        <Confirm message="Delete this message permanently?" onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />
+      )}
     </div>
+  );
+}
+
+function MessagesPanel({ toast }) {
+  return (
+    <MessagesPinGate toast={toast}>
+      <MessagesInner toast={toast} />
+    </MessagesPinGate>
   );
 }
 

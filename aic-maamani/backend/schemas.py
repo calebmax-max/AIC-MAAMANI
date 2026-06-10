@@ -166,18 +166,10 @@ class GalleryVideoOut(GalleryVideoBase):
 
 class ContactMessageCreate(BaseModel):
     name: str
-    email: str
+    email: Optional[str] = None
     phone: Optional[str] = None
     subject: str
     message: str
-
-    @field_validator("email")
-    @classmethod
-    def contact_email_must_look_valid(cls, v: str) -> str:
-        email = v.strip()
-        if "@" not in email or email.startswith("@") or email.endswith("@"):
-            raise ValueError("Invalid email address")
-        return email
 
     @field_validator("message")
     @classmethod
@@ -192,6 +184,19 @@ class ContactMessageOut(ContactMessageCreate):
     read: bool
     model_config = {"from_attributes": True}
 
+
+
+# ─── Messages PIN ─────────────────────────────────────────────────────────────
+
+class MessagesPinVerify(BaseModel):
+    pin: str = Field(min_length=4)
+
+class MessagesPinChange(BaseModel):
+    current_pin: Optional[str] = None   # None only when setting PIN for the first time
+    new_pin: str = Field(min_length=4)
+
+class MessagesPinStatus(BaseModel):
+    is_set: bool
 
 # ─── About / Team ─────────────────────────────────────────────────────────────
 

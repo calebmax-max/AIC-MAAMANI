@@ -14,10 +14,12 @@ class AdminUser(Base):
     username      = Column(String(255), nullable=False, unique=True, index=True)
     password_salt = Column(String(255), nullable=False)
     password_hash = Column(String(255), nullable=False)
-    role          = Column(String(255), nullable=False, default="full_admin")
-    is_active     = Column(Boolean, default=True)
-    created_at    = Column(DateTime, default=datetime.utcnow)
-    updated_at    = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    role               = Column(String(255), nullable=False, default="full_admin")
+    is_active          = Column(Boolean, default=True)
+    messages_pin_salt  = Column(String(255), nullable=True)
+    messages_pin_hash  = Column(String(255), nullable=True)
+    created_at         = Column(DateTime, default=datetime.utcnow)
+    updated_at         = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 # ─── Sermons ────────────────────────────────────────────────────────────────
 
@@ -152,7 +154,7 @@ class ContactMessage(Base):
 
     id         = Column(Integer, primary_key=True, index=True)
     name       = Column(String(255), nullable=False)
-    email      = Column(String(255), nullable=False)
+    email      = Column(String(255), nullable=True)
     phone      = Column(String(255))
     subject    = Column(String(255))
     message    = Column(Text, nullable=False)
@@ -171,4 +173,3 @@ class TeamMember(Base):
     bio      = Column(Text)
     photo    = Column(String(255))
     order    = Column(Integer, default=0)                   # display order
-
