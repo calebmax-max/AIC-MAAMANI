@@ -1,10 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { fetchJson } from "./api";
-
-// MEDIA_BASE resolves uploaded file URLs to the backend server.
-// API_BASE falls back to window.location.origin (the Vercel frontend) which
-// cannot serve uploaded files — so we read the env var directly here.
-const MEDIA_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "");
+import { fetchJson, API_BASE } from "./api";
 
 const PALETTE = {
   bg: "#F2F1EF",
@@ -20,14 +15,11 @@ const PALETTE = {
 
 function resolveGalleryUrl(src) {
   if (!src) return "";
-  // Already an absolute URL or data URI — return as-is
-  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
-  // No backend configured — leave relative paths as-is
-  if (!MEDIA_BASE) return src;
-  // Prevent double-prefix
-  if (src.startsWith(MEDIA_BASE)) return src;
-  const path = src.startsWith("/") ? src : `/${src}`;
-  return `${MEDIA_BASE}${path}`;
+  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) {
+    return src;
+  }
+  const base = API_BASE.replace(/\/$/, "");
+  return `${base}${src}`;
 }
 
 
@@ -338,15 +330,17 @@ export default function ChurchGallery() {
 
     // Fetch photos and videos in parallel
     Promise.all([
-      fetchJson("/api/gallery/photos").catch(() => null),
+      fetchJson("/api/gallery/photos").catch((e) => { console.error("GALLERY FETCH ERROR:", e); return null; }),
       fetchJson("/api/gallery/videos").catch(() => null),
     ]).then(([photoData, videoData]) => {
       if (!mounted) return;
 
       if (Array.isArray(photoData)) {
+        console.log("RAW PHOTO DATA (first 3):", JSON.stringify(photoData.slice(0, 3), null, 2));
         setPhotos(
           photoData.map((photo) => {
             const source = photo.src || photo.url || photo.image_url || photo.photo_url || "";
+            console.log("PHOTO KEYS:", Object.keys(photo), "| source:", source, "| resolved:", resolveGalleryUrl(source));
             return {
               id: photo.id,
               album: photo.album || "",
