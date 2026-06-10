@@ -2,6 +2,13 @@ import { useState, useEffect, useCallback, useRef } from "react";
 
 const API = `${process.env.REACT_APP_API_BASE_URL || window.location.origin}/api`;
 
+function resolveUrl(src) {
+  if (!src) return "";
+  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
+  const base = (process.env.REACT_APP_API_BASE_URL || window.location.origin).replace(/\/$/, "");
+  return `${base}${src}`;
+}
+
 const COPPER = "#EF9F27";
 const COPPER2 = "#BA7517";
 const CHARCOAL = "#2C2C2A";
@@ -1065,7 +1072,7 @@ function GalleryPanel({ toast }) {
   };
 
   const openEdit = (p) => {
-    setEditForm({ id: p.id, alt: p.alt || "", album: p.album || "Church", src: p.src });
+    setEditForm({ id: p.id, alt: p.alt || "", album: p.album || "Church", src: resolveUrl(p.src) });
     setModal("edit");
   };
 
@@ -1107,7 +1114,7 @@ function GalleryPanel({ toast }) {
                 <tr key={p.id}>
                   <td>
                     <img
-                      src={p.src}
+                      src={resolveUrl(p.src)}
                       alt={p.alt || ""}
                       style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8", display: "block", background: "#F8F5F0" }}
                       onError={e => { e.currentTarget.style.opacity = "0.2"; }}
