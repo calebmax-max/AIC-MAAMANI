@@ -1259,7 +1259,10 @@ function VideosPanel({ toast }) {
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
   const [form, setForm] = useState({ title: "", date: "", video_file: null });
+  const [previewUrl, setPreviewUrl] = useState(null); // local object URL for selected file
   const [confirm, setConfirm] = useState(null);
+  const [playingId, setPlayingId] = useState(null);
+  const savingRef = useRef(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1270,12 +1273,29 @@ function VideosPanel({ toast }) {
 
   useEffect(() => { load(); }, [load]);
 
+  const openAdd = () => {
+    setForm({ title: "", date: "", video_file: null });
+    setPreviewUrl(null);
+    setModal(true);
+  };
+
+  const handleFileChange = (file) => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setForm(f => ({ ...f, video_file: file || null }));
+    setPreviewUrl(file ? URL.createObjectURL(file) : null);
+  };
+
+  const closeModal = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setModal(false);
+  };
+
   const save = async () => {
+    if (savingRef.current) return;
+    if (!form.video_file) { toast("Upload a video from your device"); return; }
+    savingRef.current = true;
     try {
-      if (!form.video_file) {
-        toast("Upload a video from your device");
-        return;
-      }
       const payload = buildFormData({
         title: form.title,
         date: form.date,
@@ -1283,10 +1303,14 @@ function VideosPanel({ toast }) {
       });
       await apiFetch("/gallery/videos", { method: "POST", body: payload });
       toast("Video added");
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
       setModal(false);
-      load();
+      await load();
     } catch (e) {
       toast(e.message);
+    } finally {
+      savingRef.current = false;
     }
   };
 
@@ -1295,7 +1319,8 @@ function VideosPanel({ toast }) {
       await apiFetch(`/gallery/videos/${id}`, { method: "DELETE" });
       toast("Video deleted");
       setConfirm(null);
-      load();
+      if (playingId === id) setPlayingId(null);
+      await load();
     } catch (e) {
       toast(e.message);
     }
@@ -1307,33 +1332,95 @@ function VideosPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery Videos</h1>
-        <button className="btn btn-primary" onClick={() => { setForm({ title: "", date: "", video_file: null }); setModal(true); }}>+ Add Video</button>
+        <button className="btn btn-primary" onClick={openAdd}>+ Add Video</button>
       </div>
-      <div className="card" style={{ overflowX: "auto" }}>
+      <div className="card">
         {loading ? <div className="empty">Loading…</div> : videos.length === 0 ? <div className="empty">No videos yet.</div> : (
-          <table>
-            <thead><tr><th>Title</th><th>Media</th><th>Date</th><th></th></tr></thead>
-            <tbody>
-              {videos.map(v => (
-                <tr key={v.id}>
-                  <td><strong style={{ fontWeight: 500 }}>{v.title}</strong></td>
-                  <td style={{ fontSize: "0.8rem", color: MID }}>{v.video_url ? "Uploaded file" : "—"}</td>
-                  <td>{v.date || "—"}</td>
-                  <td><button className="btn btn-danger" onClick={() => setConfirm(v.id)}>Delete</button></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div>
+            {videos.map(v => {
+              const src = resolveUrl(v.video_url);
+              const isPlaying = playingId === v.id;
+              return (
+                <div key={v.id} style={{ borderBottom: "1px solid #E8E6E0", padding: "1rem 1.25rem" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "1rem", marginBottom: isPlaying || src ? "0.75rem" : 0 }}>
+                    <div>
+                      <div style={{ fontWeight: 500, fontSize: "0.9rem", color: CHARCOAL }}>{v.title}</div>
+                      {v.date && <div style={{ fontSize: "0.75rem", color: MID, marginTop: 2 }}>{v.date}</div>}
+                    </div>
+                    <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                      {src && (
+                        <button
+                          className="btn btn-ghost"
+                          onClick={() => setPlayingId(isPlaying ? null : v.id)}
+                        >
+                          {isPlaying ? "⏹ Hide" : "▶ Play"}
+                        </button>
+                      )}
+                      <button className="btn btn-danger" onClick={() => setConfirm(v.id)}>Delete</button>
+                    </div>
+                  </div>
+                  {src && isPlaying && (
+                    <video
+                      key={src}
+                      controls
+                      autoPlay
+                      src={src}
+                      style={{ width: "100%", maxHeight: 320, borderRadius: 6, background: "#000", display: "block" }}
+                      onError={() => toast("Could not load video")}
+                    />
+                  )}
+                  {src && !isPlaying && (
+                    <div
+                      onClick={() => setPlayingId(v.id)}
+                      style={{
+                        height: 54, borderRadius: 6,
+                        background: "linear-gradient(135deg, #2C2C2A, #5F5E5A)",
+                        display: "flex", alignItems: "center", gap: "0.75rem",
+                        padding: "0 1rem", cursor: "pointer",
+                      }}
+                    >
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: COPPER, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                      }}>
+                        <span style={{ fontSize: 14, color: WHITE, marginLeft: 2 }}>▶</span>
+                      </div>
+                      <span style={{ fontSize: "0.8rem", color: "rgba(255,255,255,0.7)" }}>Click to play</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 
       {modal && (
-        <Modal title="Add Video" onClose={() => setModal(false)}>
-          <div className="form-row"><label>Title *</label><input type="text" value={form.title} onChange={e => F("title", e.target.value)} /></div>
-          <div className="form-row"><label>Upload Video From Device *</label><input type="file" accept="video/*" onChange={e => F("video_file", e.target.files?.[0] || null)} /></div>
-          <div className="form-row"><label>Date</label><input type="text" value={form.date} onChange={e => F("date", e.target.value)} /></div>
+        <Modal title="Add Video" onClose={closeModal}>
+          <div className="form-row">
+            <label>Title *</label>
+            <input type="text" value={form.title} onChange={e => F("title", e.target.value)} />
+          </div>
+          <div className="form-row">
+            <label>Upload Video From Device *</label>
+            <input type="file" accept="video/*" onChange={e => handleFileChange(e.target.files?.[0])} />
+          </div>
+          {previewUrl && (
+            <div className="form-row">
+              <label>Preview</label>
+              <video
+                src={previewUrl}
+                controls
+                style={{ width: "100%", maxHeight: 200, borderRadius: 4, background: "#000", display: "block" }}
+              />
+            </div>
+          )}
+          <div className="form-row">
+            <label>Date</label>
+            <input type="text" value={form.date} onChange={e => F("date", e.target.value)} placeholder="e.g. January 2025" />
+          </div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-            <button className="btn btn-ghost" onClick={() => setModal(false)}>Cancel</button>
+            <button className="btn btn-ghost" onClick={closeModal}>Cancel</button>
             <button className="btn btn-primary" onClick={save}>Add Video</button>
           </div>
         </Modal>

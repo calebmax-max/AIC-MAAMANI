@@ -253,10 +253,12 @@ function VideoCard({ video }) {
       <div style={{ position: "relative", paddingBottom: "56.25%", background: "#000" }}>
         {playing && hasLocalVideo ? (
           <video
+            key={video.videoUrl}
             controls
             autoPlay
             src={video.videoUrl}
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+            onError={() => setPlaying(false)}
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", background: "#000" }}
           />
         ) : (
           <>
@@ -353,7 +355,7 @@ export default function ChurchGallery() {
           videoData.map((video) => ({
             id: video.id,
             title: video.title,
-            videoUrl: video.video_url || null,
+            videoUrl: video.video_url ? resolveGalleryUrl(video.video_url) : null,
             date: video.date || "",
           }))
         );
