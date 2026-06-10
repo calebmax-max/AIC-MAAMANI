@@ -937,12 +937,11 @@ function GalleryPanel({ toast }) {
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(false);
-  // editForm is used only when editing a single existing photo
   const [editForm, setEditForm] = useState({ id: null, alt: "", album: "Church", src: "" });
-  // multiForm holds state for the bulk-add modal
-  const [multiForm, setMultiForm] = useState({ album: "Church", files: [] });
-  const [uploadProgress, setUploadProgress] = useState(null); // null | { done, total }
-  const [confirm, setConfirm] = useState(null);
+  const [multiForm, setMultiForm] = useState({ album: "Church", files: [], previews: [] });
+  const [uploadProgress, setUploadProgress] = useState(null);
+  const [confirm, setConfirm] = useState(null); // "delete-one:<id>" | "delete-all" | null
+  const [deleteAllProgress, setDeleteAllProgress] = useState(null);
   const savingRef = useRef(false);
   const albums = ["Church", "Outreach", "Community"];
 
@@ -956,7 +955,26 @@ function GalleryPanel({ toast }) {
 
   useEffect(() => { load(); }, [load]);
 
-  // Save a single edited photo
+  // Create stable object URLs when files are selected, revoke old ones
+  const setFiles = (files) => {
+    setMultiForm(f => {
+      f.previews.forEach(url => URL.revokeObjectURL(url));
+      const previews = files.map(file => URL.createObjectURL(file));
+      return { ...f, files, previews };
+    });
+  };
+
+  const removeFile = (i) => {
+    setMultiForm(f => {
+      URL.revokeObjectURL(f.previews[i]);
+      return {
+        ...f,
+        files: f.files.filter((_, j) => j !== i),
+        previews: f.previews.filter((_, j) => j !== i),
+      };
+    });
+  };
+
   const saveEdit = async () => {
     if (savingRef.current) return;
     savingRef.current = true;
@@ -973,7 +991,6 @@ function GalleryPanel({ toast }) {
     }
   };
 
-  // Upload multiple photos sequentially
   const saveMulti = async () => {
     if (savingRef.current) return;
     if (!multiForm.files.length) { toast("Select at least one photo"); return; }
@@ -986,7 +1003,7 @@ function GalleryPanel({ toast }) {
       try {
         const payload = buildFormData({
           album: multiForm.album,
-          alt: file.name.replace(/\.[^/.]+$/, ""), // filename without extension as default alt
+          alt: file.name.replace(/\.[^/.]+$/, ""),
           height: 400,
           image_file: file,
         });
@@ -997,6 +1014,7 @@ function GalleryPanel({ toast }) {
       }
       setUploadProgress({ done: done + failed, total });
     }
+    multiForm.previews.forEach(url => URL.revokeObjectURL(url));
     savingRef.current = false;
     setUploadProgress(null);
     setModal(false);
@@ -1016,8 +1034,33 @@ function GalleryPanel({ toast }) {
     }
   };
 
+  const delAll = async () => {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const snapshot = [...photos];
+    const total = snapshot.length;
+    let done = 0;
+    let failed = 0;
+    setConfirm(null);
+    setDeleteAllProgress({ done: 0, total });
+    for (const p of snapshot) {
+      try {
+        await apiFetch(`/gallery/photos/${p.id}`, { method: "DELETE" });
+        done++;
+      } catch {
+        failed++;
+      }
+      setDeleteAllProgress({ done: done + failed, total });
+    }
+    savingRef.current = false;
+    setDeleteAllProgress(null);
+    await load();
+    if (failed === 0) toast(`All ${done} photo${done !== 1 ? "s" : ""} deleted`);
+    else toast(`${done} deleted, ${failed} failed`);
+  };
+
   const openAdd = () => {
-    setMultiForm({ album: "Church", files: [] });
+    setMultiForm({ album: "Church", files: [], previews: [] });
     setModal("add");
   };
 
@@ -1030,8 +1073,31 @@ function GalleryPanel({ toast }) {
     <div>
       <div className="section-header">
         <h1 className="page-title">Gallery</h1>
-        <button className="btn btn-primary" onClick={openAdd}>+ Add Photos</button>
+        <div style={{ display: "flex", gap: "0.6rem" }}>
+          {photos.length > 0 && !loading && (
+            <button className="btn btn-danger" onClick={() => setConfirm("delete-all")}>
+              🗑 Delete All
+            </button>
+          )}
+          <button className="btn btn-primary" onClick={openAdd}>+ Add Photos</button>
+        </div>
       </div>
+
+      {deleteAllProgress && (
+        <div style={{ marginBottom: "1rem", background: WHITE, border: "1px solid #E0DDD8", padding: "1rem" }}>
+          <div style={{ fontSize: "0.78rem", color: MID, marginBottom: 6 }}>
+            Deleting {deleteAllProgress.done} / {deleteAllProgress.total}…
+          </div>
+          <div style={{ height: 6, background: "#E8E6E0", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{
+              height: "100%", borderRadius: 3, background: DANGER,
+              width: `${(deleteAllProgress.done / deleteAllProgress.total) * 100}%`,
+              transition: "width 0.3s ease",
+            }} />
+          </div>
+        </div>
+      )}
+
       <div className="card" style={{ overflowX: "auto" }}>
         {loading ? <div className="empty">Loading…</div> : photos.length === 0 ? <div className="empty">No photos yet.</div> : (
           <table>
@@ -1040,14 +1106,18 @@ function GalleryPanel({ toast }) {
               {photos.map(p => (
                 <tr key={p.id}>
                   <td>
-                    <img src={p.src} alt={p.alt || ""} style={{ width: 140, maxHeight: 90, objectFit: "contain", border: "1px solid #E0DDD8", background: "#F8F5F0" }}
-                      onError={e => { e.target.style.display = "none"; }} />
+                    <img
+                      src={p.src}
+                      alt={p.alt || ""}
+                      style={{ width: 140, height: 90, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8", display: "block", background: "#F8F5F0" }}
+                      onError={e => { e.currentTarget.style.opacity = "0.2"; }}
+                    />
                   </td>
                   <td>{p.alt || <span style={{ color: "#bbb" }}>—</span>}</td>
                   <td><span className="badge badge-gray">{p.album}</span></td>
-                  <td>
+                  <td style={{ whiteSpace: "nowrap" }}>
                     <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => openEdit(p)}>Edit</button>
-                    <button className="btn btn-danger" onClick={() => setConfirm(p.id)}>Delete</button>
+                    <button className="btn btn-danger" onClick={() => setConfirm(`delete-one:${p.id}`)}>Delete</button>
                   </td>
                 </tr>
               ))}
@@ -1056,7 +1126,6 @@ function GalleryPanel({ toast }) {
         )}
       </div>
 
-      {/* Bulk add modal */}
       {modal === "add" && (
         <Modal title="Add Photos" onClose={() => !uploadProgress && setModal(false)}>
           <div className="form-row">
@@ -1065,39 +1134,36 @@ function GalleryPanel({ toast }) {
               type="file"
               accept="image/*"
               multiple
-              onChange={e => {
-                const files = Array.from(e.target.files || []);
-                setMultiForm(f => ({ ...f, files }));
-              }}
+              onChange={e => setFiles(Array.from(e.target.files || []))}
             />
             {multiForm.files.length > 0 && (
-              <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
-                {multiForm.files.map((file, i) => (
-                  <div key={i} style={{ position: "relative", width: 72, flexShrink: 0 }}>
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt={file.name}
-                      style={{ width: 72, height: 56, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8", display: "block" }}
-                    />
-                    <button
-                      onClick={() => setMultiForm(f => ({ ...f, files: f.files.filter((_, j) => j !== i) }))}
-                      style={{
-                        position: "absolute", top: -6, right: -6,
-                        width: 18, height: 18, borderRadius: "50%",
-                        background: DANGER, border: "none", color: WHITE,
-                        fontSize: 11, cursor: "pointer", lineHeight: 1,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        padding: 0,
-                      }}
-                    >×</button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {multiForm.files.length > 0 && (
-              <div style={{ marginTop: 6, fontSize: "0.75rem", color: MID }}>
-                {multiForm.files.length} photo{multiForm.files.length !== 1 ? "s" : ""} selected
-              </div>
+              <>
+                <div style={{ marginTop: 10, display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {multiForm.previews.map((src, i) => (
+                    <div key={i} style={{ position: "relative", width: 80, flexShrink: 0 }}>
+                      <img
+                        src={src}
+                        alt={multiForm.files[i]?.name || ""}
+                        style={{ width: 80, height: 64, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8", display: "block" }}
+                      />
+                      <button
+                        onClick={() => removeFile(i)}
+                        style={{
+                          position: "absolute", top: -6, right: -6,
+                          width: 18, height: 18, borderRadius: "50%",
+                          background: DANGER, border: "none", color: WHITE,
+                          fontSize: 11, cursor: "pointer",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          padding: 0,
+                        }}
+                      >×</button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ marginTop: 6, fontSize: "0.75rem", color: MID }}>
+                  {multiForm.files.length} photo{multiForm.files.length !== 1 ? "s" : ""} selected
+                </div>
+              </>
             )}
           </div>
           <div className="form-row">
@@ -1113,8 +1179,7 @@ function GalleryPanel({ toast }) {
               </div>
               <div style={{ height: 6, background: "#E8E6E0", borderRadius: 3, overflow: "hidden" }}>
                 <div style={{
-                  height: "100%", borderRadius: 3,
-                  background: COPPER,
+                  height: "100%", borderRadius: 3, background: COPPER,
                   width: `${(uploadProgress.done / uploadProgress.total) * 100}%`,
                   transition: "width 0.3s ease",
                 }} />
@@ -1124,21 +1189,30 @@ function GalleryPanel({ toast }) {
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             <button className="btn btn-ghost" onClick={() => setModal(false)} disabled={!!uploadProgress}>Cancel</button>
             <button className="btn btn-primary" onClick={saveMulti} disabled={!!uploadProgress}>
-              {uploadProgress ? `Uploading ${uploadProgress.done}/${uploadProgress.total}…` : `Upload ${multiForm.files.length || ""} Photo${multiForm.files.length !== 1 ? "s" : ""}`}
+              {uploadProgress
+                ? `Uploading ${uploadProgress.done}/${uploadProgress.total}…`
+                : `Upload ${multiForm.files.length || ""} Photo${multiForm.files.length !== 1 ? "s" : ""}`}
             </button>
           </div>
         </Modal>
       )}
 
-      {/* Single edit modal */}
       {modal === "edit" && (
         <Modal title="Edit Photo" onClose={() => setModal(false)}>
           {editForm.src && (
             <div style={{ marginBottom: "1rem" }}>
-              <img src={editForm.src} alt={editForm.alt} style={{ maxWidth: "100%", maxHeight: 160, objectFit: "contain", border: "1px solid #E0DDD8", borderRadius: 4 }} onError={e => { e.target.style.display = "none"; }} />
+              <img
+                src={editForm.src}
+                alt={editForm.alt}
+                style={{ width: "100%", maxHeight: 180, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8" }}
+                onError={e => { e.currentTarget.style.display = "none"; }}
+              />
             </div>
           )}
-          <div className="form-row"><label>Alt Text</label><input type="text" value={editForm.alt} onChange={e => setEditForm(f => ({ ...f, alt: e.target.value }))} /></div>
+          <div className="form-row">
+            <label>Alt Text</label>
+            <input type="text" value={editForm.alt} onChange={e => setEditForm(f => ({ ...f, alt: e.target.value }))} />
+          </div>
           <div className="form-row">
             <label>Album</label>
             <select value={editForm.album} onChange={e => setEditForm(f => ({ ...f, album: e.target.value }))}>
@@ -1152,7 +1226,21 @@ function GalleryPanel({ toast }) {
         </Modal>
       )}
 
-      {confirm && <Confirm message="Delete this photo permanently?" onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+      {confirm && confirm.startsWith("delete-one:") && (
+        <Confirm
+          message="Delete this photo permanently? This cannot be undone."
+          onConfirm={() => del(confirm.replace("delete-one:", ""))}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+
+      {confirm === "delete-all" && (
+        <Confirm
+          message={`Delete all ${photos.length} photos permanently? This cannot be undone.`}
+          onConfirm={delAll}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
     </div>
   );
 }
