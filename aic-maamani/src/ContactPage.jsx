@@ -88,7 +88,7 @@ function ContactForm() {
 
   return (
     <form className="contact-form" onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="form-row">
         <Field label="Full Name *" error={errors.name}>
           <input value={fields.name} onChange={set("name")} placeholder="Your name"
             style={inputBase(errors.name)}
@@ -102,7 +102,7 @@ function ContactForm() {
             onBlur={e => e.target.style.borderColor = errors.email ? "#C0392B" : "#D8D7D4"} />
         </Field>
       </div>
-      <div className="form-row" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+      <div className="form-row">
         <Field label="Phone (optional)" error={null}>
           <input value={fields.phone} onChange={set("phone")} placeholder="+254 700 000 000"
             style={inputBase(false)}
@@ -132,7 +132,7 @@ function ContactForm() {
           onFocus={e => e.target.style.borderColor = "#EF9F27"}
           onBlur={e => e.target.style.borderColor = errors.message ? "#C0392B" : "#D8D7D4"} />
       </Field>
-      <button type="submit" disabled={status === "sending"} style={{
+      <button type="submit" className="submit-btn" disabled={status === "sending"} style={{
         padding: "14px 32px", background: status === "sending" ? "#D8D7D4" : "#EF9F27",
         color: "#2C2C2A", border: "none", borderRadius: 8, fontWeight: 800,
         fontSize: 15, cursor: status === "sending" ? "not-allowed" : "pointer",
@@ -300,10 +300,82 @@ export default function ContactPage() {
         .fade-up { animation: fadeUp 0.5s ease both; }
         textarea, input, select { font-family: inherit; }
         input::placeholder, textarea::placeholder { color: #B0AFAB; }
+
+        /* ── Responsive grid ── */
+        .split-layout {
+          display: grid;
+          grid-template-columns: 1fr min(380px, 100%);
+          gap: 32px;
+          align-items: start;
+        }
+        .form-row {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+        }
+        .contact-form .submit-btn {
+          width: auto;
+        }
+
+        @media (max-width: 860px) {
+          .split-layout {
+            grid-template-columns: 1fr !important;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .form-row {
+            grid-template-columns: 1fr !important;
+          }
+          .contact-form .submit-btn {
+            width: 100%;
+          }
+
+          /* Break out of the padded container — cards go edge-to-edge */
+          .main-pad {
+            padding-left: 0 !important;
+            padding-right: 0 !important;
+            padding-top: 0 !important;
+          }
+
+          /* Each column becomes a flat block */
+          .split-layout {
+            gap: 0 !important;
+          }
+          .split-layout > div {
+            gap: 0 !important;
+          }
+
+          /* Each card becomes a full-width section */
+          .card-pad {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border-left: none !important;
+            border-right: none !important;
+            padding: 28px 20px 24px !important;
+            border-bottom: 6px solid #F2F1EF !important;
+          }
+
+          /* Map card: no radius on the outer wrapper either */
+          .map-card {
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border-bottom: 6px solid #F2F1EF !important;
+          }
+          .map-card .map-info-pad {
+            padding: 24px 20px 18px !important;
+          }
+        }
+
+        @media (max-width: 400px) {
+          .card-pad { padding: 24px 16px 20px !important; }
+          .hero-pad { padding: 40px 16px 36px !important; }
+          .map-card .map-info-pad { padding: 20px 16px 14px !important; }
+        }
       `}</style>
 
       {/* ── Hero ──────────────────────────────────────────── */}
-      <div style={{ background: "#2C2C2A", padding: "56px 24px 52px", position: "relative", overflow: "hidden" }}>
+      <div className="hero-pad" style={{ background: "#2C2C2A", padding: "56px 24px 52px", position: "relative", overflow: "hidden" }}>
         <div style={{ position: "absolute", top: -80, right: -80, width: 320, height: 320, borderRadius: "50%", background: "rgba(239,159,39,0.06)", pointerEvents: "none" }} />
         <div style={{ position: "absolute", bottom: -60, left: -40, width: 220, height: 220, borderRadius: "50%", background: "rgba(239,159,39,0.04)", pointerEvents: "none" }} />
         <div style={{ maxWidth: 960, margin: "0 auto", position: "relative" }}>
@@ -320,14 +392,14 @@ export default function ContactPage() {
       </div>
 
       {/* ── Main content grid ─────────────────────────────── */}
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "48px max(16px, 4vw) 80px" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr min(380px, 100%)", gap: 32, alignItems: "start" }} className="split-layout">
+      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "48px max(16px, 4vw) 80px" }} className="main-pad">
+        <div className="split-layout">
 
           {/* LEFT column */}
           <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
 
             {/* Contact Form */}
-            <div className="fade-up" style={{ background: "#fff", borderRadius: 16, padding: "32px 32px 28px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
+            <div className="fade-up card-pad" style={{ background: "#fff", borderRadius: 16, padding: "32px 32px 28px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
               <div style={{ marginBottom: 24 }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Contact Us</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#2C2C2A" }}>Send a Message</h2>
@@ -336,8 +408,8 @@ export default function ContactPage() {
             </div>
 
             {/* Map */}
-            <div className="fade-up" style={{ background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
-              <div style={{ padding: "24px 28px 20px" }}>
+            <div className="fade-up map-card" style={{ background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
+              <div className="map-info-pad" style={{ padding: "24px 28px 20px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Find Us</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: "#2C2C2A", marginBottom: 4 }}>Our Location</h2>
                 <p style={{ fontSize: 14, color: "#5F5E5A" }}>AIC Maamani Church · Mombasa Road, Nairobi · Parking available on-site</p>
@@ -371,7 +443,7 @@ export default function ContactPage() {
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
             {/* Church Info */}
-            <div className="fade-up" style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
+            <div className="fade-up card-pad" style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Details</div>
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#2C2C2A", marginBottom: 20 }}>Hours & Info</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -390,7 +462,7 @@ export default function ContactPage() {
             </div>
 
             {/* Social Links */}
-            <div className="fade-up" style={{ background: "#2C2C2A", borderRadius: 16, padding: "24px 28px", boxShadow: "0 2px 16px rgba(44,44,42,0.12)" }}>
+            <div className="fade-up card-pad" style={{ background: "#2C2C2A", borderRadius: 16, padding: "24px 28px", boxShadow: "0 2px 16px rgba(44,44,42,0.12)" }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Follow Along</div>
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#F2F1EF", marginBottom: 18 }}>Find Us Online</h2>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -419,7 +491,7 @@ export default function ContactPage() {
             </div>
 
             {/* Prayer Request Form */}
-            <div className="fade-up" style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)", border: "1.5px solid #F0EFED" }}>
+            <div className="fade-up card-pad" style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)", border: "1.5px solid #F0EFED" }}>
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Prayer</div>
               <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#2C2C2A", marginBottom: 4 }}>Submit a Prayer Request</h2>
               <p style={{ fontSize: 13, color: "#5F5E5A", lineHeight: 1.6, marginBottom: 20 }}>

@@ -1,474 +1,590 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { fetchJson } from "./api";
 
-// ── Palette ────────────────────────────────────────────────
-// #F2F1EF  light gray bg
-// #2C2C2A  dark charcoal primary
-// #EF9F27  warm copper accent
-// #5F5E5A  mid gray secondary
+// ── Slate & Copper palette ──────────────────────────────
+const C = {
+  copper:   "#EF9F27",
+  copper2:  "#BA7517",
+  charcoal: "#2C2C2A",
+  mid:      "#5F5E5A",
+  light:    "#F2F1EF",
+  stone:    "#E8E6E1",
+  white:    "#FFFFFF",
+  dark:     "#1A1918",
+};
 
-// ── Validation helpers ─────────────────────────────────────
-function validate(fields) {
-  const errors = {};
-  if (!fields.name?.trim()) errors.name = "Name is required";
-  if (!fields.email?.trim()) errors.email = "Email is required";
-  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fields.email)) errors.email = "Enter a valid email";
-  if (!fields.subject) errors.subject = "Please select a subject";
-  if (!fields.message?.trim()) errors.message = "Message is required";
-  else if (fields.message.trim().length < 20) errors.message = "Please write at least 20 characters";
-  return errors;
-}
+// ── Shared helpers ──────────────────────────────────────
+const fonts = `@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');`;
 
-// ── Sub-components ─────────────────────────────────────────
-function Field({ label, error, children }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-      <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: error ? "#C0392B" : "#5F5E5A" }}>
-        {label}
-      </label>
-      {children}
-      {error && <span style={{ fontSize: 12, color: "#C0392B", marginTop: -2 }}>{error}</span>}
-    </div>
-  );
-}
+const globalStyle = `
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: ${C.light}; color: ${C.charcoal}; overflow-x: hidden; }
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-thumb { background: ${C.mid}; border-radius: 3px; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  @keyframes lineGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
-const inputBase = (hasError) => ({
-  padding: "12px 16px",
-  borderRadius: 8,
-  border: `1.5px solid ${hasError ? "#C0392B" : "#D8D7D4"}`,
-  background: "#fff",
-  fontSize: 14,
-  color: "#2C2C2A",
-  outline: "none",
-  fontFamily: "inherit",
-  transition: "border-color 0.2s",
-  width: "100%",
-});
+  /* ── MOBILE RESPONSIVE ── */
+  @media (max-width: 640px) {
 
-// ── Contact Form ───────────────────────────────────────────
-function ContactForm() {
-  const [fields, setFields] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
-  const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState("idle"); // idle | sending | success | error
+    /* Nav */
+    .about-nav { padding: 0 1.25rem !important; }
+    .nav-links { display: none !important; }
+    .hamburger-btn { display: inline-flex !important; }
 
-  const set = (k) => (e) => setFields(f => ({ ...f, [k]: e.target.value }));
+    /* Timeline: hide spine, stack rows cleanly */
+    .timeline-row { display: flex !important; flex-direction: column !important; padding-bottom: 1.75rem !important; margin-bottom: 0 !important; }
+    .timeline-year-col { text-align: left !important; padding-right: 0 !important; padding-bottom: 0.3rem !important; }
+    .timeline-dot { display: none !important; }
+    .timeline-spine { display: none !important; }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const errs = validate(fields);
-    if (Object.keys(errs).length) { setErrors(errs); return; }
-    setErrors({});
-    setStatus("sending");
-    try {
-      await fetchJson("/api/contact", {
-        method: "POST",
-        body: JSON.stringify(fields),
-      });
-      setStatus("success");
-    } catch (error) {
-      setStatus("error");
-    }
-  };
+    /* Vision & Mission: stack */
+    .grid-2 { grid-template-columns: 1fr !important; }
+    .values-grid { grid-template-columns: 1fr !important; }
 
-  if (status === "success") {
-    return (
-      <div style={{ textAlign: "center", padding: "48px 24px" }}>
-        <div style={{ fontSize: 52, marginBottom: 16 }}>✉️</div>
-        <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, color: "#2C2C2A", marginBottom: 10 }}>Message Received!</h3>
-        <p style={{ color: "#5F5E5A", fontSize: 15, lineHeight: 1.7, maxWidth: 360, margin: "0 auto 24px" }}>
-          Thank you for reaching out. Someone from our team will get back to you within 1–2 business days.
-        </p>
-        <button onClick={() => { setStatus("idle"); setFields({ name:"",email:"",phone:"",subject:"",message:"" }); }}
-          style={{ padding: "10px 28px", background: "#EF9F27", color: "#2C2C2A", border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
-          Send Another
-        </button>
-      </div>
-    );
+    /* Meet the Pastor: photo first, bio second */
+    .about-hero-grid { display: flex !important; flex-direction: column !important; gap: 2rem !important; }
+    .pastor-photo-col { order: 1 !important; }
+    .pastor-bio-col { order: 2 !important; }
+
+    /* Leadership team: left-align description */
+    .leadership-desc { text-align: left !important; max-width: 100% !important; }
+
+    /* Accordion: less indent */
+    .accordion-body { padding-left: 1rem !important; }
   }
+`;
 
+// ── Reusable section label ──────────────────────────────
+function SectionLabel({ text, light = false }) {
   return (
-    <form className="contact-form" onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div className="form-row">
-        <Field label="Full Name *" error={errors.name}>
-          <input value={fields.name} onChange={set("name")} placeholder="Your name"
-            style={inputBase(errors.name)}
-            onFocus={e => e.target.style.borderColor = "#EF9F27"}
-            onBlur={e => e.target.style.borderColor = errors.name ? "#C0392B" : "#D8D7D4"} />
-        </Field>
-        <Field label="Email Address *" error={errors.email}>
-          <input type="email" value={fields.email} onChange={set("email")} placeholder="you@example.com"
-            style={inputBase(errors.email)}
-            onFocus={e => e.target.style.borderColor = "#EF9F27"}
-            onBlur={e => e.target.style.borderColor = errors.email ? "#C0392B" : "#D8D7D4"} />
-        </Field>
-      </div>
-      <div className="form-row">
-        <Field label="Phone (optional)" error={null}>
-          <input value={fields.phone} onChange={set("phone")} placeholder="+254 700 000 000"
-            style={inputBase(false)}
-            onFocus={e => e.target.style.borderColor = "#EF9F27"}
-            onBlur={e => e.target.style.borderColor = "#D8D7D4"} />
-        </Field>
-        <Field label="Subject *" error={errors.subject}>
-          <select value={fields.subject} onChange={set("subject")}
-            style={{ ...inputBase(errors.subject), appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235F5E5A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36, color: fields.subject ? "#2C2C2A" : "#9E9D99" }}
-            onFocus={e => e.target.style.borderColor = "#EF9F27"}
-            onBlur={e => e.target.style.borderColor = errors.subject ? "#C0392B" : "#D8D7D4"}>
-            <option value="" disabled>Select a subject…</option>
-            <option value="general">General Enquiry</option>
-            <option value="prayer-request">Prayer Request</option>
-            <option value="pastoral-care">Pastoral Care</option>
-            <option value="volunteering">Volunteering</option>
-            <option value="events">Events & Programmes</option>
-            <option value="media">Media</option>
-            <option value="other">Other</option>
-          </select>
-        </Field>
-      </div>
-      <Field label="Message *" error={errors.message}>
-        <textarea value={fields.message} onChange={set("message")} rows={5}
-          placeholder="Write your message here…"
-          style={{ ...inputBase(errors.message), resize: "vertical", minHeight: 120 }}
-          onFocus={e => e.target.style.borderColor = "#EF9F27"}
-          onBlur={e => e.target.style.borderColor = errors.message ? "#C0392B" : "#D8D7D4"} />
-      </Field>
-      <button type="submit" className="submit-btn" disabled={status === "sending"} style={{
-        padding: "14px 32px", background: status === "sending" ? "#D8D7D4" : "#EF9F27",
-        color: "#2C2C2A", border: "none", borderRadius: 8, fontWeight: 800,
-        fontSize: 15, cursor: status === "sending" ? "not-allowed" : "pointer",
-        fontFamily: "inherit", letterSpacing: "0.02em", transition: "background 0.2s",
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-      }}>
-        {status === "sending" ? (
-          <><span style={{ display: "inline-block", width: 16, height: 16, border: "2px solid #2C2C2A", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} /> Sending…</>
-        ) : "Send Message →"}
-      </button>
-    </form>
-  );
-}
-
-// ── Prayer Request Form ────────────────────────────────────
-function PrayerForm() {
-  const [name, setName] = useState("");
-  const [request, setRequest] = useState("");
-  const [isPrivate, setIsPrivate] = useState(false);
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState("");
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!request.trim()) { setError("Please share your prayer request."); return; }
-    setError("");
-    await new Promise(r => setTimeout(r, 900));
-    setSent(true);
-  };
-
-  if (sent) return (
-    <div style={{ textAlign: "center", padding: "32px 16px" }}>
-      <div style={{ fontSize: 40, marginBottom: 12 }}>🙏</div>
-      <h4 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, color: "#2C2C2A", marginBottom: 8 }}>We're praying with you</h4>
-      <p style={{ color: "#5F5E5A", fontSize: 14, lineHeight: 1.7 }}>
-        Your request has been received{isPrivate ? " and will be kept confidential" : ""}. Our prayer team will bring this before God.
-      </p>
-      <button onClick={() => { setSent(false); setName(""); setRequest(""); setIsPrivate(false); }}
-        style={{ marginTop: 20, padding: "9px 24px", background: "transparent", color: "#EF9F27", border: "1.5px solid #EF9F27", borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
-        Submit Another
-      </button>
+    <div style={{ display:"flex", alignItems:"center", gap:"0.75rem", marginBottom:"0.65rem" }}>
+      <div style={{ width:"22px", height:"2px", background: C.copper }} />
+      <span style={{
+        fontFamily:"'DM Sans', sans-serif", fontWeight:400,
+        fontSize:"0.68rem", letterSpacing:"0.22em", textTransform:"uppercase",
+        color: C.copper
+      }}>{text}</span>
     </div>
   );
+}
 
+// ── InView hook ─────────────────────────────────────────
+function useInView(threshold = 0.15) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setVisible(true); }, { threshold });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return [ref, visible];
+}
+
+// ── NAV ─────────────────────────────────────────────────
+const NAV_LINKS = [
+  { id: "home", label: "Home" },
+  { id: "about", label: "About" },
+  { id: "sermons", label: "Sermons" },
+  { id: "events", label: "Events" },
+  { id: "blog", label: "Blog" },
+  { id: "gallery", label: "Gallery" },
+  { id: "contact", label: "Contact Us" },
+];
+function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  useEffect(() => {
+    const fn = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", fn);
+    return () => window.removeEventListener("scroll", fn);
+  }, []);
   return (
-    <form onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <div>
-        <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5F5E5A", display: "block", marginBottom: 5 }}>
-          Your Name (optional)
-        </label>
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="Anonymous"
-          style={inputBase(false)}
-          onFocus={e => e.target.style.borderColor = "#EF9F27"}
-          onBlur={e => e.target.style.borderColor = "#D8D7D4"} />
-      </div>
-      <div>
-        <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: error ? "#C0392B" : "#5F5E5A", display: "block", marginBottom: 5 }}>
-          Prayer Request *
-        </label>
-        <textarea value={request} onChange={e => setRequest(e.target.value)} rows={5}
-          placeholder="Share what's on your heart…"
-          style={{ ...inputBase(!!error), resize: "vertical" }}
-          onFocus={e => e.target.style.borderColor = "#EF9F27"}
-          onBlur={e => e.target.style.borderColor = error ? "#C0392B" : "#D8D7D4"} />
-        {error && <span style={{ fontSize: 12, color: "#C0392B", marginTop: 4, display: "block" }}>{error}</span>}
-      </div>
-      {/* Keep private toggle */}
-      <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", padding: "12px 16px", background: isPrivate ? "#FFF8EC" : "#F8F7F5", borderRadius: 8, border: `1.5px solid ${isPrivate ? "#EF9F27" : "#E2E1DF"}`, transition: "all 0.2s" }}>
-        <div onClick={() => setIsPrivate(p => !p)} style={{
-          marginTop: 2, width: 20, height: 20, borderRadius: 5, flexShrink: 0,
-          background: isPrivate ? "#EF9F27" : "#fff",
-          border: `2px solid ${isPrivate ? "#EF9F27" : "#D8D7D4"}`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          transition: "all 0.15s",
-        }}>
-          {isPrivate && <span style={{ color: "#2C2C2A", fontSize: 12, lineHeight: 1, fontWeight: 900 }}>✓</span>}
-        </div>
-        <div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "#2C2C2A" }}>Keep this request private</div>
-          <div style={{ fontSize: 12, color: "#5F5E5A", marginTop: 2, lineHeight: 1.5 }}>
-            Only our pastoral team will see this. It won't be shared publicly or in group prayer.
-          </div>
-        </div>
-      </label>
-      <button type="submit" style={{
-        padding: "12px 24px", background: "#2C2C2A", color: "#F2F1EF",
-        border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14,
-        cursor: "pointer", fontFamily: "inherit", letterSpacing: "0.02em",
-      }}>
-        🙏 Submit Prayer Request
+    <>
+    <nav className="about-nav" style={{
+      position:"fixed", top:0, left:0, right:0, zIndex:100, minHeight:"68px",
+      background: scrolled ? "rgba(44,44,42,0.96)" : C.charcoal,
+      borderBottom: scrolled ? `1px solid rgba(239,159,39,0.18)` : "none",
+      backdropFilter: scrolled ? "blur(14px)" : "none",
+      transition:"all 0.35s", padding:"0 2.5rem",
+      display:"flex", alignItems:"center", justifyContent:"space-between"
+    }}>
+      <a href="#home" style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.4rem", color:C.white, textDecoration:"none", display:"flex", alignItems:"center", gap:"0.5rem" }}>
+        <span style={{ color: C.copper }}>◈</span> AIC MAAMANI
+      </a>
+
+      {/* Hamburger — shown on mobile via CSS */}
+      <button
+        type="button"
+        onClick={() => setMenuOpen(o => !o)}
+        className="hamburger-btn"
+        style={{
+          fontFamily: "'DM Sans', sans-serif", fontWeight: 700,
+          letterSpacing: "0.14em", fontSize: "0.85rem", textTransform: "uppercase",
+          color: menuOpen ? C.copper : "#fff",
+          background: menuOpen ? "rgba(239,159,39,0.1)" : "rgba(255,255,255,0.08)",
+          border: menuOpen ? `1px solid ${C.copper}` : "1px solid rgba(255,255,255,0.18)",
+          borderRadius: 999, padding: "0.55rem 1rem", cursor: "pointer",
+          display: "none", alignItems: "center", gap: "0.4rem", transition: "all 0.2s",
+        }}
+      >
+        <span>{menuOpen ? "✕" : "☰"}</span>
+        <span>{menuOpen ? "CLOSE" : "MENU"}</span>
       </button>
-    </form>
+
+      {/* Desktop nav links */}
+      <div className="nav-inner nav-links" style={{ display:"flex", gap:"2.2rem", alignItems:"center", flexWrap:"wrap", justifyContent:"flex-end" }}>
+        {NAV_LINKS.map(({ id, label }) => (
+          <a key={id} className="nav-link" href={`#${id}`} style={{
+            fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
+            letterSpacing:"0.1em", fontSize:"0.78rem", textTransform:"uppercase",
+            color: label === "About" ? C.copper : "rgba(255,255,255,0.7)",
+            textDecoration:"none", transition:"color 0.2s", whiteSpace:"nowrap"
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
+            onMouseLeave={e => { e.currentTarget.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.7)"; }}
+          >{label}</a>
+        ))}
+        <a className="nav-cta" href="#contact" style={{
+          background: C.copper, color: C.charcoal, padding:"0.5rem 1.4rem",
+          fontFamily:"'DM Sans', sans-serif", fontWeight:500, letterSpacing:"0.12em",
+          fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none", whiteSpace:"nowrap"
+        }}>Contact Us</a>
+      </div>
+    </nav>
+
+    {/* Mobile dropdown */}
+    {menuOpen && (
+      <div style={{
+        position:"fixed", top:"68px", left:0, right:0, zIndex:99,
+        background:"rgba(26,25,24,0.98)", backdropFilter:"blur(14px)",
+        borderBottom:`1px solid rgba(239,159,39,0.18)`,
+        padding:"1.25rem 2rem 1.75rem",
+        display:"flex", flexDirection:"column",
+      }}>
+        {NAV_LINKS.map(({ id, label }) => (
+          <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)} style={{
+            fontFamily:"'DM Sans', sans-serif", fontWeight: label === "About" ? 500 : 400,
+            letterSpacing:"0.12em", fontSize:"0.88rem", textTransform:"uppercase",
+            color: label === "About" ? C.copper : "rgba(255,255,255,0.75)",
+            textDecoration:"none", padding:"0.9rem 0",
+            borderBottom:"1px solid rgba(255,255,255,0.06)", transition:"color 0.2s",
+          }}
+            onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
+            onMouseLeave={e => { e.currentTarget.style.color = label === "About" ? C.copper : "rgba(255,255,255,0.75)"; }}
+          >{label}</a>
+        ))}
+        <a href="#contact" onClick={() => setMenuOpen(false)} style={{
+          display:"inline-block", marginTop:"1.25rem", alignSelf:"flex-start",
+          background: C.copper, color: C.charcoal, padding:"0.75rem 1.75rem",
+          fontFamily:"'DM Sans', sans-serif", fontWeight:500, letterSpacing:"0.12em",
+          fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none",
+        }}>Contact Us</a>
+      </div>
+    )}
+    </>
   );
 }
 
-// ── Social link data ───────────────────────────────────────
-const SOCIALS = [
-  {
-    name: "Facebook",
-    color: "#1877F2",
-    href: "https://facebook.com",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-        <path d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073C0 18.1 4.388 23.094 10.125 24v-8.437H7.078v-3.49h3.047V9.41c0-3.025 1.792-4.697 4.533-4.697 1.312 0 2.686.235 2.686.235v2.97h-1.514c-1.491 0-1.956.93-1.956 1.874v2.25h3.328l-.532 3.49h-2.796V24C19.612 23.094 24 18.1 24 12.073z"/>
-      </svg>
-    ),
-  },
-  {
-    name: "YouTube",
-    color: "#FF0000",
-    href: "https://youtube.com",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-      </svg>
-    ),
-  },
-  {
-    name: "Instagram",
-    color: "#E4405F",
-    href: "https://instagram.com",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-        <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324zM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881z"/>
-      </svg>
-    ),
-  },
-  {
-    name: "WhatsApp",
-    color: "#25D366",
-    href: "https://wa.me/254700000000",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="currentColor" width="22" height="22">
-        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/>
-      </svg>
-    ),
-  },
+// ── HERO / PAGE HEADER ───────────────────────────────────
+function PageHero() {
+  return (
+    <section style={{
+      background: C.dark, minHeight:"55vh",
+      display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+      padding:"8rem 2.5rem 5rem", textAlign:"center", position:"relative", overflow:"hidden"
+    }}>
+      {/* subtle grid */}
+      <div style={{ position:"absolute", inset:0, pointerEvents:"none" }}>
+        {[20,40,60,80].map(p => <div key={p} style={{ position:"absolute", left:`${p}%`, top:0, bottom:0, width:"1px", background:"rgba(239,159,39,0.04)" }} />)}
+      </div>
+      <div style={{ position:"relative", animation:"fadeUp 0.8s ease both" }}>
+        <SectionLabel text="Our Story" />
+        <h1 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(3rem,8vw,6rem)", fontWeight:400, color:C.white, lineHeight:0.95, marginBottom:"1.25rem" }}>
+          About<br /><em style={{ color: C.copper, fontStyle:"italic" }}>AIC MAAMANI</em>
+        </h1>
+        <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1.05rem", color:"rgba(255,255,255,0.5)", maxWidth:"520px", lineHeight:1.75 }}>
+          A church planted in faith, grown through grace — serving Nairobi and the nations since 1998.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+
+
+// ── VISION & MISSION ─────────────────────────────────────
+const VALUES = [
+  { icon:"◎", label:"Rooted in Scripture", body:"Every decision, sermon, and ministry is anchored in the living Word of God — our ultimate authority." },
+  { icon:"◈", label:"Radical Hospitality", body:"No one is a stranger here. We actively create space for the seeker, the wanderer, and the tired." },
+  { icon:"◷", label:"Spirit-Led Worship", body:"We pursue encounters with the living God — in song, prayer, silence, and the ordinary rhythms of life." },
+  { icon:"⊕", label:"City Transformation", body:"We believe the gospel changes neighbourhoods, systems, and societies — not just individual souls." },
 ];
 
-// ── Info card ──────────────────────────────────────────────
-function InfoRow({ icon, label, value, sub }) {
+function VisionMission() {
+  const [ref, visible] = useInView(0.1);
   return (
-    <div style={{ display: "flex", gap: 14, alignItems: "flex-start" }}>
-      <div style={{ width: 40, height: 40, borderRadius: 10, background: "#FFF3DC", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 18 }}>
-        {icon}
+    <section style={{ background: C.charcoal, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
+      <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
+        <div className="grid-2" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
+          {/* left: big statement */}
+          <div>
+            <SectionLabel text="Vision & Mission" />
+            <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(2rem,4vw,3.2rem)", color:C.white, lineHeight:1.1, marginBottom:"2rem" }}>
+              To make disciples<br />who <em style={{ color: C.copper, fontStyle:"italic" }}>transform</em><br />the city.
+            </h2>
+            <div style={{ borderLeft:`3px solid ${C.copper}`, paddingLeft:"1.5rem", marginBottom:"1.5rem" }}>
+              <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1rem", lineHeight:1.85, color:"rgba(255,255,255,0.6)" }}>
+                <strong style={{ color:C.copper, fontWeight:500 }}>Our Vision</strong><br />
+                To be a Christ-centered, SPirit-filled, life-giving church that leads people to Jesus, builds mature disciples, transforms families, serves the community, and bring hope to the world.
+              </p>
+            </div>
+            <div style={{ borderLeft:`3px solid rgba(239,159,39,0.35)`, paddingLeft:"1.5rem" }}>
+              <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1rem", lineHeight:1.85, color:"rgba(255,255,255,0.6)" }}>
+                <strong style={{ color:C.white, fontWeight:500 }}>Our Mission</strong><br />
+                To raise passionate followers of Jesus, empower believers through the Holy Spirit, and bring hope, healing, and transformation to our generation.
+              </p>
+            </div>
+          </div>
+          {/* right: values grid */}
+          <div ref={ref} className="values-grid" style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:"1.25rem" }}>
+            {VALUES.map((v, i) => (
+              <div key={v.label} style={{
+                background:"rgba(255,255,255,0.04)", border:`1px solid rgba(239,159,39,0.12)`,
+                padding:"1.5rem",
+                opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(16px)",
+                transition:`opacity 0.45s ${i*0.1}s, transform 0.45s ${i*0.1}s`,
+                cursor:"default",
+                transition2:"border-color 0.2s"
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(239,159,39,0.4)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(239,159,39,0.12)"; }}
+              >
+                <div style={{ fontSize:"1.3rem", color: C.copper, marginBottom:"0.75rem" }}>{v.icon}</div>
+                <h4 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1rem", color:C.white, marginBottom:"0.5rem" }}>{v.label}</h4>
+                <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.82rem", lineHeight:1.75, color:"rgba(255,255,255,0.45)" }}>{v.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
-      <div>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 3 }}>{label}</div>
-        <div style={{ fontSize: 14, fontWeight: 600, color: "#2C2C2A", lineHeight: 1.5 }}>{value}</div>
-        {sub && <div style={{ fontSize: 13, color: "#5F5E5A", marginTop: 2, lineHeight: 1.5 }}>{sub}</div>}
+    </section>
+  );
+}
+
+// ── WHAT WE BELIEVE — Accordion ──────────────────────────
+const BELIEFS = [
+  { title:"The Holy Scripture", body:"We believe the Bible — 66 books of the Old and New Testaments — is the fully inspired, inerrant Word of God, the supreme authority for faith and life.", ref:"2 Timothy 3:16–17" },
+  { title:"The Trinity", body:"We believe in one God, eternally existing in three Persons: Father, Son, and Holy Spirit — co-equal, co-eternal, and co-essential in nature.", ref:"Matthew 28:19; John 1:1" },
+  { title:"Salvation by Grace", body:"We believe that all humanity is fallen in sin and that salvation is a free gift of God's grace received through faith in Jesus Christ alone — not by works.", ref:"Ephesians 2:8–9" },
+  { title:"The Resurrection", body:"We believe in the bodily resurrection of Jesus Christ from the dead, his ascension into heaven, and his coming again in glory to judge the living and the dead.", ref:"1 Corinthians 15:3–4" },
+  { title:"Baptism", body:"We practice baptism by immersion as a public declaration of faith in Christ — an outward sign of an inward transformation, following the example of Jesus.", ref:"Romans 6:3–4" },
+  { title:"The Holy Spirit", body:"We believe in the present ministry of the Holy Spirit who indwells every believer, empowers us for witness, and produces the fruit of Christlike character.", ref:"Acts 1:8; Galatians 5:22–23" },
+  { title:"The Church", body:"We believe the local church is the primary expression of Christ's body on earth — called to gather, worship, disciple, and send.", ref:"Ephesians 4:11–13" },
+];
+
+function Accordion() {
+  const [open, setOpen] = useState(0);
+  return (
+    <section style={{ background: C.stone, padding:"6rem 2.5rem" }}>
+      <div style={{ maxWidth:"860px", margin:"0 auto" }}>
+        <SectionLabel text="Theology" />
+        <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(2rem,4vw,3rem)", color: C.charcoal, marginBottom:"3rem" }}>
+          What We Believe
+        </h2>
+        <div style={{ borderTop:`1px solid rgba(95,94,90,0.25)` }}>
+          {BELIEFS.map((b, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={b.title} style={{ borderBottom:`1px solid rgba(95,94,90,0.25)` }}>
+                <button
+                  onClick={() => setOpen(isOpen ? -1 : i)}
+                  style={{
+                    width:"100%", padding:"1.4rem 0",
+                    display:"flex", alignItems:"center", justifyContent:"space-between",
+                    background:"transparent", border:"none", cursor:"pointer", textAlign:"left"
+                  }}
+                >
+                  <div style={{ display:"flex", alignItems:"center", gap:"1rem" }}>
+                    <span style={{
+                      fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.65rem",
+                      letterSpacing:"0.14em", color: isOpen ? C.copper : C.mid,
+                      minWidth:"20px"
+                    }}>0{i+1}</span>
+                    <span style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.15rem", color: isOpen ? C.copper : C.charcoal, transition:"color 0.2s" }}>
+                      {b.title}
+                    </span>
+                  </div>
+                  <span style={{ fontSize:"1.2rem", color: C.copper, transition:"transform 0.3s", transform: isOpen ? "rotate(45deg)" : "rotate(0deg)", display:"inline-block" }}>+</span>
+                </button>
+                <div style={{
+                  overflow:"hidden",
+                  maxHeight: isOpen ? "200px" : "0",
+                  transition:"max-height 0.4s ease",
+                }}>
+                  <div className="accordion-body" style={{ padding:"0 0 1.5rem 2.5rem" }}>
+                    <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.85, color: C.mid, marginBottom:"0.5rem" }}>{b.body}</p>
+                    <span style={{ fontFamily:"'DM Serif Display', serif", fontStyle:"italic", fontSize:"0.85rem", color: C.copper }}>{b.ref}</span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── MEET THE PASTOR ──────────────────────────────────────
+function MeetPastor() {
+  return (
+    <section style={{ background: C.light, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
+      <div className="about-hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"min(340px, 100%) 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
+        {/* photo placeholder */}
+        <div className="pastor-photo-col">
+          <div style={{
+            width:"100%", aspectRatio:"3/4",
+            background: C.stone,
+            border:`2px solid ${C.copper}`,
+            display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
+            gap:"0.5rem"
+          }}>
+            <div style={{ fontSize:"4rem", color: C.mid, opacity:0.4 }}>◈</div>
+            <span style={{ fontFamily:"'DM Sans', sans-serif", fontSize:"0.7rem", letterSpacing:"0.15em", textTransform:"uppercase", color: C.mid, opacity:0.5 }}>Photo</span>
+          </div>
+          {/* name plate */}
+          <div style={{ marginTop:"1.25rem", paddingLeft:"0.25rem" }}>
+            <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.3rem", color: C.charcoal }}>Pr. Daniel Mutinda</div>
+            <div style={{ fontFamily:"'DM Sans', sans-serif", fontSize:"0.68rem", letterSpacing:"0.18em", textTransform:"uppercase", color: C.copper, marginTop:"0.3rem" }}>Senior Pastor · Lead Elder</div>
+          </div>
+        </div>
+        {/* bio */}
+        <div className="pastor-bio-col">
+          <SectionLabel text="Meet the Pastor" />
+          <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(1.8rem,3.5vw,2.8rem)", color: C.charcoal, lineHeight:1.15, marginBottom:"1.75rem" }}>
+            A shepherd with<br />a heart for the city.
+          </h2>
+          {/* pull quote */}
+          <blockquote style={{
+            borderLeft:`4px solid ${C.copper}`, paddingLeft:"1.5rem",
+            marginBottom:"2rem"
+          }}>
+            <p style={{ fontFamily:"'DM Serif Display', serif", fontStyle:"italic", fontSize:"1.2rem", color: C.charcoal, lineHeight:1.6 }}>
+              "The church exists for those who aren't yet in it. Everything we do should make it easier for someone far from God to take one step closer."
+            </p>
+          </blockquote>
+          <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"1rem" }}>
+            Pastor Daniel Mutinda has served in full-time ministry for over two decades, with a calling rooted in expository preaching, discipleship, and community transformation. He holds a Bachelor of Theology from Pan Africa Christian University and has pursued advanced ministerial training focused on church leadership and urban mission.
+          </p>
+          <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"2rem" }}>
+            Under his leadership, AIC MAAMANI has grown into a vibrant, multigenerational congregation committed to sound doctrine, active service, and reaching the unreached in Kitui and beyond. Pastor Daniel is known for his accessible teaching style, pastoral accessibility, and deep commitment to equipping every believer for ministry — not just the ordained few.
+          </p>
+          {/* credentials row */}
+          <div style={{ display:"flex", gap:"2rem", flexWrap:"wrap" }}>
+            {["B.Th · Pan Africa Christian University","20+ Years in Ministry","Senior Pastor · AIC MAAMANI"].map(t => (
+              <div key={t} style={{ padding:"0.55rem 1rem", border:`1px solid rgba(95,94,90,0.25)` }}>
+                <span style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.73rem", color: C.mid }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── LEADERSHIP TEAM ──────────────────────────────────────
+const fallbackTeam = [
+  { name:"Pr. Daniel Mutinda", role:"Senior Pastor", dept:"Pastor In-charge", initials:"SP", accent: "#EF9F27" },
+  { name:"Pr. Grace Viata", role:"Associate Pastor", dept:"Associate Pastor", initials:"AP", accent: "#5F5E5A" },
+  { name:"Robert Kioko", role:"Treasurer", dept:"Finance", initials:"TF", accent: "#EF9F27" },
+  { name:"Jennifer Samuel", role:"Chairlady", dept:"Women Committee", initials:"WC", accent: "#5F5E5A" },
+  { name:"Ruth Kitheka", role:"Youth Leader", dept:"Next Gen", initials:"YL", accent: "#EF9F27" },
+];
+
+function TeamCard({ member, delay }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: C.white,
+        border:`1px solid ${hovered ? C.copper : "rgba(95,94,90,0.18)"}`,
+        overflow:"hidden", cursor:"default",
+        transform: hovered ? "translateY(-6px)" : "translateY(0)",
+        transition:"transform 0.3s, border-color 0.25s",
+        animationDelay:`${delay}s`
+      }}
+    >
+      {/* avatar area */}
+      <div style={{
+        height:"180px", background: hovered ? C.charcoal : C.stone,
+        display:"flex", alignItems:"center", justifyContent:"center",
+        transition:"background 0.3s", position:"relative"
+      }}>
+        <div style={{
+          width:"80px", height:"80px", borderRadius:"50%",
+          background: hovered ? `${member.accent}22` : C.light,
+          border:`2px solid ${member.accent}`,
+          display:"flex", alignItems:"center", justifyContent:"center",
+          fontFamily:"'DM Serif Display', serif", fontSize:"1.5rem",
+          color: member.accent, transition:"all 0.3s"
+        }}>{member.initials}</div>
+        {/* dept badge slides in on hover */}
+        <div style={{
+          position:"absolute", bottom:"12px", left:"50%", transform:"translateX(-50%)",
+          opacity: hovered ? 1 : 0, transition:"opacity 0.3s",
+          background: C.copper, padding:"3px 12px",
+        }}>
+          <span style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:500, fontSize:"0.6rem", letterSpacing:"0.15em", textTransform:"uppercase", color: C.charcoal }}>{member.dept}</span>
+        </div>
+      </div>
+      {/* info */}
+      <div style={{ padding:"1.25rem" }}>
+        <h4 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.05rem", color: C.charcoal, marginBottom:"0.3rem" }}>{member.name}</h4>
+        <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.78rem", letterSpacing:"0.05em", color: C.mid }}>{member.role}</p>
       </div>
     </div>
   );
 }
 
-// ── Main Page ──────────────────────────────────────────────
-export default function ContactPage() {
+function LeadershipTeam() {
+  const [ref, visible] = useInView(0.1);
+  const [team, setTeam] = useState(fallbackTeam);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/about/team")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data) || !data.length) return;
+        setTeam(
+          data.map((member, index) => ({
+            name: member.name,
+            role: member.role || "",
+            dept: member.role || "Ministry",
+            initials:
+              member.name
+                ?.split(" ")
+                .filter(Boolean)
+                .slice(0, 2)
+                .map((part) => part[0])
+                .join("")
+                .toUpperCase() || "TM",
+            accent: index % 2 === 0 ? "#EF9F27" : "#5F5E5A",
+          }))
+        );
+      })
+      .catch(() => {
+        if (mounted) setTeam(fallbackTeam);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   return (
-    <div style={{ minHeight: "100vh", background: "#F2F1EF", fontFamily: "'DM Sans', 'Segoe UI', sans-serif", color: "#2C2C2A" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=DM+Sans:wght@400;500;600;700;800&display=swap');
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
-        .fade-up { animation: fadeUp 0.5s ease both; }
-        textarea, input, select { font-family: inherit; }
-        input::placeholder, textarea::placeholder { color: #B0AFAB; }
-
-        /* ── Responsive grid ── */
-        .split-layout {
-          display: grid;
-          grid-template-columns: 1fr min(380px, 100%);
-          gap: 32px;
-          align-items: start;
-        }
-        .form-row {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 16px;
-        }
-        .contact-form .submit-btn {
-          width: auto;
-        }
-
-        @media (max-width: 860px) {
-          .split-layout {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 540px) {
-          .form-row {
-            grid-template-columns: 1fr !important;
-          }
-          .contact-form .submit-btn {
-            width: 100%;
-          }
-        }
-
-        @media (max-width: 400px) {
-          .card-pad { padding: 20px 16px 18px !important; }
-          .hero-pad { padding: 40px 16px 36px !important; }
-          .main-pad { padding: 28px 12px 60px !important; }
-          .map-info-pad { padding: 16px 16px 14px !important; }
-        }
-      `}</style>
-
-      {/* ── Hero ──────────────────────────────────────────── */}
-      <div className="hero-pad" style={{ background: "#2C2C2A", padding: "56px 24px 52px", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: -80, right: -80, width: 320, height: 320, borderRadius: "50%", background: "rgba(239,159,39,0.06)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -60, left: -40, width: 220, height: 220, borderRadius: "50%", background: "rgba(239,159,39,0.04)", pointerEvents: "none" }} />
-        <div style={{ maxWidth: 960, margin: "0 auto", position: "relative" }}>
-          <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, letterSpacing: "0.14em", color: "#EF9F27", textTransform: "uppercase", marginBottom: 12, border: "1px solid rgba(239,159,39,0.35)", padding: "4px 12px", borderRadius: 20 }}>
-            Get in Touch
+    <section style={{ background: C.stone, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
+      <div style={{ maxWidth:"1100px", margin:"0 auto" }}>
+        <div style={{ display:"flex", alignItems:"flex-end", justifyContent:"space-between", marginBottom:"3rem", flexWrap:"wrap", gap:"1rem" }}>
+          <div>
+            <SectionLabel text="The Team" />
+            <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(2rem,4vw,3rem)", color: C.charcoal }}>Leadership Team</h2>
           </div>
-          <h1 style={{ fontFamily: "'Playfair Display', serif", fontSize: "clamp(32px, 6vw, 52px)", fontWeight: 800, color: "#F2F1EF", lineHeight: 1.1, marginBottom: 14 }}>
-            We'd Love to<br />Hear From You
-          </h1>
-          <p style={{ color: "#9E9D99", fontSize: 16, maxWidth: 480, lineHeight: 1.7 }}>
-            Whether you have a question, need prayer, or simply want to connect — our doors and hearts are open.
+          <p className="leadership-desc" style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.88rem", color: C.mid, maxWidth:"320px", lineHeight:1.7, textAlign:"right" }}>
+            Our elders, deacons, and ministry leads are men and women who serve with humility, integrity, and love.
           </p>
         </div>
-      </div>
-
-      {/* ── Main content grid ─────────────────────────────── */}
-      <div style={{ maxWidth: 1040, margin: "0 auto", padding: "48px max(16px, 4vw) 80px" }} className="main-pad">
-        <div className="split-layout">
-
-          {/* LEFT column */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
-
-            {/* Contact Form */}
-            <div className="fade-up card-pad" style={{ background: "#fff", borderRadius: 16, padding: "32px 32px 28px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
-              <div style={{ marginBottom: 24 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Contact Us</div>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 26, fontWeight: 700, color: "#2C2C2A" }}>Send a Message</h2>
-              </div>
-              <ContactForm />
+        <div ref={ref} style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(270px, 1fr))", gap:"1.25rem" }}>
+          {team.map((m, i) => (
+            <div key={m.name} style={{
+              opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(20px)",
+              transition:`opacity 0.45s ${i * 0.08}s, transform 0.45s ${i * 0.08}s`
+            }}>
+              <TeamCard member={m} delay={i * 0.08} />
             </div>
-
-            {/* Map */}
-            <div className="fade-up" style={{ background: "#fff", borderRadius: 16, overflow: "hidden", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
-              <div className="map-info-pad" style={{ padding: "24px 28px 20px" }}>
-                <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Find Us</div>
-                <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: "#2C2C2A", marginBottom: 4 }}>Our Location</h2>
-                <p style={{ fontSize: 14, color: "#5F5E5A" }}>AIC Maamani Church · Mombasa Road, Nairobi · Parking available on-site</p>
-              </div>
-              {/* Embedded Google Map — replace src with your actual embed URL */}
-              <div style={{ height: 320, background: "#E8E7E5", position: "relative" }}>
-                <iframe
-                  title="Church Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.808!2d36.821!3d-1.292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMcKwMTcnMzEuMiJTIDM2wrA0OScxNS42IkU!5e0!3m2!1sen!2ske!4v1234567890"
-                  width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
-                {/* Overlay card */}
-                <div style={{
-                  position: "absolute", bottom: 16, left: 16,
-                  background: "#2C2C2A", borderRadius: 10, padding: "12px 16px",
-                  boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
-                }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#F2F1EF", marginBottom: 2 }}>AIC Maamani</div>
-                  <div style={{ fontSize: 12, color: "#9E9D99" }}>Mombasa Road, Nairobi, Kenya</div>
-                  <a href="https://maps.google.com" target="_blank" rel="noreferrer"
-                    style={{ display: "inline-block", marginTop: 8, fontSize: 11, fontWeight: 700, color: "#EF9F27", textDecoration: "none", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                    Get Directions →
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* RIGHT column */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-
-            {/* Church Info */}
-            <div className="fade-up card-pad" style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Details</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#2C2C2A", marginBottom: 20 }}>Hours & Info</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-                <InfoRow icon="📍" label="Address" value="Mombasa Road, Nairobi" sub="AIC Maamani Church · Free on-site parking" />
-                <div style={{ height: 1, background: "#F0EFED" }} />
-                <InfoRow icon="🕐" label="Sunday Services" value="8:00 AM — Early Service" sub="10:00 AM — Main Service (English & Swahili)" />
-                <div style={{ height: 1, background: "#F0EFED" }} />
-                <InfoRow icon="🗓" label="Midweek" value="Wednesday 6:30 PM" sub="Bible Study & Prayer Night" />
-                <div style={{ height: 1, background: "#F0EFED" }} />
-                <InfoRow icon="🏢" label="Office Hours" value="Mon – Fri: 9:00 AM – 5:00 PM" sub="Closed public holidays" />
-                <div style={{ height: 1, background: "#F0EFED" }} />
-                <InfoRow icon="📞" label="Phone" value="+254 700 000 000" sub="Pastoral emergencies: +254 711 000 000" />
-                <div style={{ height: 1, background: "#F0EFED" }} />
-                <InfoRow icon="✉️" label="Email" value="info@aicmaamani.org" sub="Expect a reply within 1–2 business days" />
-              </div>
-            </div>
-
-            {/* Social Links */}
-            <div className="fade-up card-pad" style={{ background: "#2C2C2A", borderRadius: 16, padding: "24px 28px", boxShadow: "0 2px 16px rgba(44,44,42,0.12)" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Follow Along</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#F2F1EF", marginBottom: 18 }}>Find Us Online</h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {SOCIALS.map(({ name, color, href, icon }) => (
-                  <a key={name} href={href} target="_blank" rel="noreferrer" style={{
-                    display: "flex", alignItems: "center", gap: 14,
-                    padding: "11px 16px", borderRadius: 10,
-                    background: "rgba(255,255,255,0.05)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    textDecoration: "none", transition: "all 0.18s",
-                    color: "#F2F1EF",
-                  }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; }}
-                    onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}>
-                    <div style={{ width: 36, height: 36, borderRadius: 8, background: color, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "#fff" }}>
-                      {icon}
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 14, fontWeight: 600 }}>{name}</div>
-                      <div style={{ fontSize: 11, color: "#9E9D99" }}>@aicmaamani</div>
-                    </div>
-                    <span style={{ marginLeft: "auto", color: "#5F5E5A", fontSize: 16 }}>→</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Prayer Request Form */}
-            <div className="fade-up card-pad" style={{ background: "#fff", borderRadius: 16, padding: "28px 28px 24px", boxShadow: "0 2px 16px rgba(44,44,42,0.07)", border: "1.5px solid #F0EFED" }}>
-              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Prayer</div>
-              <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 20, fontWeight: 700, color: "#2C2C2A", marginBottom: 4 }}>Submit a Prayer Request</h2>
-              <p style={{ fontSize: 13, color: "#5F5E5A", lineHeight: 1.6, marginBottom: 20 }}>
-                Our prayer team intercedes every week. Share what's on your heart — you're not alone.
-              </p>
-              <PrayerForm />
-            </div>
-
-          </div>
+          ))}
         </div>
       </div>
-    </div>
+    </section>
+  );
+}
+
+// ── FOOTER ───────────────────────────────────────────────
+function Footer() {
+  return (
+    <footer style={{ background: C.dark, borderTop:`1px solid rgba(239,159,39,0.12)`, padding:"3rem 2.5rem", textAlign:"center" }}>
+      <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.35rem", color:C.white, marginBottom:"0.4rem", display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem" }}>
+        <span style={{ color: C.copper }}>◈</span> AIC MAAMANI
+      </div>
+      <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.73rem", letterSpacing:"0.12em", color:"rgba(255,255,255,0.3)", marginBottom:"1.75rem" }}>
+        A Church for Every Soul · Upper Hill, Nairobi
+      </p>
+      <div style={{ display:"flex", justifyContent:"center", gap:"2.5rem", flexWrap:"wrap" }}>
+        {NAV_LINKS.map(({ id, label }) => (
+          <a key={id} href={`#${id}`} style={{
+            fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.7rem",
+            letterSpacing:"0.14em", textTransform:"uppercase",
+            color:"rgba(255,255,255,0.35)", textDecoration:"none", transition:"color 0.2s"
+          }}
+            onMouseEnter={e => { e.target.style.color = C.copper; }}
+            onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.35)"; }}
+          >{label}</a>
+        ))}
+        <a
+          href="#admin"
+          aria-label="Admin panel"
+          title="Admin panel"
+          style={{
+            width: "30px",
+            height: "30px",
+            borderRadius: "50%",
+            border: "1px solid rgba(239,159,39,0.28)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "rgba(255,255,255,0.35)",
+            textDecoration: "none",
+            transition: "all 0.2s",
+            marginLeft: "0.25rem",
+            fontSize: "0.82rem",
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.color = C.copper;
+            e.currentTarget.style.borderColor = C.copper;
+            e.currentTarget.style.background = "rgba(239,159,39,0.08)";
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.color = "rgba(255,255,255,0.35)";
+            e.currentTarget.style.borderColor = "rgba(239,159,39,0.28)";
+            e.currentTarget.style.background = "transparent";
+          }}
+        >
+          ◈
+        </a>
+      </div>
+      <div style={{ marginTop:"2rem", fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.63rem", letterSpacing:"0.1em", color:"rgba(255,255,255,0.18)" }}>
+        © 2025 AIC MAAMANI Church. Built with faith & care.
+      </div>
+    </footer>
+  );
+}
+
+// ── ROOT ─────────────────────────────────────────────────
+export default function AboutPage({ showNav = true } = {}) {
+  return (
+    <>
+      <style>{fonts}</style>
+      <style>{globalStyle}</style>
+      {showNav && <Nav />}
+      <PageHero />
+      <VisionMission />
+      <Accordion />
+      <MeetPastor />
+      <LeadershipTeam />
+      <Footer />
+    </>
   );
 }
