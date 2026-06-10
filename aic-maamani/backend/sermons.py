@@ -1,4 +1,8 @@
 from datetime import date
+from io import BytesIO
+from pathlib import Path
+from xml.etree import ElementTree as ET
+import zipfile
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -22,6 +26,43 @@ def _clean_text(value: Optional[str]) -> Optional[str]:
         return None
     stripped = value.strip()
     return stripped or None
+
+
+def _extract_document_text(file_bytes: bytes, filename: Optional[str]) -> Optional[str]:
+    suffix = Path(filename or "").suffix.lower()
+
+    if suffix == ".txt":
+        for encoding in ("utf-8", "utf-16", "cp1252", "latin-1"):
+            try:
+                text = file_bytes.decode(encoding).strip()
+            except UnicodeDecodeError:
+                continue
+            if text:
+                return text
+        return None
+
+    if suffix == ".docx":
+        try:
+            with zipfile.ZipFile(BytesIO(file_bytes)) as docx:
+                xml_data = docx.read("word/document.xml")
+        except (KeyError, OSError, zipfile.BadZipFile):
+            return None
+
+        try:
+            root = ET.fromstring(xml_data)
+        except ET.ParseError:
+            return None
+
+        ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
+        paragraphs: list[str] = []
+        for paragraph in root.findall(".//w:p", ns):
+            pieces = [node.text for node in paragraph.findall(".//w:t", ns) if node.text]
+            text = "".join(pieces).strip()
+            if text:
+                paragraphs.append(text)
+        return "\n".join(paragraphs).strip() or None
+
+    return None
 
 
 # ─── Series ──────────────────────────────────────────────────────────────────
@@ -110,6 +151,8 @@ async def create_sermon(
     document_file: UploadFile | None = File(None),
     db: Session = Depends(get_db),
 ):
+    cleaned_document_text = _clean_text(document_text)
+
     if thumbnail_file:
         thumbnail = await save_upload(thumbnail_file, "sermons")
     if video_file:
@@ -117,6 +160,10 @@ async def create_sermon(
     if audio_file:
         audio_url = await save_upload(audio_file, "sermons")
     if document_file:
+        document_bytes = await document_file.read()
+        if cleaned_document_text is None:
+            cleaned_document_text = _extract_document_text(document_bytes, document_file.filename)
+        await document_file.seek(0)
         document_url = await save_upload(document_file, "sermons")
 
     sermon = Sermon(
@@ -131,7 +178,7 @@ async def create_sermon(
         video_url=_clean_text(video_url),
         audio_url=_clean_text(audio_url),
         document_url=_clean_text(document_url),
-        document_text=_clean_text(document_text),
+        document_text=cleaned_document_text,
         has_notes=has_notes,
         featured=featured,
     )
@@ -168,6 +215,8 @@ async def update_sermon(
     if not sermon:
         raise HTTPException(status_code=404, detail="Sermon not found")
 
+    cleaned_document_text = _clean_text(document_text)
+
     if thumbnail_file:
         thumbnail = await save_upload(thumbnail_file, "sermons")
     if video_file:
@@ -175,6 +224,10 @@ async def update_sermon(
     if audio_file:
         audio_url = await save_upload(audio_file, "sermons")
     if document_file:
+        document_bytes = await document_file.read()
+        if cleaned_document_text is None:
+            cleaned_document_text = _extract_document_text(document_bytes, document_file.filename)
+        await document_file.seek(0)
         document_url = await save_upload(document_file, "sermons")
 
     sermon.title = title.strip()
@@ -188,7 +241,7 @@ async def update_sermon(
     sermon.video_url = _clean_text(video_url) if video_url is not None else sermon.video_url
     sermon.audio_url = _clean_text(audio_url) if audio_url is not None else sermon.audio_url
     sermon.document_url = _clean_text(document_url) if document_url is not None else sermon.document_url
-    sermon.document_text = _clean_text(document_text) if document_text is not None else sermon.document_text
+    sermon.document_text = cleaned_document_text if document_text is not None or document_file else sermon.document_text
     sermon.has_notes = has_notes
     sermon.featured = featured
     db.commit()

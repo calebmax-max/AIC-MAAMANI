@@ -36,7 +36,6 @@ def _build_database_url() -> str:
 
 
 DATABASE_URL = _build_database_url()
-DEFAULT_SQLITE_URL = "sqlite:///./aic_maamani.db"
 
 
 def _engine_kwargs(url: str) -> dict:
@@ -60,8 +59,11 @@ if not DATABASE_URL.startswith("sqlite"):
     except SQLAlchemyError as exc:
         if strict_db:
             raise
-        logger.warning("Falling back to local SQLite database because the configured DB is unreachable: %s", exc)
-        DATABASE_URL = DEFAULT_SQLITE_URL
+        logger.warning(
+            "Falling back to local SQLite database because the configured DB is unreachable: %s",
+            exc,
+        )
+        DATABASE_URL = "sqlite:///./aic_maamani.db"
         engine = _build_engine(DATABASE_URL)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

@@ -16,7 +16,7 @@ import models  # noqa: F401  Ensures SQLAlchemy models are registered
 from admin_auth import router as admin_router
 from blog import router as blog_router
 from contact import router as contact_router
-from events import router as events_router
+from events import router as events_router, cleanup_expired_events
 from gallery import router as gallery_router
 from sermons import router as sermons_router
 from about import router as about_router
@@ -75,6 +75,7 @@ def startup() -> None:
     ensure_media_columns()
     with SessionLocal() as db:
         seed_database(db)
+        cleanup_expired_events(db)
 
 
 @app.get("/", tags=["Health"])

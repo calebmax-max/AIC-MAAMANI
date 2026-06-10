@@ -13,6 +13,32 @@ const C = {
   dark:     "#1A1918",
 };
 
+const PASTOR_IMAGE_URL = "https://placehold.co/340x430/F2F1EF/2C2C2A?text=Add+Pastor+Photo";
+const TEAM_IMAGE_URL = "https://placehold.co/360x280/F2F1EF/2C2C2A?text=Add+Team+Photo";
+
+function PlaceholderLink({ url, label }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      style={{
+        display: "inline-block",
+        marginTop: "0.65rem",
+        fontFamily: "'DM Sans', sans-serif",
+        fontSize: "0.72rem",
+        letterSpacing: "0.08em",
+        textTransform: "uppercase",
+        color: C.copper,
+        textDecoration: "none",
+        wordBreak: "break-all",
+      }}
+    >
+      {label}: {url}
+    </a>
+  );
+}
+
 // ── Shared helpers ──────────────────────────────────────
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');`;
 
@@ -373,16 +399,19 @@ function MeetPastor() {
       <div className="about-hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"min(340px, 100%) 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
         {/* photo placeholder */}
         <div className="pastor-photo-col">
-          <div style={{
-            width:"100%", aspectRatio:"3/4",
-            background: C.stone,
-            border:`2px solid ${C.copper}`,
-            display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center",
-            gap:"0.5rem"
-          }}>
-            <div style={{ fontSize:"4rem", color: C.mid, opacity:0.4 }}>◈</div>
-            <span style={{ fontFamily:"'DM Sans', sans-serif", fontSize:"0.7rem", letterSpacing:"0.15em", textTransform:"uppercase", color: C.mid, opacity:0.5 }}>Photo</span>
-          </div>
+          <img
+            src={PASTOR_IMAGE_URL}
+            alt="Pr. Daniel Mutinda"
+            style={{
+              width:"100%",
+              aspectRatio:"3/4",
+              objectFit:"cover",
+              border:`2px solid ${C.copper}`,
+              display:"block",
+              background:C.stone
+            }}
+          />
+          <PlaceholderLink url={PASTOR_IMAGE_URL} label="Pastor image link" />
           {/* name plate */}
           <div style={{ marginTop:"1.25rem", paddingLeft:"0.25rem" }}>
             <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.3rem", color: C.charcoal }}>Pr. Daniel Mutinda</div>
@@ -445,14 +474,30 @@ function TeamCard({ member, delay }) {
         display:"flex", alignItems:"center", justifyContent:"center",
         transition:"background 0.3s", position:"relative"
       }}>
-        <div style={{
-          width:"80px", height:"80px", borderRadius:"50%",
-          background: hovered ? `${member.accent}22` : C.light,
-          border:`2px solid ${member.accent}`,
-          display:"flex", alignItems:"center", justifyContent:"center",
-          fontFamily:"'DM Serif Display', serif", fontSize:"1.5rem",
-          color: member.accent, transition:"all 0.3s"
-        }}>{member.initials}</div>
+        {member.photo ? (
+          <img
+            src={member.photo}
+            alt={member.name}
+            style={{
+              width:"100%",
+              height:"100%",
+              objectFit:"cover",
+              display:"block",
+            }}
+          />
+        ) : (
+          <img
+            src={TEAM_IMAGE_URL}
+            alt={`${member.name} placeholder`}
+            style={{
+              width:"100%",
+              height:"100%",
+              objectFit:"cover",
+              display:"block",
+              opacity: hovered ? 1 : 0.95,
+            }}
+          />
+        )}
         {/* dept badge slides in on hover */}
         <div style={{
           position:"absolute", bottom:"12px", left:"50%", transform:"translateX(-50%)",
@@ -466,6 +511,7 @@ function TeamCard({ member, delay }) {
       <div style={{ padding:"1.25rem" }}>
         <h4 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.05rem", color: C.charcoal, marginBottom:"0.3rem" }}>{member.name}</h4>
         <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.78rem", letterSpacing:"0.05em", color: C.mid }}>{member.role}</p>
+        {!member.photo && <PlaceholderLink url={TEAM_IMAGE_URL} label="Team image link" />}
       </div>
     </div>
   );
@@ -485,6 +531,7 @@ function LeadershipTeam() {
             name: member.name,
             role: member.role || "",
             dept: member.role || "Ministry",
+            photo: member.photo || "",
             initials:
               member.name
                 ?.split(" ")
@@ -538,66 +585,6 @@ function LeadershipTeam() {
   );
 }
 
-// ── FOOTER ───────────────────────────────────────────────
-function Footer() {
-  return (
-    <footer style={{ background: C.dark, borderTop:`1px solid rgba(239,159,39,0.12)`, padding:"3rem 2.5rem", textAlign:"center" }}>
-      <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.35rem", color:C.white, marginBottom:"0.4rem", display:"flex", alignItems:"center", justifyContent:"center", gap:"0.5rem" }}>
-        <span style={{ color: C.copper }}>◈</span> AIC MAAMANI
-      </div>
-      <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.73rem", letterSpacing:"0.12em", color:"rgba(255,255,255,0.3)", marginBottom:"1.75rem" }}>
-        A Church for Every Soul · Upper Hill, Nairobi
-      </p>
-      <div style={{ display:"flex", justifyContent:"center", gap:"2.5rem", flexWrap:"wrap" }}>
-        {NAV_LINKS.map(({ id, label }) => (
-          <a key={id} href={`#${id}`} style={{
-            fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.7rem",
-            letterSpacing:"0.14em", textTransform:"uppercase",
-            color:"rgba(255,255,255,0.35)", textDecoration:"none", transition:"color 0.2s"
-          }}
-            onMouseEnter={e => { e.target.style.color = C.copper; }}
-            onMouseLeave={e => { e.target.style.color = "rgba(255,255,255,0.35)"; }}
-          >{label}</a>
-        ))}
-        <a
-          href="#admin"
-          aria-label="Admin panel"
-          title="Admin panel"
-          style={{
-            width: "30px",
-            height: "30px",
-            borderRadius: "50%",
-            border: "1px solid rgba(239,159,39,0.28)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "rgba(255,255,255,0.35)",
-            textDecoration: "none",
-            transition: "all 0.2s",
-            marginLeft: "0.25rem",
-            fontSize: "0.82rem",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.color = C.copper;
-            e.currentTarget.style.borderColor = C.copper;
-            e.currentTarget.style.background = "rgba(239,159,39,0.08)";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.color = "rgba(255,255,255,0.35)";
-            e.currentTarget.style.borderColor = "rgba(239,159,39,0.28)";
-            e.currentTarget.style.background = "transparent";
-          }}
-        >
-          ◈
-        </a>
-      </div>
-      <div style={{ marginTop:"2rem", fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.63rem", letterSpacing:"0.1em", color:"rgba(255,255,255,0.18)" }}>
-        © 2025 AIC MAAMANI Church. Built with faith & care.
-      </div>
-    </footer>
-  );
-}
-
 // ── ROOT ─────────────────────────────────────────────────
 export default function AboutPage({ showNav = true } = {}) {
   return (
@@ -610,7 +597,6 @@ export default function AboutPage({ showNav = true } = {}) {
       <Accordion />
       <MeetPastor />
       <LeadershipTeam />
-      <Footer />
     </>
   );
 }

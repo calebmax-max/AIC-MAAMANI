@@ -265,6 +265,7 @@ const emptySermon = {
   topic: "",
   series_id: "",
   thumbnail: "",
+  document_text: "",
   video_file: null,
   audio_file: null,
   document_file: null,
@@ -350,6 +351,7 @@ function SermonsPanel({ toast }) {
       topic: s.topic || "",
       duration: s.duration || "",
       thumbnail: s.thumbnail || "",
+      document_text: s.document_text || "",
       video_file: null,
       audio_file: null,
       document_file: null,
@@ -381,14 +383,15 @@ function SermonsPanel({ toast }) {
         date: form.date,
         duration: form.duration,
         scripture: form.scripture,
-        topic: form.topic,
-        series_id: form.series_id,
-        thumbnail: form.thumbnail,
-        has_notes: form.has_notes,
-        featured: form.featured,
-        video_file: form.video_file,
-        audio_file: form.audio_file,
-        document_file: form.document_file,
+          topic: form.topic,
+          series_id: form.series_id,
+          thumbnail: form.thumbnail,
+          document_text: form.document_text,
+          has_notes: form.has_notes,
+          featured: form.featured,
+          video_file: form.video_file,
+          audio_file: form.audio_file,
+          document_file: form.document_file,
       });
       if (modal === "new") {
         await apiFetch("/sermons", { method: "POST", body: payload });
@@ -510,13 +513,25 @@ function SermonsPanel({ toast }) {
             <label>Audio File</label>
             <input type="file" accept="audio/*" onChange={e => F("audio_file", e.target.files?.[0] || null)} />
           </div>
-          <div className="form-row">
-            <label>Document File</label>
-            <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => F("document_file", e.target.files?.[0] || null)} />
-          </div>
-          <div className="form-row">
-            <label>Series</label>
-            <select value={form.series_id || ""} onChange={e => F("series_id", e.target.value)}>
+            <div className="form-row">
+              <label>Document File</label>
+              <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => F("document_file", e.target.files?.[0] || null)} />
+            </div>
+            <div className="form-row">
+              <label>Document Text</label>
+              <textarea
+                value={form.document_text || ""}
+                onChange={e => F("document_text", e.target.value)}
+                placeholder="Paste sermon text here if you want it readable directly on the page"
+                rows={8}
+              />
+              <div style={{ fontSize: "0.75rem", color: MID, lineHeight: 1.6, marginTop: 6 }}>
+                If you paste text here, it will be shown on the sermon page. If this is left blank, the app will try to extract text from the uploaded document file.
+              </div>
+            </div>
+            <div className="form-row">
+              <label>Series</label>
+              <select value={form.series_id || ""} onChange={e => F("series_id", e.target.value)}>
               <option value="">— None —</option>
               {series.map(sr => <option key={sr.id} value={sr.id}>{sr.title}</option>)}
             </select>

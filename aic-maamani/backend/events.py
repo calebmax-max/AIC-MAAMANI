@@ -14,6 +14,18 @@ from schemas import (
 router = APIRouter()
 
 
+def cleanup_expired_events(db: Session) -> int:
+    expired_events = db.query(Event).filter(Event.date < date.today()).all()
+    if not expired_events:
+        return 0
+
+    expired_ids = [ev.id for ev in expired_events]
+    db.query(EventRegistration).filter(EventRegistration.event_id.in_(expired_ids)).delete(synchronize_session=False)
+    db.query(Event).filter(Event.id.in_(expired_ids)).delete(synchronize_session=False)
+    db.commit()
+    return len(expired_ids)
+
+
 @router.get("", response_model=List[EventOut])
 def get_events(
     category:   Optional[str]  = Query(None),
@@ -22,6 +34,8 @@ def get_events(
     limit: int = 50,
     db: Session = Depends(get_db),
 ):
+    cleanup_expired_events(db)
+
     q = db.query(Event)
     if category:
         q = q.filter(Event.category == category)
@@ -40,6 +54,8 @@ def get_events(
 
 @router.get("/{event_id}", response_model=EventOut)
 def get_event(event_id: int, db: Session = Depends(get_db)):
+    cleanup_expired_events(db)
+
     ev = db.query(Event).filter(Event.id == event_id).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -51,6 +67,8 @@ def get_event(event_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=EventOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_event(payload: EventCreate, db: Session = Depends(get_db)):
+    cleanup_expired_events(db)
+
     ev = Event(**payload.model_dump())
     db.add(ev)
     db.commit()
@@ -60,6 +78,8 @@ def create_event(payload: EventCreate, db: Session = Depends(get_db)):
 
 @router.put("/{event_id}", response_model=EventOut, dependencies=[Depends(require_admin)])
 def update_event(event_id: int, payload: EventCreate, db: Session = Depends(get_db)):
+    cleanup_expired_events(db)
+
     ev = db.query(Event).filter(Event.id == event_id).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -72,6 +92,8 @@ def update_event(event_id: int, payload: EventCreate, db: Session = Depends(get_
 
 @router.delete("/{event_id}", status_code=204, dependencies=[Depends(require_admin)])
 def delete_event(event_id: int, db: Session = Depends(get_db)):
+    cleanup_expired_events(db)
+
     ev = db.query(Event).filter(Event.id == event_id).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -87,6 +109,8 @@ def register_for_event(
     payload: EventRegistrationCreate,
     db: Session = Depends(get_db),
 ):
+    cleanup_expired_events(db)
+
     ev = db.query(Event).filter(Event.id == event_id).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")
@@ -115,6 +139,8 @@ def register_for_event(
 
 @router.get("/{event_id}/registrations", response_model=List[EventRegistrationOut], dependencies=[Depends(require_admin)])
 def get_registrations(event_id: int, db: Session = Depends(get_db)):
+    cleanup_expired_events(db)
+
     ev = db.query(Event).filter(Event.id == event_id).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Event not found")

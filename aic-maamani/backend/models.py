@@ -90,7 +90,11 @@ class Event(Base):
     description = Column(Text)
     spots       = Column(Integer, nullable=True)            # None = unlimited
 
-    registrations = relationship("EventRegistration", back_populates="event")
+    registrations = relationship(
+        "EventRegistration",
+        back_populates="event",
+        cascade="all, delete-orphan",
+    )
 
 
 class EventRegistration(Base):

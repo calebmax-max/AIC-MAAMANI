@@ -39,6 +39,19 @@ function useBreakpoint() {
   return { bp, isMobile, isTablet, isDesktop };
 }
 
+function getDocumentText(sermon) {
+  return (sermon?.documentText || sermon?.document_text || "").trim();
+}
+
+function hasDocumentContent(sermon) {
+  return Boolean(getDocumentText(sermon) || sermon?.documentUrl || sermon?.document_url);
+}
+
+function hasPlayableMedia(sermon) {
+  if (hasDocumentContent(sermon)) return false;
+  return Boolean(sermon?.videoUrl || sermon?.video_url || sermon?.audioUrl || sermon?.audio_url);
+}
+
 // ─── Icons ────────────────────────────────────────────────────────────────────
 function PlayIcon({ size = 20, color = "white" }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill={color}><polygon points="5,3 19,12 5,21" /></svg>;
@@ -247,6 +260,8 @@ function SermonDocumentReader({ sermon, onClose }) {
   const scrollRef = useRef(null);
   const [readProgress, setReadProgress] = useState(0);
   const [fontSize, setFontSize] = useState(16);
+  const documentText = getDocumentText(sermon);
+  const documentUrl = sermon.documentUrl || sermon.document_url || "";
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -260,7 +275,7 @@ function SermonDocumentReader({ sermon, onClose }) {
     setReadProgress(Math.min(100, Math.round(pct)));
   };
 
-  const paragraphs = (sermon.document_text || "").split(/\n+/).filter(p => p.trim());
+  const paragraphs = documentText.split(/\n+/).filter(p => p.trim());
 
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(20,20,18,0.75)", display: "flex", alignItems: "stretch", justifyContent: "center" }}>
@@ -298,7 +313,12 @@ function SermonDocumentReader({ sermon, onClose }) {
           {paragraphs.length === 0 ? (
             <div style={{ textAlign: "center", padding: "60px 0", color: MID_GRAY }}>
               <div style={{ fontSize: 36, marginBottom: 12 }}>📄</div>
-              <div style={{ fontSize: 15 }}>No document content available.</div>
+              <div style={{ fontSize: 15, marginBottom: 14 }}>No extractable document text was found.</div>
+              {documentUrl && (
+                <a href={documentUrl} target="_blank" rel="noreferrer" style={{ color: COPPER, textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
+                  Open the original file
+                </a>
+              )}
             </div>
           ) : (
             paragraphs.map((para, i) => (
@@ -382,18 +402,57 @@ function VideoEmbed({ url }) {
 }
 
 // ─── Sermon Media ─────────────────────────────────────────────────────────────
-function SermonMedia({ sermon }) {
-  if (sermon.videoUrl) return <VideoEmbed url={sermon.videoUrl} />;
-  if (sermon.audioUrl) {
-    if (isAudioFile(sermon.audioUrl)) return <audio controls src={sermon.audioUrl} style={{ width: "100%" }} />;
-    return <AudioPlayer duration={sermon.duration} />;
-  }
-  if (sermon.documentUrl) {
+function SermonMedia({ sermon, onReadDoc }) {
+  const documentText = getDocumentText(sermon);
+  const documentUrl = sermon.documentUrl || sermon.document_url || "";
+
+  if (documentText || documentUrl) {
     return (
-      <a href={sermon.documentUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: COPPER, textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
-        <DownloadIcon size={14} /> Download document
-      </a>
+      <div style={{ border: "1px solid rgba(255,255,255,0.14)", borderRadius: 12, padding: 16, background: "rgba(255,255,255,0.04)" }}>
+        <div style={{ fontSize: 11, color: COPPER, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 8 }}>
+          Document Sermon
+        </div>
+        <p style={{ fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.78)", marginBottom: 14 }}>
+          This sermon is available as a document. Open it to read on the page.
+        </p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {onReadDoc && (
+            <button
+              onClick={() => onReadDoc(sermon)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                background: COPPER,
+                color: CHARCOAL,
+                border: "none",
+                borderRadius: 8,
+                padding: "10px 18px",
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: "'DM Sans', sans-serif",
+              }}
+            >
+              <BookIcon size={14} /> Read on page
+            </button>
+          )}
+          {documentUrl && (
+            <a href={documentUrl} target="_blank" rel="noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.82)", textDecoration: "none", fontSize: 13, fontWeight: 600 }}>
+              <DownloadIcon size={14} /> Open original file
+            </a>
+          )}
+        </div>
+      </div>
     );
+  }
+
+  const videoUrl = sermon.videoUrl || sermon.video_url;
+  if (videoUrl) return <VideoEmbed url={videoUrl} />;
+  const audioUrl = sermon.audioUrl || sermon.audio_url;
+  if (audioUrl) {
+    if (isAudioFile(audioUrl)) return <audio controls src={audioUrl} style={{ width: "100%" }} />;
+    return <AudioPlayer duration={sermon.duration} />;
   }
   return <AudioPlayer duration={sermon.duration} />;
 }
@@ -437,18 +496,13 @@ function FeaturedSermon({ sermon, seriesData, onReadNotes, onReadDoc }) {
             <span style={{ color: "rgba(255,255,255,0.3)" }}>·</span>
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.65)" }}>{sermon.duration}</span>
           </div>
-          <SermonMedia sermon={sermon} />
+          <SermonMedia sermon={sermon} onReadDoc={onReadDoc} />
         </div>
-        {(sermon.hasNotes || sermon.document_text) && (
+        {sermon.hasNotes && (
           <div style={{ display: "flex", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
             {sermon.hasNotes && (
               <button onClick={() => onReadNotes(sermon)} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: COPPER, color: CHARCOAL, border: "none", borderRadius: 8, padding: "10px 18px", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }} onMouseEnter={e => e.currentTarget.style.opacity = "0.9"} onMouseLeave={e => e.currentTarget.style.opacity = "1"}>
                 <BookIcon size={15} /> Read Notes
-              </button>
-            )}
-            {sermon.document_text && (
-              <button onClick={() => onReadDoc(sermon)} style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.2)", color: "rgba(255,255,255,0.8)", borderRadius: 8, padding: "10px 18px", cursor: "pointer", fontSize: 13, fontFamily: "'DM Sans', sans-serif", transition: "all 0.2s" }} onMouseEnter={e => { e.currentTarget.style.borderColor = COPPER; e.currentTarget.style.color = COPPER; }} onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "rgba(255,255,255,0.8)"; }}>
-                <BookIcon size={15} /> Read Document
               </button>
             )}
           </div>
@@ -462,6 +516,8 @@ function FeaturedSermon({ sermon, seriesData, onReadNotes, onReadDoc }) {
 function SermonCard({ sermon, onReadNotes, onReadDoc }) {
   const [hovered, setHovered] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
+  const documentContent = hasDocumentContent(sermon);
+  const canPlayMedia = hasPlayableMedia(sermon);
   const dateStr = new Date(sermon.date).toLocaleDateString("en-KE", { day: "numeric", month: "short", year: "numeric" });
 
   return (
@@ -485,19 +541,20 @@ function SermonCard({ sermon, onReadNotes, onReadDoc }) {
         <div style={{ fontSize: 11, color: COPPER, fontWeight: 500, letterSpacing: "0.06em", textTransform: "uppercase", marginBottom: 6 }}>{sermon.scripture}</div>
         <h3 style={{ fontFamily: "'Playfair Display', serif", fontSize: 16, fontWeight: 600, color: CHARCOAL, lineHeight: 1.4, marginBottom: 8, minHeight: 44 }}>{sermon.title}</h3>
         <div style={{ fontSize: 12, color: MID_GRAY, marginBottom: 14 }}>{sermon.speaker} · {dateStr}</div>
-        {showPlayer && <div style={{ marginBottom: 14 }}><SermonMedia sermon={sermon} /></div>}
+        {showPlayer && canPlayMedia && <div style={{ marginBottom: 14 }}><SermonMedia sermon={sermon} /></div>}
         <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setShowPlayer(!showPlayer)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: showPlayer ? COPPER : CHARCOAL, color: "white", border: "none", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }}>
-            <PlayIcon size={13} /> {showPlayer ? "Playing" : "Listen"}
-          </button>
+          {canPlayMedia ? (
+            <button onClick={() => setShowPlayer(!showPlayer)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: showPlayer ? COPPER : CHARCOAL, color: "white", border: "none", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }}>
+              <PlayIcon size={13} /> {showPlayer ? "Playing" : "Listen"}
+            </button>
+          ) : documentContent ? (
+            <button onClick={() => onReadDoc(sermon)} style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 7, background: "#EEF2F8", color: "#3B5A8C", border: "none", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#DDE6F5"} onMouseLeave={e => e.currentTarget.style.background = "#EEF2F8"} title="Read sermon">
+              <BookIcon size={13} /> Read
+            </button>
+          ) : null}
           {sermon.hasNotes && (
             <button onClick={() => onReadNotes(sermon)} style={{ display: "flex", alignItems: "center", gap: 6, background: COPPER_LIGHT, color: COPPER_DARK, border: "none", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#FAE5C0"} onMouseLeave={e => e.currentTarget.style.background = COPPER_LIGHT} title="Read sermon notes">
               <BookIcon size={13} /> Notes
-            </button>
-          )}
-          {sermon.document_text && (
-            <button onClick={() => onReadDoc(sermon)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#EEF2F8", color: "#3B5A8C", border: "none", borderRadius: 8, padding: "9px 14px", cursor: "pointer", fontSize: 12, fontWeight: 500, fontFamily: "'DM Sans', sans-serif", transition: "background 0.2s" }} onMouseEnter={e => e.currentTarget.style.background = "#DDE6F5"} onMouseLeave={e => e.currentTarget.style.background = "#EEF2F8"} title="Read document">
-              <BookIcon size={13} /> Doc
             </button>
           )}
         </div>
@@ -507,7 +564,7 @@ function SermonCard({ sermon, onReadNotes, onReadDoc }) {
 }
 
 // ─── Series Row ───────────────────────────────────────────────────────────────
-function SeriesRow({ series, sermons, onReadNotes }) {
+function SeriesRow({ series, sermons, onReadNotes, onReadDoc }) {
   const [open, setOpen] = useState(false);
   const { isMobile } = useBreakpoint();
   const seriesSermons = sermons.filter(s => s.series === series.id);
@@ -538,9 +595,15 @@ function SeriesRow({ series, sermons, onReadNotes }) {
                 <div style={{ fontSize: 12, color: MID_GRAY, whiteSpace: isMobile ? "normal" : "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{s.speaker} · {s.scripture} · {s.duration}</div>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0, flexDirection: isMobile ? "column" : "row" }}>
-                <button style={{ display: "flex", alignItems: "center", gap: 6, background: CHARCOAL, color: "white", border: "none", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>
-                  <PlayIcon size={12} /> Play
-                </button>
+                {hasPlayableMedia(s) ? (
+                  <button style={{ display: "flex", alignItems: "center", gap: 6, background: CHARCOAL, color: "white", border: "none", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>
+                    <PlayIcon size={12} /> Play
+                  </button>
+                ) : hasDocumentContent(s) ? (
+                  <button onClick={() => onReadDoc(s)} style={{ display: "flex", alignItems: "center", gap: 6, background: "#EEF2F8", color: "#3B5A8C", border: "none", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>
+                    <BookIcon size={12} /> Read
+                  </button>
+                ) : null}
                 {s.hasNotes && (
                   <button onClick={() => onReadNotes(s)} style={{ display: "flex", alignItems: "center", gap: 6, background: COPPER_LIGHT, color: COPPER_DARK, border: "none", borderRadius: 7, padding: "7px 14px", cursor: "pointer", fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>
                     <BookIcon size={12} /> Notes
@@ -589,7 +652,7 @@ export default function SermonsPage() {
           setSeriesData(series.map(item => ({ id: item.id, title: item.title, cover: item.cover_url || "", count: item.count || 0, description: item.description || "" })));
         }
         if (Array.isArray(sermons)) {
-          const mappedSermons = sermons.map(item => ({ id: item.id, title: item.title, speaker: item.speaker, date: item.date, duration: item.duration || "—", scripture: item.scripture || "", topic: item.topic || "", series: item.series_id || "", thumbnail: item.thumbnail || "", videoUrl: item.video_url || null, audioUrl: item.audio_url || null, documentUrl: item.document_url || null, document_text: item.document_text || null, hasNotes: Boolean(item.has_notes), featured: Boolean(item.featured) }));
+            const mappedSermons = sermons.map(item => ({ id: item.id, title: item.title, speaker: item.speaker, date: item.date, duration: item.duration || "—", scripture: item.scripture || "", topic: item.topic || "", series: item.series_id || "", thumbnail: item.thumbnail || "", videoUrl: item.video_url || null, audioUrl: item.audio_url || null, documentUrl: item.document_url || null, documentText: item.document_text || "", hasNotes: Boolean(item.has_notes), featured: Boolean(item.featured) }));
           setSermonsData(mappedSermons);
           const notesEntries = await Promise.all(mappedSermons.filter(item => item.hasNotes).map(async item => {
             try {
@@ -759,9 +822,9 @@ export default function SermonsPage() {
 
           {activeTab === "series" && (
             <div>
-              {seriesData.map(series => <SeriesRow key={series.id} series={series} sermons={sermonsData} onReadNotes={setNotesSermon} />)}
-            </div>
-          )}
+                {seriesData.map(series => <SeriesRow key={series.id} series={series} sermons={sermonsData} onReadNotes={setNotesSermon} onReadDoc={setDocSermon} />)}
+              </div>
+            )}
         </div>
       </div>
     </>

@@ -11,7 +11,7 @@ const PALETTE = {
   surfaceMuted: "#E8E6E3",
 };
 
-// DEFAULT_ALBUMS removed — album options are derived from photos
+// DEFAULT_ALBUMS removed - album options are derived from photos
 
 function resolveGalleryUrl(src) {
   if (!src) return "";
@@ -150,7 +150,14 @@ function Lightbox({ photos, startIndex, onClose }) {
     >
       <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
 
-      <button onClick={(e) => { e.stopPropagation(); prev(); }} style={navBtnStyle("left")}>‹</button>
+      <button
+        type="button"
+        aria-label="Previous photo"
+        onClick={(e) => { e.stopPropagation(); prev(); }}
+        style={navBtnStyle("left")}
+      >
+        Prev
+      </button>
 
       <div
         onClick={(e) => e.stopPropagation()}
@@ -186,9 +193,18 @@ function Lightbox({ photos, startIndex, onClose }) {
         </div>
       </div>
 
-      <button onClick={(e) => { e.stopPropagation(); next(); }} style={navBtnStyle("right")}>›</button>
+      <button
+        type="button"
+        aria-label="Next photo"
+        onClick={(e) => { e.stopPropagation(); next(); }}
+        style={navBtnStyle("right")}
+      >
+        Next
+      </button>
 
       <button
+        type="button"
+        aria-label="Close lightbox"
         onClick={onClose}
         style={{
           position: "fixed", top: "20px", right: "24px",
@@ -198,7 +214,7 @@ function Lightbox({ photos, startIndex, onClose }) {
           display: "flex", alignItems: "center", justifyContent: "center",
           lineHeight: 1,
         }}
-      >✕</button>
+      >Close</button>
 
       <div style={{
         position: "fixed", bottom: "20px", left: "50%",
@@ -225,8 +241,8 @@ function navBtnStyle(side) {
   return {
     position: "fixed", [side]: "20px", top: "50%", transform: "translateY(-50%)",
     background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.15)",
-    color: "#fff", fontSize: "32px", cursor: "pointer",
-    width: "48px", height: "64px", borderRadius: "8px",
+    color: "#fff", fontSize: "14px", fontWeight: 700, letterSpacing: "0.06em", cursor: "pointer",
+    width: "72px", height: "48px", borderRadius: "999px",
     display: "flex", alignItems: "center", justifyContent: "center",
     lineHeight: 1, transition: "background 0.2s",
   };
@@ -276,7 +292,7 @@ function VideoCard({ video }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 marginBottom: "14px",
               }}>
-                <span style={{ fontSize: "24px", color: PALETTE.accent, marginLeft: "3px" }}>▶</span>
+                <span style={{ fontSize: "13px", color: PALETTE.accent, fontWeight: 700 }}>Play</span>
               </div>
               <p style={{ margin: 0, color: "#fff", fontSize: "15px", fontWeight: 600, lineHeight: 1.4 }}>{video.title}</p>
               <p style={{ margin: "6px 0 0", color: "rgba(255,255,255,0.55)", fontSize: "12px", fontFamily: "'DM Sans',sans-serif" }}>
@@ -299,7 +315,7 @@ function VideoCard({ video }) {
                 transition: "transform 0.2s",
                 transform: hovered && hasLocalVideo ? "scale(1.1)" : "scale(1)",
               }}>
-                <span style={{ fontSize: "22px", color: "#fff", marginLeft: "3px" }}>▶</span>
+                <span style={{ fontSize: "13px", color: "#fff", fontWeight: 700 }}>Play</span>
               </div>
             </div>
           </>
@@ -330,17 +346,15 @@ export default function ChurchGallery() {
 
     // Fetch photos and videos in parallel
     Promise.all([
-      fetchJson("/api/gallery/photos").catch((e) => { console.error("GALLERY FETCH ERROR:", e); return null; }),
+      fetchJson("/api/gallery/photos").catch(() => null),
       fetchJson("/api/gallery/videos").catch(() => null),
     ]).then(([photoData, videoData]) => {
       if (!mounted) return;
 
       if (Array.isArray(photoData)) {
-        console.log("RAW PHOTO DATA (first 3):", JSON.stringify(photoData.slice(0, 3), null, 2));
         setPhotos(
           photoData.map((photo) => {
             const source = photo.src || photo.url || photo.image_url || photo.photo_url || "";
-            console.log("PHOTO KEYS:", Object.keys(photo), "| source:", source, "| resolved:", resolveGalleryUrl(source));
             return {
               id: photo.id,
               album: photo.album || "",

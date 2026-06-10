@@ -9,6 +9,7 @@ const LIGHT   = "#F2F1EF";
 const WHITE   = "#FFFFFF";
 const STONE   = "#E8E6E1";
 const DARK    = "#1A1918";
+const PASTOR_IMAGE_URL = "https://placehold.co/360x460/F2F1EF/2C2C2A?text=Add+Pastor+Photo";
 
 const fonts = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
@@ -68,6 +69,8 @@ function AnimatedCounter({ target, label, suffix = "" }) {
 
 export default function ChurchHomepage({ showNav = true } = {}) {
   const [blogPosts, setBlogPosts] = useState([]);
+  const [upcomingEvents, setUpcomingEvents] = useState([]);
+  const [latestSermon, setLatestSermon] = useState(null);
 
   useEffect(() => {
     let mounted = true;
@@ -80,6 +83,36 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       })
       .catch(() => { if (mounted) setBlogPosts([]); });
     return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/events?upcoming=true&limit=3")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data)) return;
+        setUpcomingEvents(data.slice(0, 3));
+      })
+      .catch(() => {
+        if (mounted) setUpcomingEvents([]);
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    fetchJson("/api/sermons?limit=1")
+      .then((data) => {
+        if (!mounted || !Array.isArray(data)) return;
+        setLatestSermon(data[0] || null);
+      })
+      .catch(() => {
+        if (mounted) setLatestSermon(null);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   return (
@@ -169,7 +202,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             }}
               onMouseEnter={e => { e.target.style.borderColor = COPPER; e.target.style.color = COPPER; }}
               onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.2)"; e.target.style.color = "rgba(255,255,255,0.75)"; }}
-            >▶ Watch a Sermon</a>
+            >View a Sermon</a>
           </div>
         </div>
 
@@ -244,13 +277,18 @@ export default function ChurchHomepage({ showNav = true } = {}) {
 
           {/* Image column (order 2 on mobile) */}
           <div className="pastor-image-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
-            <div style={{
-              width: "160px", height: "190px",
-              background: STONE,
-              border: `2px solid ${COPPER}`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: "4.5rem", color: MID
-            }}>◈</div>
+            <img
+              src={PASTOR_IMAGE_URL}
+              alt="Pr. Daniel Mutinda"
+              style={{
+                width: "160px",
+                height: "190px",
+                objectFit: "cover",
+                border: `2px solid ${COPPER}`,
+                background: STONE,
+                display: "block",
+              }}
+            />
             <div style={{ textAlign: "center" }}>
               <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.05rem", color: CHARCOAL }}>Pr. Daniel Mutinda</div>
               <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER, marginTop: "0.3rem" }}>Senior Pastor</div>
@@ -315,36 +353,49 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             </div>
             <a href="#events" style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.73rem", letterSpacing: "0.15em", textTransform: "uppercase", color: COPPER2, textDecoration: "none", borderBottom: `1px solid ${COPPER2}`, paddingBottom: "2px" }}>See All Events →</a>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: "1.25rem" }}>
-            {[
-              { month: "JUN", day: "15", title: "Youth Outreach Sunday", tag: "Youth", desc: "A morning dedicated to hearing from the next generation — music, testimony, and a message for the young at heart." },
-              { month: "JUN", day: "22", title: "Prayer & Fasting Weekend", tag: "Prayer", desc: "48 hours of corporate seeking. Join us as we fast and press into God together across the city." },
-              { month: "JUL", day: "04", title: "Community Picnic & Baptisms", tag: "Community", desc: "Celebrate with us in the park! Share a meal, bring family, and witness public declarations of faith." },
-            ].map(({ month, day, title, tag, desc }) => (
-              <div key={title} style={{
-                background: WHITE,
-                border: `1px solid rgba(95,94,90,0.15)`,
-                padding: "1.75rem",
-                transition: "transform 0.25s, border-color 0.25s",
-                cursor: "pointer"
-              }}
-                onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = COPPER; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(95,94,90,0.15)"; }}
-              >
-                <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", marginBottom: "1rem" }}>
-                  <div style={{ background: CHARCOAL, color: WHITE, padding: "0.55rem 0.9rem", textAlign: "center", flexShrink: 0, minWidth: "58px" }}>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER }}>{month}</div>
-                    <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "2rem", fontWeight: 400, lineHeight: 1 }}>{day}</div>
+          {upcomingEvents.length === 0 ? (
+            <div style={{ background: WHITE, border: `1px solid rgba(95,94,90,0.15)`, padding: "1.5rem", color: MID, fontFamily: "'DM Sans', sans-serif" }}>
+              No upcoming events right now.
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))", gap: "1.25rem" }}>
+              {upcomingEvents.map((event) => {
+                const eventDate = new Date(`${event.date}T00:00:00`);
+                const month = eventDate.toLocaleDateString("en-US", { month: "short" }).toUpperCase();
+                const day = String(eventDate.getDate()).padStart(2, "0");
+                const tag = event.category || "Event";
+                return (
+                  <div key={event.id} style={{
+                    background: WHITE,
+                    border: `1px solid rgba(95,94,90,0.15)`,
+                    padding: "1.75rem",
+                    transition: "transform 0.25s, border-color 0.25s",
+                    cursor: "pointer"
+                  }}
+                    onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = COPPER; }}
+                    onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = "rgba(95,94,90,0.15)"; }}
+                  >
+                    <div style={{ display: "flex", gap: "1.25rem", alignItems: "flex-start", marginBottom: "1rem" }}>
+                      <div style={{ background: CHARCOAL, color: WHITE, padding: "0.55rem 0.9rem", textAlign: "center", flexShrink: 0, minWidth: "58px" }}>
+                        <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.58rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER }}>{month}</div>
+                        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "2rem", fontWeight: 400, lineHeight: 1 }}>{day}</div>
+                      </div>
+                      <div>
+                        <span style={{ background: STONE, fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: MID, padding: "2px 8px", display: "inline-block", marginBottom: "0.4rem" }}>{tag}</span>
+                        <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.2rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25 }}>{event.title}</h3>
+                      </div>
+                    </div>
+                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.78rem", letterSpacing: "0.08em", textTransform: "uppercase", color: MID, marginBottom: "0.55rem" }}>
+                      {event.time || "Time TBA"} {event.end_time ? `• ${event.end_time}` : ""}
+                    </div>
+                    <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.88rem", lineHeight: 1.75, color: MID }}>
+                      {event.description || event.location || "Join us for this church gathering."}
+                    </p>
                   </div>
-                  <div>
-                    <span style={{ background: STONE, fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.62rem", letterSpacing: "0.12em", textTransform: "uppercase", color: MID, padding: "2px 8px", display: "inline-block", marginBottom: "0.4rem" }}>{tag}</span>
-                    <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.2rem", fontWeight: 400, color: CHARCOAL, lineHeight: 1.25 }}>{title}</h3>
-                  </div>
-                </div>
-                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.88rem", lineHeight: 1.75, color: MID }}>{desc}</p>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -358,62 +409,83 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             </div>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: WHITE }}>Latest Sermon</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem, 4vw, 3.5rem)", alignItems: "center" }} className="sermon-layout">
-            {/* video player mock */}
-            <div style={{
-              aspectRatio: "16/9", background: CHARCOAL,
-              border: `1px solid rgba(239,159,39,0.2)`,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              position: "relative", cursor: "pointer", overflow: "hidden"
-            }}>
-              {/* grid overlay */}
-              <div style={{ position: "absolute", inset: 0, backgroundImage: `repeating-linear-gradient(rgba(239,159,39,0.03) 0px, rgba(239,159,39,0.03) 1px, transparent 1px, transparent 40px), repeating-linear-gradient(90deg, rgba(239,159,39,0.03) 0px, rgba(239,159,39,0.03) 1px, transparent 1px, transparent 40px)` }} />
+          {latestSermon ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "clamp(2rem, 4vw, 3.5rem)", alignItems: "center" }} className="sermon-layout">
               <div style={{
-                width: "64px", height: "64px",
-                border: `1.5px solid ${COPPER}`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: COPPER, fontSize: "1.6rem", position: "relative",
-                transition: "background 0.2s"
-              }}
-                onMouseEnter={e => { e.currentTarget.style.background = `${COPPER}22`; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
-              >▶</div>
-              <div style={{ position: "absolute", bottom: "1rem", left: "1rem", right: "1rem" }}>
-                <div style={{ height: "2px", background: "rgba(239,159,39,0.2)" }}>
-                  <div style={{ height: "100%", width: "35%", background: COPPER }} />
+                aspectRatio: "16/9",
+                background: CHARCOAL,
+                border: `1px solid rgba(239,159,39,0.2)`,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                position: "relative",
+                overflow: "hidden",
+              }}>
+                {latestSermon.thumbnail ? (
+                  <img
+                    src={latestSermon.thumbnail}
+                    alt={latestSermon.title}
+                    style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : null}
+                <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(44,44,42,0.92), rgba(26,25,24,0.78))" }} />
+                <div style={{
+                  width: "64px",
+                  height: "64px",
+                  border: `1.5px solid ${COPPER}`,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: COPPER,
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  position: "relative",
+                }}>
+                  View
+                </div>
+              </div>
+              <div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: MID, marginBottom: "0.75rem" }}>
+                  {latestSermon.date} {latestSermon.series_id ? `· Series: ${latestSermon.series_id}` : ""}
+                </div>
+                <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(1.6rem,3vw,2.3rem)", fontWeight: 400, color: WHITE, lineHeight: 1.2, marginBottom: "0.8rem" }}>
+                  {latestSermon.title}
+                </h3>
+                <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", color: COPPER, fontSize: "0.95rem", marginBottom: "1.25rem", lineHeight: 1.6 }}>
+                  {latestSermon.scripture || latestSermon.topic || "Recent sermon from the pulpit"}
+                </div>
+                <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.88rem", lineHeight: 1.8, color: "rgba(255,255,255,0.5)", marginBottom: "1.75rem" }}>
+                  {latestSermon.topic || latestSermon.duration
+                    ? `${latestSermon.topic ? `${latestSermon.topic}. ` : ""}${latestSermon.duration ? `Duration: ${latestSermon.duration}.` : ""}`
+                    : "Tap through to view the most recent message."}
+                </p>
+                <div style={{ display: "flex", gap: "1rem" }}>
+                  <a href="#sermons" style={{
+                    background: COPPER, color: CHARCOAL, padding: "0.7rem 1.6rem",
+                    fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
+                    letterSpacing: "0.12em", fontSize: "0.73rem", textTransform: "uppercase", textDecoration: "none"
+                  }}>View Sermon</a>
+                  <a href="#sermons" style={{
+                    border: `1px solid rgba(255,255,255,0.2)`, color: "rgba(255,255,255,0.6)",
+                    padding: "0.7rem 1.6rem",
+                    fontFamily: "'DM Sans', sans-serif", fontWeight: 400,
+                    letterSpacing: "0.12em", fontSize: "0.73rem", textTransform: "uppercase", textDecoration: "none",
+                    transition: "all 0.2s"
+                  }}
+                    onMouseEnter={e => { e.target.style.borderColor = COPPER; e.target.style.color = COPPER; }}
+                    onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.2)"; e.target.style.color = "rgba(255,255,255,0.6)"; }}
+                  >All Sermons</a>
                 </div>
               </div>
             </div>
-            <div>
-              <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.65rem", letterSpacing: "0.18em", textTransform: "uppercase", color: MID, marginBottom: "0.75rem" }}>June 8, 2025 · Series: The Beatitudes</div>
-              <h3 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(1.6rem,3vw,2.3rem)", fontWeight: 400, color: WHITE, lineHeight: 1.2, marginBottom: "0.8rem" }}>
-                Blessed Are the Hungry
-              </h3>
-              <div style={{ fontFamily: "'DM Serif Display', serif", fontStyle: "italic", color: COPPER, fontSize: "0.95rem", marginBottom: "1.25rem", lineHeight: 1.6 }}>
-                Matthew 5:6 — "Blessed are those who hunger and thirst for righteousness, for they will be filled."
-              </div>
-              <p style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.88rem", lineHeight: 1.8, color: "rgba(255,255,255,0.5)", marginBottom: "1.75rem" }}>
-                In a world that promises satisfaction in so many wrong places, Pastor Samuel unpacks what it truly means to hunger for something deeper — and the extraordinary promise attached to that ache.
-              </p>
-              <div style={{ display: "flex", gap: "1rem" }}>
-                <a href="#sermons" style={{
-                  background: COPPER, color: CHARCOAL, padding: "0.7rem 1.6rem",
-                  fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
-                  letterSpacing: "0.12em", fontSize: "0.73rem", textTransform: "uppercase", textDecoration: "none"
-                }}>Watch Now</a>
-                <a href="#sermons" style={{
-                  border: `1px solid rgba(255,255,255,0.2)`, color: "rgba(255,255,255,0.6)",
-                  padding: "0.7rem 1.6rem",
-                  fontFamily: "'DM Sans', sans-serif", fontWeight: 400,
-                  letterSpacing: "0.12em", fontSize: "0.73rem", textTransform: "uppercase", textDecoration: "none",
-                  transition: "all 0.2s"
-                }}
-                  onMouseEnter={e => { e.target.style.borderColor = COPPER; e.target.style.color = COPPER; }}
-                  onMouseLeave={e => { e.target.style.borderColor = "rgba(255,255,255,0.2)"; e.target.style.color = "rgba(255,255,255,0.6)"; }}
-                >All Sermons</a>
-              </div>
+          ) : (
+            <div style={{ color: "rgba(255,255,255,0.6)", fontFamily: "'DM Sans', sans-serif" }}>
+              No sermons have been uploaded yet.
             </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -493,7 +565,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
       {/* ── FIND US ── */}
       <section id="find" style={{ background: CHARCOAL, padding: "var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
         <div style={{ maxWidth: "1100px", margin: "0 auto" }}>
-          <div style={{ marginBottom: "3.5rem", textAlign: "center" }}>
+          <div style={{ marginBottom: "3rem", textAlign: "center" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "0.75rem", marginBottom: "0.6rem" }}>
               <div style={{ width: "22px", height: "2px", background: COPPER }} />
               <span style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 400, fontSize: "0.68rem", letterSpacing: "0.22em", textTransform: "uppercase", color: COPPER }}>Come and Worship</span>
@@ -501,38 +573,25 @@ export default function ChurchHomepage({ showNav = true } = {}) {
             </div>
             <h2 style={{ fontFamily: "'DM Serif Display', serif", fontSize: "clamp(2rem,4vw,3rem)", fontWeight: 400, color: WHITE }}>Find Us</h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1.5fr", gap: "clamp(2rem, 5vw, 4rem)", alignItems: "start" }} className="find-layout">
-            <div>
-              {[
-                { icon: "◎", title: "Phone", lines: ["+254 714086352"] },
-                { icon: "◈", title: "Email", lines: ["danielmutinda320@gmail.com"] },
-                { icon: "◷", title: "Service Times", lines: ["Sunday School: 8:00 AM - 9:30 AM", "Main Service: 10:30 AM - 1:30 PM",
-                  "Youth Meeting: 3:00 PM - 4:30 PM ", "Wednesday Fellowship: 4:00 PM -  5:00 PM ", "Thursday: 3:00 PM - 5:00 PM - Praise and Worship Team",
-                "Saturday: 6:00 AM - 7:00 AM - Morning Devotion"] },
-              ].map(({ icon, title, lines }) => (
-                <div key={title} style={{ display: "flex", gap: "1.1rem", marginBottom: "2rem", paddingBottom: "2rem", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  <div style={{ fontSize: "1.1rem", color: COPPER, flexShrink: 0, marginTop: "2px" }}>{icon}</div>
-                  <div>
-                    <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.67rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER, marginBottom: "0.4rem" }}>{title}</div>
-                    {lines.map(l => <div key={l} style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.9rem", color: "rgba(255,255,255,0.55)", lineHeight: 1.7 }}>{l}</div>)}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem" }}>
+            {[
+              { icon: "◎", title: "Phone", lines: ["+254 714086352"] },
+              { icon: "◈", title: "Email", lines: ["danielmutinda320@gmail.com"] },
+              { icon: "◷", title: "Service Times", lines: ["Sunday School: 8:00 AM - 9:30 AM", "Main Service: 10:30 AM - 1:30 PM", "Youth Meeting: 3:00 PM - 4:30 PM", "Wednesday Fellowship: 4:00 PM - 5:00 PM"] },
+            ].map(({ icon, title, lines }) => (
+              <div key={title} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(239,159,39,0.12)", padding: "1.35rem" }}>
+                <div style={{ fontSize: "1.1rem", color: COPPER, marginBottom: "0.75rem" }}>{icon}</div>
+                <div style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: "0.67rem", letterSpacing: "0.18em", textTransform: "uppercase", color: COPPER, marginBottom: "0.6rem" }}>{title}</div>
+                {lines.map((line) => (
+                  <div key={line} style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 300, fontSize: "0.9rem", color: "rgba(255,255,255,0.6)", lineHeight: 1.7 }}>
+                    {line}
                   </div>
-                </div>
-              ))}
-            </div>
-            <div className="map-frame" style={{ border: `1px solid rgba(239,159,39,0.2)`, overflow: "hidden" }}>
-              <iframe
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.8167!2d36.8108!3d-1.2933!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x182f10d22f42bf41%3A0x4865f21b5a98ed4!2sUpper%20Hill%2C%20Nairobi!5e0!3m2!1sen!2ske!4v1686000000000"
-                width="100%" height="100%" style={{ border: 0, filter: "grayscale(100%) contrast(1.1)" }}
-                allowFullScreen loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="AIC MAAMANI Church location"
-              />
-            </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </section>
-
-      {/* Footer removed — use shared footer from App.js */}
     </>
   );
 }

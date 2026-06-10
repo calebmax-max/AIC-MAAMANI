@@ -265,7 +265,7 @@ export default function App() {
         <RouteComponent showNav={false} />
       </main>
 
-      {!isAdmin && <SharedFooter />}
+      {!isAdmin && route !== "about" && <SharedFooter />}
     </>
   );
 }
