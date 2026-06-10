@@ -65,16 +65,6 @@ function AnimatedCounter({ target, label, suffix = "" }) {
   );
 }
 
-const NAV_LINKS = [
-  { id: "home", label: "Home" },
-  { id: "about", label: "About" },
-  { id: "sermons", label: "Sermons" },
-  { id: "events", label: "Events" },
-  { id: "blog", label: "Blog" },
-  { id: "gallery", label: "Gallery" },
-  { id: "contact", label: "Contact Us" },
-];
-
 export default function ChurchHomepage({ showNav = true } = {}) {
 
   return (
