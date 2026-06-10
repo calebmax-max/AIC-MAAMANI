@@ -311,6 +311,8 @@ function VideoCard({ video }) {
   );
 }
 
+const PAGE_SIZE = 24;
+
 export default function ChurchGallery() {
   const [activeTab, setActiveTab] = useState("photos");
   const [activeAlbum, setActiveAlbum] = useState("All");
@@ -319,19 +321,21 @@ export default function ChurchGallery() {
   const [photos, setPhotos] = useState([]);
   const [videos, setVideos] = useState([]);
   const [loadingGallery, setLoadingGallery] = useState(true);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   useEffect(() => {
     let mounted = true;
 
-    fetchJson("/api/gallery/photos")
-      .then((data) => {
-        if (!mounted) return;
-        if (!Array.isArray(data)) {
-          setPhotos([]);
-          return;
-        }
+    // Fetch photos and videos in parallel
+    Promise.all([
+      fetchJson("/api/gallery/photos").catch(() => null),
+      fetchJson("/api/gallery/videos").catch(() => null),
+    ]).then(([photoData, videoData]) => {
+      if (!mounted) return;
+
+      if (Array.isArray(photoData)) {
         setPhotos(
-          data.map((photo) => {
+          photoData.map((photo) => {
             const source = photo.src || photo.url || photo.image_url || photo.photo_url || "";
             return {
               id: photo.id,
@@ -342,29 +346,23 @@ export default function ChurchGallery() {
             };
           })
         );
-      })
-      .catch(() => {
-        if (mounted) setPhotos([]);
-      })
-      .finally(() => {
-        if (mounted) setLoadingGallery(false);
-      });
+      }
 
-    fetchJson("/api/gallery/videos")
-      .then((data) => {
-        if (!mounted || !Array.isArray(data)) return;
+      if (Array.isArray(videoData)) {
         setVideos(
-          data.map((video) => ({
+          videoData.map((video) => ({
             id: video.id,
             title: video.title,
             videoUrl: video.video_url || null,
             date: video.date || "",
           }))
         );
-      })
-      .catch(() => {
-        if (mounted) setVideos([]);
-      });
+      }
+
+      setLoadingGallery(false);
+    }).catch(() => {
+      if (mounted) setLoadingGallery(false);
+    });
 
     return () => {
       mounted = false;
@@ -380,9 +378,13 @@ export default function ChurchGallery() {
     ? photos
     : photos.filter((p) => p.album === activeAlbum);
 
-  // Close lightbox if album changes to prevent stale index
+  const visiblePhotos = filtered.slice(0, visibleCount);
+  const hasMore = visibleCount < filtered.length;
+
+  // Close lightbox and reset pagination if album changes
   useEffect(() => {
     if (lightboxPhoto) setLightboxPhoto(null);
+    setVisibleCount(PAGE_SIZE);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeAlbum]);
 
@@ -510,7 +512,7 @@ export default function ChurchGallery() {
             }}>
               {loadingGallery
                 ? "Loading gallery..."
-                : `Showing ${filtered.length} photo${filtered.length !== 1 ? "s" : ""}${activeAlbum !== "All" ? ` in "${activeAlbum}"` : ""}`}
+                : `Showing ${visiblePhotos.length} of ${filtered.length} photo${filtered.length !== 1 ? "s" : ""}${activeAlbum !== "All" ? ` in "${activeAlbum}"` : ""}`}
             </p>
 
             {loadingGallery ? (
@@ -528,7 +530,26 @@ export default function ChurchGallery() {
                 Loading gallery...
               </div>
             ) : (
-              <MasonryGrid photos={filtered} onPhotoClick={openLightbox} />
+              <>
+                <MasonryGrid photos={visiblePhotos} onPhotoClick={openLightbox} />
+                {hasMore && (
+                  <div style={{ textAlign: "center", marginTop: "32px" }}>
+                    <button
+                      onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+                      style={{
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: "13px", fontWeight: 600,
+                        padding: "10px 28px", borderRadius: "8px", cursor: "pointer",
+                        border: `1.5px solid ${PALETTE.accent}`,
+                        background: "transparent", color: PALETTE.accent,
+                        transition: "all 0.18s",
+                      }}
+                    >
+                      Load more ({filtered.length - visibleCount} remaining)
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </>
         )}
