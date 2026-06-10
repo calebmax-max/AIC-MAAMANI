@@ -95,14 +95,29 @@ const NAV_LINKS = [
 function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const navRef = useRef(null);
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", fn);
     return () => window.removeEventListener("scroll", fn);
   }, []);
+  useEffect(() => {
+    if (!menuOpen) return;
+    const handler = (e) => {
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    document.addEventListener("touchstart", handler, { passive: true });
+    return () => {
+      document.removeEventListener("mousedown", handler);
+      document.removeEventListener("touchstart", handler);
+    };
+  }, [menuOpen]);
   return (
     <>
-    <nav className="about-nav" style={{
+    <nav ref={navRef} className="about-nav" style={{
       position:"fixed", top:0, left:0, right:0, zIndex:100, minHeight:"68px",
       background: scrolled ? "rgba(44,44,42,0.96)" : C.charcoal,
       borderBottom: scrolled ? `1px solid rgba(239,159,39,0.18)` : "none",
@@ -119,6 +134,8 @@ function Nav() {
         type="button"
         onClick={() => setMenuOpen(o => !o)}
         className="hamburger-btn"
+        aria-expanded={menuOpen}
+        aria-label={menuOpen ? "Close navigation" : "Open navigation"}
         style={{
           fontFamily: "'DM Sans', sans-serif", fontWeight: 700,
           letterSpacing: "0.14em", fontSize: "0.85rem", textTransform: "uppercase",
@@ -156,31 +173,43 @@ function Nav() {
 
     {/* Mobile dropdown */}
     {menuOpen && (
+      <div
+        onClick={() => setMenuOpen(false)}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 99,
+          background: "rgba(26,25,24,0.45)",
+          backdropFilter: "blur(3px)",
+        }}
+      >
       <div style={{
-        position:"fixed", top:"68px", left:0, right:0, zIndex:99,
+        position:"absolute", top:"68px", left:0, right:0,
         background:"rgba(26,25,24,0.98)", backdropFilter:"blur(14px)",
         borderBottom:`1px solid rgba(239,159,39,0.18)`,
-        padding:"1.25rem 2rem 1.75rem",
-        display:"flex", flexDirection:"column",
+        padding:"1.25rem 1.25rem 1.5rem",
+        display:"flex", flexDirection:"column", gap:"0.1rem",
       }}>
         {NAV_LINKS.map(({ id, label }) => (
           <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)} style={{
             fontFamily:"'DM Sans', sans-serif", fontWeight: id === "about" ? 500 : 400,
             letterSpacing:"0.12em", fontSize:"0.88rem", textTransform:"uppercase",
-            color: id === "about" ? C.copper : "rgba(255,255,255,0.75)",
-            textDecoration:"none", padding:"0.9rem 0",
+            color: id === "about" ? C.copper : "rgba(255,255,255,0.78)",
+            textDecoration:"none", padding:"1rem 0",
             borderBottom:"1px solid rgba(255,255,255,0.06)", transition:"color 0.2s",
+            display:"block",
           }}
             onMouseEnter={e => { e.currentTarget.style.color = C.copper; }}
             onMouseLeave={e => { e.currentTarget.style.color = id === "about" ? C.copper : "rgba(255,255,255,0.75)"; }}
           >{label}</a>
         ))}
         <a href="#contact" onClick={() => setMenuOpen(false)} style={{
-          display:"inline-block", marginTop:"1.25rem", alignSelf:"flex-start",
+          display:"inline-flex", marginTop:"1.25rem", alignSelf:"flex-start",
           background: C.copper, color: C.charcoal, padding:"0.75rem 1.75rem",
           fontFamily:"'DM Sans', sans-serif", fontWeight:500, letterSpacing:"0.12em",
           fontSize:"0.75rem", textTransform:"uppercase", textDecoration:"none",
         }}>Contact Us</a>
+      </div>
       </div>
     )}
     </>

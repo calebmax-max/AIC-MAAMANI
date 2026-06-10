@@ -8,10 +8,10 @@ import os
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from .admin_auth import require_admin
-from .database import get_db
-from .models import ContactMessage
-from .schemas import ContactMessageCreate, ContactMessageOut
+from admin_auth import require_admin
+from database import get_db
+from models import ContactMessage
+from schemas import ContactMessageCreate, ContactMessageOut
 
 router = APIRouter()
 

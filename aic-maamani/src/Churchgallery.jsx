@@ -449,15 +449,29 @@ export default function ChurchGallery() {
           ].map((tab) => (
             <button
               key={tab.key}
+              type="button"
               onClick={() => setActiveTab(tab.key)}
+              aria-pressed={activeTab === tab.key}
               style={{
                 fontFamily: "'DM Sans', sans-serif",
                 fontSize: "13px", fontWeight: 600,
                 padding: "8px 20px", borderRadius: "6px", cursor: "pointer",
-                border: "none", transition: "all 0.2s",
+                border: `1px solid ${activeTab === tab.key ? PALETTE.accent : "rgba(255,255,255,0.14)"}`,
+                transition: "transform 0.15s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease",
                 background: activeTab === tab.key ? PALETTE.accent : "rgba(255,255,255,0.08)",
-                color: activeTab === tab.key ? PALETTE.primary : "rgba(242,241,239,0.7)",
+                color: activeTab === tab.key ? PALETTE.primary : "rgba(242,241,239,0.72)",
                 letterSpacing: "0.03em",
+                boxShadow: activeTab === tab.key ? "0 10px 24px rgba(239,159,39,0.18)" : "none",
+                transform: activeTab === tab.key ? "translateY(1px)" : "translateY(0)",
+              }}
+              onMouseDown={(e) => {
+                e.currentTarget.style.transform = "translateY(2px) scale(0.99)";
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.transform = activeTab === tab.key ? "translateY(1px)" : "translateY(0)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = activeTab === tab.key ? "translateY(1px)" : "translateY(0)";
               }}
             >
               {tab.icon} {tab.label}
@@ -572,7 +586,22 @@ export default function ChurchGallery() {
               gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
               gap: "20px",
             }}>
-              {videos.map((v) => <VideoCard key={v.id} video={v} />)}
+              {videos.length === 0 ? (
+                <div style={{
+                  gridColumn: "1 / -1",
+                  padding: "28px",
+                  borderRadius: "16px",
+                  border: `1px solid ${PALETTE.border}`,
+                  background: PALETTE.surface,
+                  color: PALETTE.secondary,
+                  fontFamily: "'DM Sans', sans-serif",
+                  textAlign: "center",
+                }}>
+                  No videos have been uploaded yet.
+                </div>
+              ) : (
+                videos.map((v) => <VideoCard key={v.id} video={v} />)
+              )}
             </div>
           </>
         )}

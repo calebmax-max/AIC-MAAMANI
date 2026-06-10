@@ -1,23 +1,29 @@
 import os
+import sys
+from pathlib import Path
+
+BACKEND_DIR = Path(__file__).resolve().parent
+if str(BACKEND_DIR) not in sys.path:
+    sys.path.insert(0, str(BACKEND_DIR))
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
 
-from .database import Base, engine, SessionLocal
-from . import models  # noqa: F401  Ensures SQLAlchemy models are registered
-from .admin_auth import router as admin_router
-from .blog import router as blog_router
-from .contact import router as contact_router
-from .events import router as events_router
-from .gallery import router as gallery_router
-from .sermons import router as sermons_router
-from .about import router as about_router
-from .migrations import ensure_media_columns
-from .storage import UPLOADS_DIR, ensure_upload_dirs
-from .seed import seed_database
-from .token_auth import verify_token as verify_jwt_token
+from database import Base, engine, SessionLocal
+import models  # noqa: F401  Ensures SQLAlchemy models are registered
+from admin_auth import router as admin_router
+from blog import router as blog_router
+from contact import router as contact_router
+from events import router as events_router
+from gallery import router as gallery_router
+from sermons import router as sermons_router
+from about import router as about_router
+from migrations import ensure_media_columns
+from storage import UPLOADS_DIR, ensure_upload_dirs
+from seed import seed_database
+from token_auth import verify_token as verify_jwt_token
 
 app = FastAPI(
     title="AIC Maamani Church API",

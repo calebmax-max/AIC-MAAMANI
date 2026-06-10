@@ -2,14 +2,14 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from .admin_auth import require_admin
-from .database import get_db
-from .models import GalleryPhoto, GalleryVideo
-from .schemas import (
+from admin_auth import require_admin
+from database import get_db
+from models import GalleryPhoto, GalleryVideo
+from schemas import (
     GalleryPhotoCreate, GalleryPhotoOut,
     GalleryVideoCreate, GalleryVideoOut,
 )
-from .storage import save_upload
+from storage import save_upload
 
 router = APIRouter()
 

@@ -4,15 +4,15 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
 from sqlalchemy.orm import Session
 
-from .admin_auth import require_admin
-from .database import get_db
-from .models import Sermon, SermonSeries, SermonNotes
-from .schemas import (
+from admin_auth import require_admin
+from database import get_db
+from models import Sermon, SermonSeries, SermonNotes
+from schemas import (
     SermonCreate, SermonOut,
     SermonSeriesCreate, SermonSeriesOut,
     SermonNotesCreate, SermonNotesOut,
 )
-from .storage import save_upload
+from storage import save_upload
 
 router = APIRouter()
 

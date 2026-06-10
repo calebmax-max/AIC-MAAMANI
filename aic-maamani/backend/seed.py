@@ -2,7 +2,7 @@
 
 from sqlalchemy.orm import Session
 
-from .models import (
+from models import (
     AdminUser,
     BlogPost,
     ContactMessage,
@@ -31,7 +31,7 @@ def _has_rows(db: Session, model) -> bool:
 
 def seed_database(db: Session) -> None:
     if not _has_rows(db, AdminUser):
-        from .admin_security import create_password_record
+        from admin_security import create_password_record
 
         salt, password_hash = create_password_record("admin123")
         db.add(

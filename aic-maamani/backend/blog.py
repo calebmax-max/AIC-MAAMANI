@@ -2,10 +2,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from .admin_auth import require_admin
-from .database import get_db
-from .models import BlogPost
-from .schemas import BlogPostCreate, BlogPostOut
+from admin_auth import require_admin
+from database import get_db
+from models import BlogPost
+from schemas import BlogPostCreate, BlogPostOut
 
 router = APIRouter()
 
