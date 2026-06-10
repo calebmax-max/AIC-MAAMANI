@@ -74,25 +74,32 @@ function PhotoCard({ photo, onClick }) {
         boxShadow: hovered ? `0 12px 32px rgba(44,44,42,0.18)` : "0 2px 8px rgba(44,44,42,0.07)",
       }}
     >
-      <img
-        src={photo.src}
-        alt={photo.alt}
-        loading="lazy"
-        onLoad={() => setLoaded(true)}
-        onError={(e) => {
-          e.currentTarget.style.visibility = "hidden";
-          setLoaded(true);
-        }}
-        style={{
-          width: "100%",
-          display: "block",
-          opacity: loaded ? 1 : 0,
-          transition: "opacity 0.4s ease",
-        }}
-      />
-      {!loaded && (
-        <div style={{ height: photo.h * 0.5, background: PALETTE.surfaceMuted }} />
-      )}
+      <div style={{ position: "relative", minHeight: photo.h ? `${photo.h * 0.5}px` : "200px" }}>
+        <img
+          src={photo.src}
+          alt={photo.alt}
+          loading="lazy"
+          onLoad={() => setLoaded(true)}
+          onError={(e) => {
+            e.currentTarget.style.visibility = "hidden";
+            setLoaded(true);
+          }}
+          style={{
+            width: "100%",
+            display: "block",
+            opacity: loaded ? 1 : 0,
+            transition: "opacity 0.4s ease",
+          }}
+        />
+        {!loaded && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(90deg, #E8E6E3 25%, #D8D7D4 50%, #E8E6E3 75%)",
+            backgroundSize: "200% 100%",
+            animation: "shimmer 1.4s infinite",
+          }} />
+        )}
+      </div>
       <div style={{
         position: "absolute", inset: 0,
         background: `linear-gradient(to top, rgba(44,44,42,0.65) 0%, transparent 55%)`,
@@ -141,7 +148,7 @@ function Lightbox({ photos, startIndex, onClose }) {
         animation: "fadeIn 0.2s ease",
       }}
     >
-      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
+      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}} @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
 
       <button onClick={(e) => { e.stopPropagation(); prev(); }} style={navBtnStyle("left")}>‹</button>
 
@@ -390,6 +397,7 @@ export default function ChurchGallery() {
       padding: "0",
     }}>
       <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+      <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
 
       {/* Header */}
       <div style={{
