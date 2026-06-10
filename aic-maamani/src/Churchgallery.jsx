@@ -6,8 +6,6 @@ const PALETTE = {
   primary: "#2C2C2A",
   accent: "#EF9F27",
   secondary: "#5F5E5A",
-  accentLight: "#FAF0DC",
-  accentMid: "#F5C97A",
   border: "#DDD9D4",
   surface: "#FFFFFF",
   surfaceMuted: "#E8E6E3",
@@ -124,6 +122,7 @@ function PhotoCard({ photo, onClick }) {
 function Lightbox({ photos, startIndex, onClose }) {
   const [index, setIndex] = useState(startIndex);
   const photo = photos[index];
+  if (!photo) { onClose(); return null; }
 
   const prev = useCallback(() => setIndex((i) => (i - 1 + photos.length) % photos.length), [photos.length]);
   const next = useCallback(() => setIndex((i) => (i + 1) % photos.length), [photos.length]);
@@ -148,7 +147,7 @@ function Lightbox({ photos, startIndex, onClose }) {
         animation: "fadeIn 0.2s ease",
       }}
     >
-      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}} @keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+      <style>{`@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
 
       <button onClick={(e) => { e.stopPropagation(); prev(); }} style={navBtnStyle("left")}>‹</button>
 
@@ -274,7 +273,7 @@ function VideoCard({ video }) {
                 display: "flex", alignItems: "center", justifyContent: "center",
                 marginBottom: "14px",
               }}>
-                <span style={{ fontSize: "24px", color: PALETTE.accent, marginLeft: "3px" }}>Play</span>
+                <span style={{ fontSize: "24px", color: PALETTE.accent, marginLeft: "3px" }}>▶</span>
               </div>
               <p style={{ margin: 0, color: "#fff", fontSize: "15px", fontWeight: 600, lineHeight: 1.4 }}>{video.title}</p>
               <p style={{ margin: "6px 0 0", color: "rgba(255,255,255,0.55)", fontSize: "12px", fontFamily: "'DM Sans',sans-serif" }}>
@@ -297,7 +296,7 @@ function VideoCard({ video }) {
                 transition: "transform 0.2s",
                 transform: hovered && hasLocalVideo ? "scale(1.1)" : "scale(1)",
               }}>
-                <span style={{ fontSize: "22px", color: "#fff", marginLeft: "3px" }}>Play</span>
+                <span style={{ fontSize: "22px", color: "#fff", marginLeft: "3px" }}>▶</span>
               </div>
             </div>
           </>
@@ -327,6 +326,7 @@ export default function ChurchGallery() {
       .then((data) => {
         if (!mounted) return;
         if (!Array.isArray(data)) {
+          setPhotos([]);
           return;
         }
         setPhotos(
@@ -379,6 +379,12 @@ export default function ChurchGallery() {
     ? photos
     : photos.filter((p) => p.album === activeAlbum);
 
+  // Close lightbox if album changes to prevent stale index
+  useEffect(() => {
+    if (lightboxPhoto) setLightboxPhoto(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAlbum]);
+
   const openLightbox = (photo) => {
     setLightboxIndex(filtered.findIndex((p) => p.id === photo.id));
     setLightboxPhoto(photo);
@@ -402,7 +408,7 @@ export default function ChurchGallery() {
       {/* Header */}
       <div style={{
         background: PALETTE.primary,
-        padding: "48px 48px 36px",
+        padding: "clamp(24px, 5vw, 48px) clamp(20px, 5vw, 48px) clamp(24px, 4vw, 36px)",
         position: "relative", overflow: "hidden",
       }}>
         <div style={{
@@ -447,13 +453,13 @@ export default function ChurchGallery() {
                 letterSpacing: "0.03em",
               }}
             >
-              {tab.label}
+              {tab.icon} {tab.label}
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ padding: "32px 48px 48px" }}>
+      <div style={{ padding: "clamp(20px, 4vw, 32px) clamp(16px, 5vw, 48px) clamp(24px, 5vw, 48px)" }}>
         {activeTab === "photos" && (
           <>
             {/* Album filter */}
