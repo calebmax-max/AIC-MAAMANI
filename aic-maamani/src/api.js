@@ -1,4 +1,6 @@
-export const API_BASE = (process.env.REACT_APP_API_BASE_URL || "").replace(/\/$/, "") || window.location.origin;
+export const API_BASE = (
+  process.env.REACT_APP_API_BASE_URL || window.location.origin
+).replace(/\/$/, "");
 
 export async function fetchJson(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, {
