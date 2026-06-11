@@ -152,7 +152,7 @@ function PrayerForm() {
           name: name || "Anonymous",
           email: email.trim(),
           phone: null,
-          subject: "Prayer Request" + (isPrivate ? " (Private)" : ""),
+          subject: "prayer-request",
           message: request.trim(),
         }),
       });
