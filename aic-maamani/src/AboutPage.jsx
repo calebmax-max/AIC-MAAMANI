@@ -14,30 +14,7 @@ const C = {
   dark:     "#1A1918",
 };
 
-const TEAM_IMAGE_URL = "https://placehold.co/360x280/F2F1EF/2C2C2A?text=Add+Team+Photo";
 
-function PlaceholderLink({ url, label }) {
-  return (
-    <a
-      href={url}
-      target="_blank"
-      rel="noreferrer"
-      style={{
-        display: "inline-block",
-        marginTop: "0.65rem",
-        fontFamily: "'DM Sans', sans-serif",
-        fontSize: "0.72rem",
-        letterSpacing: "0.08em",
-        textTransform: "uppercase",
-        color: C.copper,
-        textDecoration: "none",
-        wordBreak: "break-all",
-      }}
-    >
-      {label}: {url}
-    </a>
-  );
-}
 
 // ── Shared helpers ──────────────────────────────────────
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');`;
@@ -471,11 +448,14 @@ function TeamCard({ member, delay }) {
     >
       {/* avatar area */}
       <div style={{
-        height:"180px", background: hovered ? C.charcoal : C.stone,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        transition:"background 0.3s", position:"relative"
+        height: member.photo ? "180px" : "0px",
+        background: hovered ? C.charcoal : C.stone,
+        display: member.photo ? "flex" : "none",
+        alignItems:"center", justifyContent:"center",
+        transition:"background 0.3s", position:"relative",
+        overflow:"hidden",
       }}>
-        {member.photo ? (
+        {member.photo && (
           <img
             src={member.photo}
             alt={member.name}
@@ -484,18 +464,6 @@ function TeamCard({ member, delay }) {
               height:"100%",
               objectFit:"cover",
               display:"block",
-            }}
-          />
-        ) : (
-          <img
-            src={TEAM_IMAGE_URL}
-            alt={`${member.name} placeholder`}
-            style={{
-              width:"100%",
-              height:"100%",
-              objectFit:"cover",
-              display:"block",
-              opacity: hovered ? 1 : 0.95,
             }}
           />
         )}
@@ -508,11 +476,16 @@ function TeamCard({ member, delay }) {
           <span style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:500, fontSize:"0.6rem", letterSpacing:"0.15em", textTransform:"uppercase", color: C.charcoal }}>{member.dept}</span>
         </div>
       </div>
+      {/* dept badge for no-photo cards shown in info area */}
+      {!member.photo && (
+        <div style={{ padding:"0.65rem 1.25rem 0", display:"flex" }}>
+          <span style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:500, fontSize:"0.6rem", letterSpacing:"0.15em", textTransform:"uppercase", color: C.charcoal, background: C.copper, padding:"3px 12px" }}>{member.dept}</span>
+        </div>
+      )}
       {/* info */}
       <div style={{ padding:"1.25rem" }}>
         <h4 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.05rem", color: C.charcoal, marginBottom:"0.3rem" }}>{member.name}</h4>
         <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.78rem", letterSpacing:"0.05em", color: C.mid }}>{member.role}</p>
-        {!member.photo && <PlaceholderLink url={TEAM_IMAGE_URL} label="Team image link" />}
       </div>
     </div>
   );

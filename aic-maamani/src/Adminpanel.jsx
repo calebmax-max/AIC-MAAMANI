@@ -1831,6 +1831,218 @@ function MessagesPanel({ toast }) {
 
 const emptyMember = { name: "", role: "", bio: "", photo: "", order: 0 };
 
+function TeamMemberModal({ modal, form, F, onClose, onSave }) {
+  const fileInputRef = useRef(null);
+  const [previewPhoto, setPreviewPhoto] = useState(form.photo ? resolveUrl(form.photo) : "");
+  const [photoFile, setPhotoFile] = useState(null);
+
+  // Sync preview when form.photo changes (e.g. opening edit)
+  useEffect(() => {
+    if (!photoFile) setPreviewPhoto(form.photo ? resolveUrl(form.photo) : "");
+  }, [form.photo, photoFile]);
+
+  // Cleanup blob URL on unmount
+  useEffect(() => {
+    return () => { if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto); };
+  }, [previewPhoto]);
+
+  const pickFile = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto);
+    setPhotoFile(file);
+    const blobUrl = URL.createObjectURL(file);
+    setPreviewPhoto(blobUrl);
+    F("_photoFile", file);
+    e.target.value = "";
+  };
+
+  const clearPhoto = () => {
+    if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto);
+    setPhotoFile(null);
+    setPreviewPhoto("");
+    F("photo", "");
+    F("_photoFile", null);
+  };
+
+  return (
+    <Modal title={modal === "new" ? "Add Team Member" : "Edit Member"} onClose={onClose}>
+      {[["name", "Name *"], ["role", "Role"], ["order", "Display Order"]].map(([k, label]) => (
+        <div className="form-row" key={k}>
+          <label>{label}</label>
+          <input type={k === "order" ? "number" : "text"} value={form[k] ?? ""} onChange={e => F(k, e.target.value)} />
+        </div>
+      ))}
+      {/* Photo upload */}
+      <div className="form-row">
+        <label>Photo</label>
+        <div style={{ display: "flex", gap: "0.75rem", alignItems: "flex-start", flexWrap: "wrap" }}>
+          {/* Preview box */}
+          <div style={{ width: 90, height: 110, background: LIGHT, border: "1px solid #E0DDD8", overflow: "hidden", flexShrink: 0 }}>
+            {previewPhoto ? (
+              <img src={previewPhoto} alt="preview" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            ) : (
+              <div style={{ display: "grid", placeItems: "center", height: "100%", color: MID, fontSize: "0.72rem", textAlign: "center", padding: "0.4rem" }}>
+                No photo
+              </div>
+            )}
+          </div>
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={pickFile}
+              style={{ display: "none" }}
+            />
+            <button
+              type="button"
+              className="btn btn-ghost"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {previewPhoto ? "Change Photo" : "Upload Photo"}
+            </button>
+            {previewPhoto && (
+              <button type="button" className="btn btn-danger" onClick={clearPhoto}>
+                Remove Photo
+              </button>
+            )}
+            <div style={{ fontSize: "0.75rem", color: MID, lineHeight: 1.6 }}>
+              {photoFile ? `Selected: ${photoFile.name}` : "Upload a photo from your device."}
+            </div>
+            {/* Also allow pasting a URL directly */}
+            <input
+              type="text"
+              placeholder="Or paste a photo URL"
+              value={(!photoFile && form.photo) ? form.photo : ""}
+              onChange={e => {
+                if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto);
+                setPhotoFile(null);
+                F("_photoFile", null);
+                F("photo", e.target.value);
+                setPreviewPhoto(e.target.value ? resolveUrl(e.target.value) : "");
+              }}
+            />
+          </div>
+        </div>
+      </div>
+      <div className="form-row"><label>Bio</label><textarea value={form.bio || ""} onChange={e => F("bio", e.target.value)} /></div>
+      <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+        <button className="btn btn-ghost" onClick={onClose}>Cancel</button>
+        <button className="btn btn-primary" onClick={onSave}>Save Member</button>
+      </div>
+    </Modal>
+  );
+}
+
+function TeamPanel({ toast }) {
+  const [team, setTeam] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [modal, setModal] = useState(null);
+  const [form, setForm] = useState(emptyMember);
+  const [confirm, setConfirm] = useState(null);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try { setTeam(await apiFetch("/about/team")); }
+    catch (e) { toast("Failed to load team"); }
+    setLoading(false);
+  }, [toast]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const openEdit = (m) => { setForm({ ...m, photo: m.photo || "", _photoFile: null }); setModal("edit"); };
+
+  const save = async () => {
+    try {
+      const photoFile = form._photoFile;
+      let photoUrl = form.photo || "";
+
+      // If a new file was picked, upload it first via FormData
+      if (photoFile) {
+        const fd = buildFormData({
+          name: form.name,
+          role: form.role || "",
+          bio: form.bio || "",
+          order: Number(form.order),
+          photo_file: photoFile,
+        });
+        if (modal === "new") {
+          await apiFetch("/about/team", { method: "POST", body: fd });
+        } else {
+          await apiFetch(`/about/team/${form.id}`, { method: "PUT", body: fd });
+        }
+      } else {
+        // No new file — send JSON as before
+        const payload = { name: form.name, role: form.role || "", bio: form.bio || "", photo: photoUrl, order: Number(form.order) };
+        if (modal === "new") { await apiFetch("/about/team", { method: "POST", body: JSON.stringify(payload) }); }
+        else { await apiFetch(`/about/team/${form.id}`, { method: "PUT", body: JSON.stringify(payload) }); }
+      }
+      toast(modal === "new" ? "Member added" : "Member updated");
+      setModal(null);
+      load();
+    } catch (e) { toast(e.message); }
+  };
+
+  const del = async (id) => {
+    try { await apiFetch(`/about/team/${id}`, { method: "DELETE" }); toast("Member removed"); setConfirm(null); load(); }
+    catch (e) { toast(e.message); }
+  };
+
+  const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+      <div>
+        <div className="section-header">
+          <h1 className="page-title">Team Members</h1>
+          <button className="btn btn-primary" onClick={() => { setForm({ ...emptyMember, _photoFile: null }); setModal("new"); }}>+ Add Member</button>
+        </div>
+        <div className="card" style={{ overflowX: "auto" }}>
+          {loading ? <div className="empty">Loading…</div> : team.length === 0 ? <div className="empty">No team members yet.</div> : (
+          <table>
+            <thead><tr><th>#</th><th>Photo</th><th>Name</th><th>Role</th><th>Bio</th><th></th></tr></thead>
+            <tbody>
+              {team.map(m => (
+                <tr key={m.id}>
+                  <td style={{ color: MID, fontSize: "0.8rem" }}>{m.order}</td>
+                  <td>
+                    {m.photo ? (
+                      <img src={resolveUrl(m.photo)} alt={m.name} style={{ width: 40, height: 50, objectFit: "cover", display: "block", border: "1px solid #E0DDD8" }} />
+                    ) : (
+                      <div style={{ width: 40, height: 50, background: LIGHT, border: "1px dashed #D0CCC5", display: "grid", placeItems: "center" }}>
+                        <span style={{ fontSize: "0.6rem", color: MID }}>None</span>
+                      </div>
+                    )}
+                  </td>
+                  <td><strong style={{ fontWeight: 500 }}>{m.name}</strong></td>
+                  <td>{m.role || "—"}</td>
+                  <td style={{ fontSize: "0.8rem", color: MID, maxWidth: 240 }}>{m.bio?.slice(0, 80)}{m.bio?.length > 80 ? "…" : ""}</td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => openEdit(m)}>Edit</button>
+                    <button className="btn btn-danger" onClick={() => setConfirm(m.id)}>Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {modal && (
+        <TeamMemberModal
+          modal={modal}
+          form={form}
+          F={F}
+          onClose={() => setModal(null)}
+          onSave={save}
+        />
+      )}
+
+      {confirm && <Confirm message="Remove this team member?" onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
+    </div>
+  );
+}
+
 function PastorPhotoCard({ toast }) {
   const fileInputRef = useRef(null);
   const [currentPhoto, setCurrentPhoto] = useState("");
@@ -1843,8 +2055,8 @@ function PastorPhotoCard({ toast }) {
     setLoading(true);
     try {
       const data = await apiFetch("/about/pastor/photo");
-      setCurrentPhoto(data?.photo || "");
-      setPreviewPhoto(data?.photo || "");
+      setCurrentPhoto(resolveUrl(data?.photo || ""));
+      setPreviewPhoto(resolveUrl(data?.photo || ""));
     } catch (e) {
       toast(e.message || "Failed to load pastor photo");
     } finally {
@@ -1880,8 +2092,8 @@ function PastorPhotoCard({ toast }) {
     try {
       const payload = buildFormData({ photo_file: selectedFile });
       const data = await apiFetch("/about/pastor/photo", { method: "PUT", body: payload });
-      setCurrentPhoto(data?.photo || "");
-      setPreviewPhoto(data?.photo || "");
+      setCurrentPhoto(resolveUrl(data?.photo || ""));
+      setPreviewPhoto(resolveUrl(data?.photo || ""));
       setSelectedFile(null);
       toast("Pastor photo updated");
     } catch (e) {
@@ -1949,88 +2161,6 @@ function PastorPhotoCard({ toast }) {
           {selectedFile ? `Selected file: ${selectedFile.name}` : "Pick a photo from your device, then save it to publish the new pastor image site-wide."}
         </div>
       </div>
-    </div>
-  );
-}
-
-function TeamPanel({ toast }) {
-  const [team, setTeam] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modal, setModal] = useState(null);
-  const [form, setForm] = useState(emptyMember);
-  const [confirm, setConfirm] = useState(null);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try { setTeam(await apiFetch("/about/team")); }
-    catch (e) { toast("Failed to load team"); }
-    setLoading(false);
-  }, [toast]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const openEdit = (m) => { setForm({ ...m, photo: m.photo || "" }); setModal("edit"); };
-
-  const save = async () => {
-    try {
-      if (modal === "new") { await apiFetch("/about/team", { method: "POST", body: JSON.stringify({ ...form, order: Number(form.order) }) }); toast("Member added"); }
-      else { await apiFetch(`/about/team/${form.id}`, { method: "PUT", body: JSON.stringify({ ...form, order: Number(form.order) }) }); toast("Member updated"); }
-      setModal(null); load();
-    } catch (e) { toast(e.message); }
-  };
-
-  const del = async (id) => {
-    try { await apiFetch(`/about/team/${id}`, { method: "DELETE" }); toast("Member removed"); setConfirm(null); load(); }
-    catch (e) { toast(e.message); }
-  };
-
-  const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
-  return (
-      <div>
-        <div className="section-header">
-          <h1 className="page-title">Team Members</h1>
-          <button className="btn btn-primary" onClick={() => { setForm(emptyMember); setModal("new"); }}>+ Add Member</button>
-        </div>
-        <div className="card" style={{ overflowX: "auto" }}>
-          {loading ? <div className="empty">Loading…</div> : team.length === 0 ? <div className="empty">No team members yet.</div> : (
-          <table>
-            <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Bio</th><th></th></tr></thead>
-            <tbody>
-              {team.map(m => (
-                <tr key={m.id}>
-                  <td style={{ color: MID, fontSize: "0.8rem" }}>{m.order}</td>
-                  <td><strong style={{ fontWeight: 500 }}>{m.name}</strong></td>
-                  <td>{m.role || "—"}</td>
-                  <td style={{ fontSize: "0.8rem", color: MID, maxWidth: 240 }}>{m.bio?.slice(0, 80)}{m.bio?.length > 80 ? "…" : ""}</td>
-                  <td style={{ whiteSpace: "nowrap" }}>
-                    <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => openEdit(m)}>Edit</button>
-                    <button className="btn btn-danger" onClick={() => setConfirm(m.id)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-
-      {modal && (
-        <Modal title={modal === "new" ? "Add Team Member" : "Edit Member"} onClose={() => setModal(null)}>
-          {[["name", "Name *"], ["role", "Role"], ["photo", "Photo URL"], ["order", "Display Order"]].map(([k, label]) => (
-            <div className="form-row" key={k}>
-              <label>{label}</label>
-              <input type={k === "order" ? "number" : "text"} value={form[k] ?? ""} onChange={e => F(k, e.target.value)} />
-            </div>
-          ))}
-          <div className="form-row"><label>Bio</label><textarea value={form.bio || ""} onChange={e => F("bio", e.target.value)} /></div>
-          <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
-            <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button>
-            <button className="btn btn-primary" onClick={save}>Save Member</button>
-          </div>
-        </Modal>
-      )}
-
-      {confirm && <Confirm message="Remove this team member?" onConfirm={() => del(confirm)} onCancel={() => setConfirm(null)} />}
     </div>
   );
 }
