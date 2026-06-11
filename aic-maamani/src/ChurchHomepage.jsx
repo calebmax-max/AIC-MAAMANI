@@ -576,7 +576,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "1.25rem" }}>
             {[
               { icon: "◎", title: "Phone", lines: ["+254 714086352"] },
-              { icon: "◈", title: "Email", lines: ["danielmutinda320@gmail.com"] },
+              { icon: "◈", title: "Email", lines: ["AICMAAMANI1996@GMAIL.COM"] },
               { icon: "◷", title: "Service Times", lines: ["Sunday School: 8:00 AM - 9:30 AM", "Main Service: 10:30 AM - 1:30 PM", "Youth Meeting: 3:00 PM - 4:30 PM", "Wednesday Fellowship: 4:00 PM - 5:00 PM"] },
             ].map(({ icon, title, lines }) => (
               <div key={title} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(239,159,39,0.12)", padding: "1.35rem" }}>

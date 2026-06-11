@@ -421,7 +421,7 @@ export default function ContactPage() {
                 <div style={{ height: 1, background: "#F0EFED" }} />
                 <InfoRow icon="📞" label="Phone" value="+254 714 086 352" sub="" />
                 <div style={{ height: 1, background: "#F0EFED" }} />
-                <InfoRow icon="✉️" label="Email" value="danielmutinda320@gmail.com" sub="Expect a reply within 1–2 business days" />
+                <InfoRow icon="✉️" label="Email" value="AICMAAMANI1996@GMAIL.COM" sub="Expect a reply within 1–2 business days" />
               </div>
             </div>
 
