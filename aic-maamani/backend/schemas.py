@@ -249,6 +249,7 @@ class PastorProfileOut(BaseModel):
     name: str
     title: str
     quote: str
+    photo: Optional[str] = None
     bio: List[str]
     credentials: List[str]
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { fetchJson } from "./api";
+import { usePastorImage } from "./pastorImage";
 
 // ── Slate & Copper palette ──────────────────────────────
 const C = {
@@ -13,7 +14,6 @@ const C = {
   dark:     "#1A1918",
 };
 
-const PASTOR_IMAGE_URL = "https://placehold.co/340x430/F2F1EF/2C2C2A?text=Add+Pastor+Photo";
 const TEAM_IMAGE_URL = "https://placehold.co/360x280/F2F1EF/2C2C2A?text=Add+Team+Photo";
 
 function PlaceholderLink({ url, label }) {
@@ -394,13 +394,15 @@ function Accordion() {
 
 // ── MEET THE PASTOR ──────────────────────────────────────
 function MeetPastor() {
+  const { pastorImageSrc } = usePastorImage();
+
   return (
     <section style={{ background: C.light, padding:"var(--section-v, 5rem) var(--section-h, 2.5rem)" }}>
       <div className="about-hero-grid" style={{ maxWidth:"1100px", margin:"0 auto", display:"grid", gridTemplateColumns:"min(340px, 100%) 1fr", gap:"clamp(2rem,5vw,5rem)", alignItems:"start" }}>
         {/* photo placeholder */}
         <div className="pastor-photo-col">
           <img
-            src={PASTOR_IMAGE_URL}
+            src={pastorImageSrc}
             alt="Pr. Daniel Mutinda"
             style={{
               width:"100%",
@@ -409,9 +411,8 @@ function MeetPastor() {
               border:`2px solid ${C.copper}`,
               display:"block",
               background:C.stone
-            }}
-          />
-          <PlaceholderLink url={PASTOR_IMAGE_URL} label="Pastor image link" />
+              }}
+            />
           {/* name plate */}
           <div style={{ marginTop:"1.25rem", paddingLeft:"0.25rem" }}>
             <div style={{ fontFamily:"'DM Serif Display', serif", fontSize:"1.3rem", color: C.charcoal }}>Pr. Daniel Mutinda</div>
@@ -434,7 +435,7 @@ function MeetPastor() {
             </p>
           </blockquote>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"1rem" }}>
-            Pastor Daniel Mutinda has served in full-time ministry for over two decades, with a calling rooted in expository preaching, discipleship, and community transformation. He holds a Bachelor of Theology from Pan Africa Christian University and has pursued advanced ministerial training focused on church leadership and urban mission.
+           
           </p>
           <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.95rem", lineHeight:1.9, color: C.mid, marginBottom:"2rem" }}>
             Under his leadership, AIC MAAMANI has grown into a vibrant, multigenerational congregation committed to sound doctrine, active service, and reaching the unreached in Kitui and beyond. Pastor Daniel is known for his accessible teaching style, pastoral accessibility, and deep commitment to equipping every believer for ministry — not just the ordained few.
@@ -561,7 +562,7 @@ function LeadershipTeam() {
             <h2 style={{ fontFamily:"'DM Serif Display', serif", fontSize:"clamp(2rem,4vw,3rem)", color: C.charcoal }}>Leadership Team</h2>
           </div>
           <p className="leadership-desc" style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"0.88rem", color: C.mid, maxWidth:"320px", lineHeight:1.7, textAlign:"right" }}>
-            Our elders, deacons, and ministry leads are men and women who serve with humility, integrity, and love.
+            Our elders and ministry leads are men and women who serve with humility, integrity, and love.
           </p>
         </div>
         <div ref={ref} style={{ display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(270px, 1fr))", gap:"1.25rem" }}>

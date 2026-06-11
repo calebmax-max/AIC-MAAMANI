@@ -15,6 +15,7 @@ UPLOADS_DIR = BASE_DIR / "uploads"
 def ensure_upload_dirs() -> None:
     (UPLOADS_DIR / "sermons").mkdir(parents=True, exist_ok=True)
     (UPLOADS_DIR / "gallery").mkdir(parents=True, exist_ok=True)
+    (UPLOADS_DIR / "about").mkdir(parents=True, exist_ok=True)
 
 
 def _safe_extension(filename: str | None) -> str:

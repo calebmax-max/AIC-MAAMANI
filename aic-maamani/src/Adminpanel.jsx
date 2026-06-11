@@ -1831,6 +1831,128 @@ function MessagesPanel({ toast }) {
 
 const emptyMember = { name: "", role: "", bio: "", photo: "", order: 0 };
 
+function PastorPhotoCard({ toast }) {
+  const fileInputRef = useRef(null);
+  const [currentPhoto, setCurrentPhoto] = useState("");
+  const [previewPhoto, setPreviewPhoto] = useState("");
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await apiFetch("/about/pastor/photo");
+      setCurrentPhoto(data?.photo || "");
+      setPreviewPhoto(data?.photo || "");
+    } catch (e) {
+      toast(e.message || "Failed to load pastor photo");
+    } finally {
+      setLoading(false);
+    }
+  }, [toast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    return () => {
+      if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto);
+    };
+  }, [previewPhoto]);
+
+  const pickFile = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (previewPhoto?.startsWith("blob:")) URL.revokeObjectURL(previewPhoto);
+    setSelectedFile(file);
+    setPreviewPhoto(URL.createObjectURL(file));
+    event.target.value = "";
+  };
+
+  const save = async () => {
+    if (!selectedFile) {
+      toast("Choose an image from your device first");
+      return;
+    }
+    setSaving(true);
+    try {
+      const payload = buildFormData({ photo_file: selectedFile });
+      const data = await apiFetch("/about/pastor/photo", { method: "PUT", body: payload });
+      setCurrentPhoto(data?.photo || "");
+      setPreviewPhoto(data?.photo || "");
+      setSelectedFile(null);
+      toast("Pastor photo updated");
+    } catch (e) {
+      toast(e.message || "Unable to update pastor photo");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const clear = async () => {
+    setSaving(true);
+    try {
+      const payload = buildFormData({ photo_url: "" });
+      await apiFetch("/about/pastor/photo", { method: "PUT", body: payload });
+      setCurrentPhoto("");
+      setPreviewPhoto("");
+      setSelectedFile(null);
+      toast("Pastor photo cleared");
+    } catch (e) {
+      toast(e.message || "Unable to clear pastor photo");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const showPhoto = previewPhoto || currentPhoto;
+
+  return (
+    <div className="card" style={{ marginBottom: "1.25rem", borderLeft: `4px solid ${COPPER}` }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: "1rem", flexWrap: "wrap", marginBottom: "1rem" }}>
+        <div>
+          <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.1rem", color: CHARCOAL }}>Pastor Photo</div>
+          <div style={{ fontSize: "0.82rem", color: MID, marginTop: "0.25rem" }}>
+            Upload a device image once and it will show on the Home and About pages.
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+          <button className="btn btn-ghost" onClick={() => fileInputRef.current?.click()} disabled={saving}>
+            Choose File
+          </button>
+          <button className="btn btn-primary" onClick={save} disabled={saving || !selectedFile}>
+            {saving ? "Saving..." : "Save Photo"}
+          </button>
+          <button className="btn btn-danger" onClick={clear} disabled={saving}>
+            Clear
+          </button>
+        </div>
+      </div>
+      <input ref={fileInputRef} type="file" accept="image/*" onChange={pickFile} style={{ display: "none" }} />
+      <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", gap: "1rem", alignItems: "start" }}>
+        <div style={{ width: 140, height: 180, background: LIGHT, border: "1px solid #E0DDD8", overflow: "hidden" }}>
+          {loading ? (
+            <div style={{ display: "grid", placeItems: "center", height: "100%", color: MID, fontSize: "0.8rem" }}>
+              Loading…
+            </div>
+          ) : showPhoto ? (
+            <img src={showPhoto} alt="Pastor preview" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          ) : (
+            <div style={{ display: "grid", placeItems: "center", height: "100%", color: MID, fontSize: "0.8rem", textAlign: "center", padding: "0.5rem" }}>
+              No pastor photo set
+            </div>
+          )}
+        </div>
+        <div style={{ fontSize: "0.84rem", color: MID, lineHeight: 1.8 }}>
+          {selectedFile ? `Selected file: ${selectedFile.name}` : "Pick a photo from your device, then save it to publish the new pastor image site-wide."}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function TeamPanel({ toast }) {
   const [team, setTeam] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1865,13 +1987,13 @@ function TeamPanel({ toast }) {
   const F = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
   return (
-    <div>
-      <div className="section-header">
-        <h1 className="page-title">Team Members</h1>
-        <button className="btn btn-primary" onClick={() => { setForm(emptyMember); setModal("new"); }}>+ Add Member</button>
-      </div>
-      <div className="card" style={{ overflowX: "auto" }}>
-        {loading ? <div className="empty">Loading…</div> : team.length === 0 ? <div className="empty">No team members yet.</div> : (
+      <div>
+        <div className="section-header">
+          <h1 className="page-title">Team Members</h1>
+          <button className="btn btn-primary" onClick={() => { setForm(emptyMember); setModal("new"); }}>+ Add Member</button>
+        </div>
+        <div className="card" style={{ overflowX: "auto" }}>
+          {loading ? <div className="empty">Loading…</div> : team.length === 0 ? <div className="empty">No team members yet.</div> : (
           <table>
             <thead><tr><th>#</th><th>Name</th><th>Role</th><th>Bio</th><th></th></tr></thead>
             <tbody>
@@ -1915,6 +2037,24 @@ function TeamPanel({ toast }) {
 
 // ─── Shell ────────────────────────────────────────────────────────────────────
 
+function AboutPanel({ toast }) {
+  return (
+    <div>
+      <div className="section-header">
+        <h1 className="page-title">About Settings</h1>
+        <span style={{ fontSize: "0.75rem", color: MID }}>Pastor photo and about-page media</span>
+      </div>
+      <PastorPhotoCard toast={toast} />
+      <div className="card">
+        <div style={{ fontFamily: "'DM Serif Display', serif", fontSize: "1.05rem", marginBottom: "0.35rem" }}>About Page Tip</div>
+        <p style={{ fontSize: "0.85rem", color: MID, lineHeight: 1.8, margin: 0 }}>
+          The photo you save here appears on both the Home page and the About page.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 const NAV = [
   { id: "dashboard", label: "Dashboard", icon: "◈" },
   { id: "sermons", label: "Sermons", icon: "♪" },
@@ -1925,6 +2065,8 @@ const NAV = [
   { id: "messages", label: "Messages", icon: "✉" },
   { id: "team", label: "Team", icon: "❖" },
 ];
+
+NAV.splice(1, 0, { id: "about", label: "About", icon: "✦" });
 
 export default function AdminPanel() {
   const [page, setPage] = useState("dashboard");
@@ -2061,6 +2203,7 @@ export default function AdminPanel() {
 
   const panels = {
     dashboard: <Dashboard stats={stats} />,
+    about: <AboutPanel toast={showToast} />,
     sermons: <SermonsPanel toast={showToast} />,
     events: <EventsPanel toast={showToast} />,
     blog: <BlogPanel toast={showToast} />,

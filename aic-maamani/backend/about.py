@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
 from admin_auth import require_admin
 from database import get_db
-from models import TeamMember
+from models import SiteSetting, TeamMember
 from schemas import AboutPageOut, TeamMemberCreate, TeamMemberOut
+from storage import save_upload
 
 router = APIRouter()
 
@@ -98,6 +99,7 @@ PASTOR = {
     "name": "Rev. Daniel Mutinda",
     "title": "Senior Pastor",
     "quote": "The church exists for those who are not yet in it. Everything we do should help someone take one step closer to Jesus.",
+    "photo": None,
     "bio": [
         "Rev. Daniel Mutinda serves as the senior pastor and leads the church with a heart for discipleship and the city.",
         "He has spent years building a church culture centered on prayer, Scripture, and practical care for people.",
@@ -110,10 +112,35 @@ PASTOR = {
     ],
 }
 
+PASTOR_PHOTO_KEY = "pastor_photo_url"
+
+
+def _get_setting(db: Session, key: str) -> str | None:
+    row = db.query(SiteSetting).filter(SiteSetting.key == key).first()
+    return row.value if row else None
+
+
+def _set_setting(db: Session, key: str, value: str | None) -> str | None:
+    row = db.query(SiteSetting).filter(SiteSetting.key == key).first()
+    if value is None:
+        if row:
+            db.delete(row)
+            db.commit()
+        return None
+
+    if row:
+        row.value = value
+    else:
+        row = SiteSetting(key=key, value=value)
+        db.add(row)
+    db.commit()
+    return value
+
 
 @router.get("", response_model=AboutPageOut)
 def get_about_page(db: Session = Depends(get_db)):
     team = db.query(TeamMember).order_by(TeamMember.order.asc(), TeamMember.id.asc()).all()
+    pastor_photo = _get_setting(db, PASTOR_PHOTO_KEY)
     return {
         "story": ABOUT_STORY,
         "vision": ABOUT_VISION,
@@ -121,9 +148,27 @@ def get_about_page(db: Session = Depends(get_db)):
         "timeline": TIMELINE,
         "values": VALUES,
         "beliefs": BELIEFS,
-        "pastor": PASTOR,
+        "pastor": {**PASTOR, "photo": pastor_photo},
         "team": team,
     }
+
+
+@router.get("/pastor/photo")
+def get_pastor_photo(db: Session = Depends(get_db)):
+    return {"photo": _get_setting(db, PASTOR_PHOTO_KEY)}
+
+
+@router.put("/pastor/photo", dependencies=[Depends(require_admin)])
+async def update_pastor_photo(
+    photo_url: str | None = Form(None),
+    photo_file: UploadFile | None = File(None),
+    db: Session = Depends(get_db),
+):
+    if photo_file:
+        photo_url = await save_upload(photo_file, "about")
+
+    saved = _set_setting(db, PASTOR_PHOTO_KEY, (photo_url or "").strip() or None)
+    return {"photo": saved}
 
 
 @router.get("/team", response_model=list[TeamMemberOut])

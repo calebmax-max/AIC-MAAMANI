@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { fetchJson } from "./api";
+import { usePastorImage } from "./pastorImage";
 
 const COPPER  = "#EF9F27";
 const COPPER2 = "#BA7517";
@@ -9,8 +10,6 @@ const LIGHT   = "#F2F1EF";
 const WHITE   = "#FFFFFF";
 const STONE   = "#E8E6E1";
 const DARK    = "#1A1918";
-const PASTOR_IMAGE_URL = "https://placehold.co/360x460/F2F1EF/2C2C2A?text=Add+Pastor+Photo";
-
 const fonts = `
 @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');
 `;
@@ -71,6 +70,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
   const [blogPosts, setBlogPosts] = useState([]);
   const [upcomingEvents, setUpcomingEvents] = useState([]);
   const [latestSermon, setLatestSermon] = useState(null);
+  const { pastorImageSrc } = usePastorImage();
 
   useEffect(() => {
     let mounted = true;
@@ -278,7 +278,7 @@ export default function ChurchHomepage({ showNav = true } = {}) {
           {/* Image column (order 2 on mobile) */}
           <div className="pastor-image-col" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "1.25rem" }}>
             <img
-              src={PASTOR_IMAGE_URL}
+              src={pastorImageSrc}
               alt="Pr. Daniel Mutinda"
               style={{
                 width: "160px",

@@ -178,3 +178,10 @@ class TeamMember(Base):
     bio      = Column(Text)
     photo    = Column(String(255))
     order    = Column(Integer, default=0)                   # display order
+
+
+class SiteSetting(Base):
+    __tablename__ = "site_settings"
+
+    key   = Column(String(255), primary_key=True)
+    value = Column(Text, nullable=True)
