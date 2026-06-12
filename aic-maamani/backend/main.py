@@ -92,12 +92,3 @@ def startup() -> None:
 @app.get("/", tags=["Health"])
 def root():
     return {"status": "ok", "message": "AIC Maamani Church API is running"}
-
-
-@app.get("/debug/db", tags=["Health"])
-def debug_db():
-    from database import DATABASE_URL
-    # Mask password for safety
-    import re
-    safe_url = re.sub(r":([^@]+)@", ":***@", DATABASE_URL)
-    return {"database_url": safe_url}
