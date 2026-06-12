@@ -245,7 +245,7 @@ function PageHero() {
           About<br /><em style={{ color: C.copper, fontStyle:"italic" }}>AIC MAAMANI</em>
         </h1>
         <p style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:300, fontSize:"1.05rem", color:"rgba(255,255,255,0.5)", maxWidth:"520px", lineHeight:1.75 }}>
-          A church planted in faith, grown through grace — serving Nairobi and the nations since 1998.
+          A church planted in faith, grown through grace — serving Kitui and the nations since 1998.
         </p>
       </div>
     </section>
