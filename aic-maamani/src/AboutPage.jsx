@@ -419,7 +419,7 @@ function MeetPastor() {
           </p>
           {/* credentials row */}
           <div style={{ display:"flex", gap:"2rem", flexWrap:"wrap" }}>
-            {["B.Th · Pan Africa Christian University","20+ Years in Ministry","Senior Pastor · AIC MAAMANI"].map(t => (
+            {["Mulango Bible College","8+ Years in Ministry","Senior Pastor · AIC MAAMANI"].map(t => (
               <div key={t} style={{ padding:"0.55rem 1rem", border:`1px solid rgba(95,94,90,0.25)` }}>
                 <span style={{ fontFamily:"'DM Sans', sans-serif", fontWeight:400, fontSize:"0.73rem", color: C.mid }}>{t}</span>
               </div>

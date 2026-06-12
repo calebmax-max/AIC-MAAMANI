@@ -1,24 +1,30 @@
 from datetime import date
-from io import BytesIO
-from pathlib import Path
-from xml.etree import ElementTree as ET
-import zipfile
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from admin_auth import require_admin
 from database import get_db
-from models import Sermon, SermonSeries, SermonNotes
+from models import Sermon, SermonNotes
 from schemas import (
-    SermonCreate, SermonOut,
-    SermonSeriesCreate, SermonSeriesOut,
+    SermonOut,
     SermonNotesCreate, SermonNotesOut,
 )
-from storage import save_upload
 
 router = APIRouter()
+
+
+class SermonPayload(BaseModel):
+    title: str
+    speaker: str
+    date: date
+    duration: Optional[str] = None
+    scripture: Optional[str] = None
+    topic: Optional[str] = None
+    document_text: Optional[str] = None
+    featured: bool = False
 
 
 def _clean_text(value: Optional[str]) -> Optional[str]:
@@ -28,72 +34,10 @@ def _clean_text(value: Optional[str]) -> Optional[str]:
     return stripped or None
 
 
-def _extract_document_text(file_bytes: bytes, filename: Optional[str]) -> Optional[str]:
-    suffix = Path(filename or "").suffix.lower()
-
-    if suffix == ".txt":
-        for encoding in ("utf-8", "utf-16", "cp1252", "latin-1"):
-            try:
-                text = file_bytes.decode(encoding).strip()
-            except UnicodeDecodeError:
-                continue
-            if text:
-                return text
-        return None
-
-    if suffix == ".docx":
-        try:
-            with zipfile.ZipFile(BytesIO(file_bytes)) as docx:
-                xml_data = docx.read("word/document.xml")
-        except (KeyError, OSError, zipfile.BadZipFile):
-            return None
-
-        try:
-            root = ET.fromstring(xml_data)
-        except ET.ParseError:
-            return None
-
-        ns = {"w": "http://schemas.openxmlformats.org/wordprocessingml/2006/main"}
-        paragraphs: list[str] = []
-        for paragraph in root.findall(".//w:p", ns):
-            pieces = [node.text for node in paragraph.findall(".//w:t", ns) if node.text]
-            text = "".join(pieces).strip()
-            if text:
-                paragraphs.append(text)
-        return "\n".join(paragraphs).strip() or None
-
-    return None
-
-
-# ─── Series ──────────────────────────────────────────────────────────────────
-
-@router.get("/series", response_model=List[SermonSeriesOut])
-def get_all_series(db: Session = Depends(get_db)):
-    return db.query(SermonSeries).all()
-
-
-@router.get("/series/{series_id}", response_model=SermonSeriesOut)
-def get_series(series_id: str, db: Session = Depends(get_db)):
-    series = db.query(SermonSeries).filter(SermonSeries.id == series_id).first()
-    if not series:
-        raise HTTPException(status_code=404, detail="Series not found")
-    return series
-
-
-@router.post("/series", response_model=SermonSeriesOut, status_code=201, dependencies=[Depends(require_admin)])
-def create_series(payload: SermonSeriesCreate, db: Session = Depends(get_db)):
-    series = SermonSeries(**payload.model_dump())
-    db.add(series)
-    db.commit()
-    db.refresh(series)
-    return series
-
-
 # ─── Sermons ─────────────────────────────────────────────────────────────────
 
 @router.get("", response_model=List[SermonOut])
 def get_sermons(
-    series:  Optional[str] = Query(None, description="Filter by series id"),
     speaker: Optional[str] = Query(None),
     topic:   Optional[str] = Query(None),
     featured: Optional[bool] = Query(None),
@@ -102,8 +46,6 @@ def get_sermons(
     db: Session = Depends(get_db),
 ):
     q = db.query(Sermon)
-    if series:
-        q = q.filter(Sermon.series_id == series)
     if speaker:
         q = q.filter(Sermon.speaker.ilike(f"%{speaker}%"))
     if topic:
@@ -130,57 +72,16 @@ def get_sermon(sermon_id: int, db: Session = Depends(get_db)):
 
 
 @router.post("", response_model=SermonOut, status_code=201, dependencies=[Depends(require_admin)])
-async def create_sermon(
-    title: str = Form(...),
-    speaker: str = Form(...),
-    date: date = Form(...),
-    duration: Optional[str] = Form(None),
-    scripture: Optional[str] = Form(None),
-    topic: Optional[str] = Form(None),
-    series_id: Optional[str] = Form(None),
-    thumbnail: Optional[str] = Form(None),
-    video_url: Optional[str] = Form(None),
-    audio_url: Optional[str] = Form(None),
-    document_url: Optional[str] = Form(None),
-    document_text: Optional[str] = Form(None),
-    has_notes: bool = Form(False),
-    featured: bool = Form(False),
-    thumbnail_file: UploadFile | None = File(None),
-    video_file: UploadFile | None = File(None),
-    audio_file: UploadFile | None = File(None),
-    document_file: UploadFile | None = File(None),
-    db: Session = Depends(get_db),
-):
-    cleaned_document_text = _clean_text(document_text)
-
-    if thumbnail_file:
-        thumbnail = await save_upload(thumbnail_file, "sermons")
-    if video_file:
-        video_url = await save_upload(video_file, "sermons")
-    if audio_file:
-        audio_url = await save_upload(audio_file, "sermons")
-    if document_file:
-        document_bytes = await document_file.read()
-        if cleaned_document_text is None:
-            cleaned_document_text = _extract_document_text(document_bytes, document_file.filename)
-        await document_file.seek(0)
-        document_url = await save_upload(document_file, "sermons")
-
+def create_sermon(payload: SermonPayload, db: Session = Depends(get_db)):
     sermon = Sermon(
-        title=title.strip(),
-        speaker=speaker.strip(),
-        date=date,
-        duration=_clean_text(duration),
-        scripture=_clean_text(scripture),
-        topic=_clean_text(topic),
-        series_id=_clean_text(series_id),
-        thumbnail=_clean_text(thumbnail),
-        video_url=_clean_text(video_url),
-        audio_url=_clean_text(audio_url),
-        document_url=_clean_text(document_url),
-        document_text=cleaned_document_text,
-        has_notes=has_notes,
-        featured=featured,
+        title=payload.title.strip(),
+        speaker=payload.speaker.strip(),
+        date=payload.date,
+        duration=_clean_text(payload.duration),
+        scripture=_clean_text(payload.scripture),
+        topic=_clean_text(payload.topic),
+        document_text=_clean_text(payload.document_text),
+        featured=payload.featured,
     )
     db.add(sermon)
     db.commit()
@@ -189,61 +90,22 @@ async def create_sermon(
 
 
 @router.put("/{sermon_id}", response_model=SermonOut, dependencies=[Depends(require_admin)])
-async def update_sermon(
-    sermon_id: int,
-    title: str = Form(...),
-    speaker: str = Form(...),
-    date: date = Form(...),
-    duration: Optional[str] = Form(None),
-    scripture: Optional[str] = Form(None),
-    topic: Optional[str] = Form(None),
-    series_id: Optional[str] = Form(None),
-    thumbnail: Optional[str] = Form(None),
-    video_url: Optional[str] = Form(None),
-    audio_url: Optional[str] = Form(None),
-    document_url: Optional[str] = Form(None),
-    document_text: Optional[str] = Form(None),
-    has_notes: bool = Form(False),
-    featured: bool = Form(False),
-    thumbnail_file: UploadFile | None = File(None),
-    video_file: UploadFile | None = File(None),
-    audio_file: UploadFile | None = File(None),
-    document_file: UploadFile | None = File(None),
-    db: Session = Depends(get_db),
-):
+def update_sermon(sermon_id: int, payload: SermonPayload, db: Session = Depends(get_db)):
     sermon = db.query(Sermon).filter(Sermon.id == sermon_id).first()
     if not sermon:
         raise HTTPException(status_code=404, detail="Sermon not found")
 
-    cleaned_document_text = _clean_text(document_text)
-
-    if thumbnail_file:
-        thumbnail = await save_upload(thumbnail_file, "sermons")
-    if video_file:
-        video_url = await save_upload(video_file, "sermons")
-    if audio_file:
-        audio_url = await save_upload(audio_file, "sermons")
-    if document_file:
-        document_bytes = await document_file.read()
-        if cleaned_document_text is None:
-            cleaned_document_text = _extract_document_text(document_bytes, document_file.filename)
-        await document_file.seek(0)
-        document_url = await save_upload(document_file, "sermons")
-
-    sermon.title = title.strip()
-    sermon.speaker = speaker.strip()
-    sermon.date = date
-    sermon.duration = _clean_text(duration)
-    sermon.scripture = _clean_text(scripture)
-    sermon.topic = _clean_text(topic)
-    sermon.series_id = _clean_text(series_id)
-    sermon.thumbnail = _clean_text(thumbnail) if thumbnail is not None else sermon.thumbnail
-    sermon.video_url = _clean_text(video_url) if video_url is not None else sermon.video_url
-    sermon.audio_url = _clean_text(audio_url) if audio_url is not None else sermon.audio_url
-    sermon.document_url = _clean_text(document_url) if document_url is not None else sermon.document_url
-    sermon.document_text = cleaned_document_text if document_text is not None or document_file else sermon.document_text
-    sermon.has_notes = has_notes
-    sermon.featured = featured
+    for field, value in {
+        "title":         payload.title.strip(),
+        "speaker":       payload.speaker.strip(),
+        "date":          payload.date,
+        "duration":      _clean_text(payload.duration),
+        "scripture":     _clean_text(payload.scripture),
+        "topic":         _clean_text(payload.topic),
+        "document_text": _clean_text(payload.document_text),
+        "featured":      payload.featured,
+    }.items():
+        setattr(sermon, field, value)
     db.commit()
     db.refresh(sermon)
     return sermon

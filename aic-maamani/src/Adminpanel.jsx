@@ -263,13 +263,7 @@ const emptySermon = {
   duration: "",
   scripture: "",
   topic: "",
-  series_id: "",
-  thumbnail: "",
   document_text: "",
-  video_file: null,
-  audio_file: null,
-  document_file: null,
-  has_notes: false,
   featured: false,
 };
 const emptySermonNotes = {
@@ -321,7 +315,6 @@ const rowsFromText = (value) =>
 
 function SermonsPanel({ toast }) {
   const [sermons, setSermons] = useState([]);
-  const [series, setSeries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState(null);
   const [form, setForm] = useState(emptySermon);
@@ -332,8 +325,8 @@ function SermonsPanel({ toast }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [s, sr] = await Promise.all([apiFetch("/sermons"), apiFetch("/sermons/series")]);
-      setSermons(s); setSeries(sr);
+      const s = await apiFetch("/sermons");
+      setSermons(s);
     } catch (e) { toast("Failed to load sermons"); }
     setLoading(false);
   }, [toast]);
@@ -346,15 +339,10 @@ function SermonsPanel({ toast }) {
       ...emptySermon,
       ...s,
       date: s.date?.slice(0, 10) || "",
-      series_id: s.series_id || "",
       scripture: s.scripture || "",
       topic: s.topic || "",
       duration: s.duration || "",
-      thumbnail: s.thumbnail || "",
       document_text: s.document_text || "",
-      video_file: null,
-      audio_file: null,
-      document_file: null,
     });
     setModal("edit");
   };
@@ -377,27 +365,21 @@ function SermonsPanel({ toast }) {
 
   const save = async () => {
     try {
-      const payload = buildFormData({
+      const payload = {
         title: form.title,
         speaker: form.speaker,
         date: form.date,
         duration: form.duration,
         scripture: form.scripture,
-          topic: form.topic,
-          series_id: form.series_id,
-          thumbnail: form.thumbnail,
-          document_text: form.document_text,
-          has_notes: form.has_notes,
-          featured: form.featured,
-          video_file: form.video_file,
-          audio_file: form.audio_file,
-          document_file: form.document_file,
-      });
+        topic: form.topic,
+        document_text: form.document_text,
+        featured: form.featured,
+      };
       if (modal === "new") {
-        await apiFetch("/sermons", { method: "POST", body: payload });
+        await apiFetch("/sermons", { method: "POST", body: JSON.stringify(payload) });
         toast("Sermon created");
       } else {
-        await apiFetch(`/sermons/${form.id}`, { method: "PUT", body: payload });
+        await apiFetch(`/sermons/${form.id}`, { method: "PUT", body: JSON.stringify(payload) });
         toast("Sermon updated");
       }
       setModal(null); load();
@@ -464,7 +446,7 @@ function SermonsPanel({ toast }) {
         {loading ? <div className="empty">Loading…</div> : sermons.length === 0 ? <div className="empty">No sermons yet.</div> : (
           <table>
             <thead><tr>
-              <th>Title</th><th>Speaker</th><th>Date</th><th>Series</th><th>Featured</th><th></th>
+              <th>Title</th><th>Speaker</th><th>Date</th><th></th>
             </tr></thead>
             <tbody>
               {sermons.map(s => (
@@ -472,8 +454,6 @@ function SermonsPanel({ toast }) {
                   <td><strong style={{ fontWeight: 500 }}>{s.title}</strong><br /><span style={{ fontSize: "0.75rem", color: MID }}>{s.scripture}</span></td>
                   <td>{s.speaker}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{s.date}</td>
-                  <td>{series.find(sr => sr.id === s.series_id)?.title || <span style={{ color: "#bbb" }}>—</span>}</td>
-                  <td>{s.featured ? <span className="badge badge-gold">Featured</span> : <span className="badge badge-gray">No</span>}</td>
                   <td style={{ whiteSpace: "nowrap" }}>
                     <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => openEdit(s)}>Edit</button>
                     <button className="btn btn-ghost" style={{ marginRight: 6 }} onClick={() => openNotes(s)}>Notes</button>
@@ -498,50 +478,19 @@ function SermonsPanel({ toast }) {
             <label>Duration</label>
             <input type="text" value={form.duration || ""} onChange={e => F("duration", e.target.value)} placeholder="e.g. 45 min, 1h 20m, 1:20" />
           </div>
-          <div className="form-row">
-            <label>Thumbnail URL</label>
-            <input type="text" value={form.thumbnail || ""} onChange={e => F("thumbnail", e.target.value)} placeholder="https://…" />
-            {form.thumbnail && (
-              <img src={form.thumbnail} alt="thumbnail preview" style={{ marginTop: 8, width: "100%", maxHeight: 120, objectFit: "cover", borderRadius: 4, border: "1px solid #E0DDD8" }} onError={e => { e.currentTarget.style.display = "none"; }} />
-            )}
-          </div>
-          <div className="form-row">
-            <label>Video File</label>
-            <input type="file" accept="video/*" onChange={e => F("video_file", e.target.files?.[0] || null)} />
-          </div>
-          <div className="form-row">
-            <label>Audio File</label>
-            <input type="file" accept="audio/*" onChange={e => F("audio_file", e.target.files?.[0] || null)} />
-          </div>
             <div className="form-row">
-              <label>Document File</label>
-              <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={e => F("document_file", e.target.files?.[0] || null)} />
-            </div>
-            <div className="form-row">
-              <label>Document Text</label>
+              <label>Sermon Text</label>
               <textarea
                 value={form.document_text || ""}
                 onChange={e => F("document_text", e.target.value)}
-                placeholder="Paste sermon text here if you want it readable directly on the page"
-                rows={8}
+                placeholder="Paste the full sermon text here — it will appear on the sermon page for members to read."
+                rows={10}
               />
-              <div style={{ fontSize: "0.75rem", color: MID, lineHeight: 1.6, marginTop: 6 }}>
-                If you paste text here, it will be shown on the sermon page. If this is left blank, the app will try to extract text from the uploaded document file.
-              </div>
             </div>
-            <div className="form-row">
-              <label>Series</label>
-              <select value={form.series_id || ""} onChange={e => F("series_id", e.target.value)}>
-              <option value="">— None —</option>
-              {series.map(sr => <option key={sr.id} value={sr.id}>{sr.title}</option>)}
-            </select>
-          </div>
           <div style={{ display: "flex", gap: "1.5rem", marginBottom: "1.25rem" }}>
-            {[["featured", "Featured"], ["has_notes", "Has Notes"]].map(([k, label]) => (
-              <label key={k} style={{ display: "flex", alignItems: "center", gap: 7, textTransform: "none", letterSpacing: 0, fontSize: "0.85rem", cursor: "pointer" }}>
-                <input type="checkbox" checked={form[k]} onChange={e => F(k, e.target.checked)} style={{ width: "auto" }} /> {label}
-              </label>
-            ))}
+            <label style={{ display: "flex", alignItems: "center", gap: 7, textTransform: "none", letterSpacing: 0, fontSize: "0.85rem", cursor: "pointer" }}>
+              <input type="checkbox" checked={form.featured} onChange={e => F("featured", e.target.checked)} style={{ width: "auto" }} /> Featured
+            </label>
           </div>
           <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
             <button className="btn btn-ghost" onClick={() => setModal(null)}>Cancel</button>

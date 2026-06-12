@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>VELOCE — Engineered to Move</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --black:#080808;
+  --carbon:#111;
+  --steel:#1a1a1a;
+  --mid:#252525;
+  --chrome:#bbb;
+  --white:#f0f0f0;
+  --red:#e02828;
+  --red-dark:#7a1212;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Inter',sans-serif;
+  --mono:'Space Mono',monospace;
+}
+html{scroll-behavior:smooth}
+body{background:var(--black);color:var(--white);font-family:var(--body);overflow-x:hidden}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:1.2rem 3rem;background:linear-gradient(to bottom,rgba(8,8,8,.95) 60%,transparent)}
+.logo{font-family:var(--display);font-size:2rem;letter-spacing:5px;color:var(--white)}
+.logo em{color:var(--red);font-style:normal}
+.nav-links{display:flex;gap:2.4rem;list-style:none}
+.nav-links a{font-family:var(--mono);font-size:.68rem;letter-spacing:2px;color:var(--chrome);text-decoration:none;text-transform:uppercase;transition:color .2s}
+.nav-links a:hover{color:var(--red)}
+.nav-cta{font-family:var(--mono);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;padding:.6rem 1.4rem;border:1px solid var(--red);color:var(--red);text-decoration:none;transition:all .25s}
+.nav-cta:hover{background:var(--red);color:#fff}
+
+/* HERO */
+#hero{height:100vh;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+#bg-canvas{position:absolute;inset:0;width:100%;height:100%}
+.hero-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(224,40,40,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(224,40,40,.035) 1px,transparent 1px);background-size:70px 70px;animation:gridScroll 25s linear infinite}
+@keyframes gridScroll{from{background-position:0 0}to{background-position:70px 70px}}
+.scanline{position:absolute;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent 0%,var(--red) 50%,transparent 100%);opacity:.5;animation:scan 7s ease-in-out infinite}
+@keyframes scan{0%{top:-2px;opacity:0}5%{opacity:.5}95%{opacity:.5}100%{top:100%;opacity:0}}
+.hero-inner{position:relative;z-index:2;text-align:center}
+.hero-tag{font-family:var(--mono);font-size:.65rem;letter-spacing:6px;color:var(--red);text-transform:uppercase;margin-bottom:1.2rem;opacity:0;animation:fadeUp .8s .3s forwards}
+.hero-h1{font-family:var(--display);font-size:clamp(5.5rem,16vw,15rem);line-height:.88;color:var(--white);opacity:0;animation:fadeUp .9s .5s forwards}
+.hero-h1 .stroke{-webkit-text-stroke:1.5px var(--chrome);color:transparent}
+.hero-sub{font-family:var(--mono);font-size:.8rem;letter-spacing:4px;color:var(--chrome);text-transform:uppercase;margin-top:1.2rem;opacity:0;animation:fadeUp .8s .75s forwards}
+.hero-buttons{display:flex;gap:1rem;justify-content:center;margin-top:2.4rem;opacity:0;animation:fadeUp .8s 1s forwards}
+@keyframes fadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.btn{font-family:var(--mono);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;text-decoration:none;padding:.85rem 2rem;border:1px solid;cursor:pointer;transition:all .3s;display:inline-block}
+.btn-red{background:var(--red);border-color:var(--red);color:#fff}
+.btn-red:hover{background:transparent;color:var(--red)}
+.btn-outline{background:transparent;border-color:var(--chrome);color:var(--chrome)}
+.btn-outline:hover{border-color:#fff;color:#fff}
+.hero-scroll{position:absolute;bottom:2.2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;font-family:var(--mono);font-size:.58rem;letter-spacing:3px;color:var(--chrome);text-transform:uppercase;animation:pulse 2.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:.35}50%{opacity:1}}
+.hero-scroll::after{content:'';width:1px;height:44px;background:linear-gradient(to bottom,var(--chrome),transparent)}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);background:var(--carbon);border-top:1px solid #222;border-bottom:1px solid #222}
+.stat{padding:2rem 1.2rem;text-align:center;border-right:1px solid #222;transition:background .3s}
+.stat:last-child{border-right:none}
+.stat:hover{background:var(--steel)}
+.stat-val{font-family:var(--display);font-size:3.2rem;color:var(--red);display:block;line-height:1}
+.stat-key{font-family:var(--mono);font-size:.6rem;letter-spacing:2px;color:var(--chrome);text-transform:uppercase;margin-top:.4rem}
+
+/* SECTION COMMON */
+.section{padding:6rem 3rem}
+.eyebrow{font-family:var(--mono);font-size:.62rem;letter-spacing:5px;color:var(--red);text-transform:uppercase;margin-bottom:.8rem}
+.sec-title{font-family:var(--display);font-size:clamp(3rem,6vw,5.5rem);line-height:.95;color:var(--white)}
+
+/* MODELS */
+#models{background:var(--black)}
+.models-intro{max-width:620px;margin-bottom:3.5rem}
+.models-intro p{color:var(--chrome);font-weight:300;margin-top:.9rem;line-height:1.75;font-size:.95rem}
+.models-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;background:#1e1e1e}
+.mcard{background:var(--carbon);padding:2.4rem;position:relative;overflow:hidden;cursor:pointer;transition:background .35s}
+.mcard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .4s ease}
+.mcard:hover{background:var(--steel)}
+.mcard:hover::after{transform:scaleX(1)}
+/* 3-D car wrapper */
+.car-wrap{width:100%;height:150px;display:flex;align-items:center;justify-content:center;margin-bottom:1.6rem;perspective:700px}
+.car3d{transition:transform .6s ease;width:260px;filter:drop-shadow(0 16px 32px rgba(224,40,40,.25))}
+.mcard:hover .car3d{transform:rotateY(-14deg) rotateX(5deg) scale(1.06)}
+.mbadge{font-family:var(--mono);font-size:.58rem;letter-spacing:3px;color:var(--red);text-transform:uppercase;margin-bottom:.4rem}
+.mname{font-family:var(--display);font-size:2.4rem;color:var(--white)}
+.mdesc{font-size:.83rem;color:var(--chrome);font-weight:300;line-height:1.7;margin:.7rem 0 1.4rem}
+.mspecs{display:flex;gap:1.5rem;border-top:1px solid #2a2a2a;padding-top:1.1rem}
+.ms-val{font-family:var(--display);font-size:1.5rem;color:var(--white)}
+.ms-key{font-family:var(--mono);font-size:.55rem;letter-spacing:1.5px;color:var(--chrome);text-transform:uppercase}
+
+/* TECH / WIREFRAME */
+#tech{background:var(--carbon)}
+.tech-layout{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.wire-wrap{height:480px;position:relative}
+#wire-canvas{width:100%;height:100%}
+.wire-label{position:absolute;font-family:var(--mono);font-size:.6rem;letter-spacing:2px;color:var(--red);text-transform:uppercase}
+.wl-1{top:10%;left:5%}
+.wl-2{bottom:15%;right:5%;text-align:right}
+.feats{display:flex;flex-direction:column;gap:1.8rem}
+.feat{border-left:2px solid #2a2a2a;padding-left:1.4rem;cursor:pointer;transition:border-color .3s}
+.feat:hover,.feat.on{border-left-color:var(--red)}
+.feat-n{font-family:var(--mono);font-size:.58rem;letter-spacing:2px;color:var(--red);margin-bottom:.3rem}
+.feat-t{font-family:var(--display);font-size:1.6rem;color:var(--white)}
+.feat-d{font-size:.82rem;color:var(--chrome);font-weight:300;line-height:1.7;max-height:0;overflow:hidden;transition:max-height .4s ease,margin-top .3s}
+.feat.on .feat-d{max-height:120px;margin-top:.5rem}
+
+/* GALLERY STRIP */
+#strip{background:var(--black);padding:4rem 0;overflow:hidden}
+.strip-track{display:flex;gap:2rem;animation:marquee 30s linear infinite;width:max-content}
+.strip-track:hover{animation-play-state:paused}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+.strip-item{flex:0 0 auto;width:320px;height:200px;background:var(--steel);border:1px solid #222;position:relative;overflow:hidden}
+.strip-item svg{width:100%;height:100%}
+.strip-caption{position:absolute;bottom:1rem;left:1rem;font-family:var(--mono);font-size:.6rem;letter-spacing:2px;color:var(--chrome);text-transform:uppercase}
+
+/* REVIEWS */
+#reviews{background:var(--black)}
+.rev-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.5rem;margin-top:3.5rem}
+.rev-card{background:var(--carbon);border:1px solid #1e1e1e;padding:2rem;transition:border-color .3s,transform .3s}
+.rev-card:hover{border-color:var(--red);transform:translateY(-5px)}
+.stars{color:var(--red);margin-bottom:.9rem;font-size:.85rem}
+.rev-q{font-size:.85rem;color:var(--chrome);font-weight:300;line-height:1.75;font-style:italic;margin-bottom:1.4rem}
+.rev-by{font-family:var(--mono);font-size:.62rem;letter-spacing:2px;color:var(--white);text-transform:uppercase}
+.rev-role{font-size:.75rem;color:var(--chrome);margin-top:.2rem}
+
+/* CTA */
+#cta{background:var(--red);padding:5rem 3rem;text-align:center;position:relative;overflow:hidden}
+#cta::before{content:'VELOCE';position:absolute;font-family:var(--display);font-size:25vw;color:rgba(255,255,255,.06);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;white-space:nowrap}
+#cta h2{font-family:var(--display);font-size:clamp(2.5rem,5vw,4.5rem);color:#fff;margin-bottom:.8rem}
+#cta p{color:rgba(255,255,255,.75);font-weight:300;margin-bottom:2rem}
+.btn-wh{background:#fff;border-color:#fff;color:var(--red)}
+.btn-wh:hover{background:var(--black);color:#fff;border-color:var(--black)}
+
+/* FOOTER */
+footer{background:var(--carbon);border-top:1px solid #1e1e1e;padding:2.5rem 3rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+.foot-logo{font-family:var(--display);font-size:1.5rem;letter-spacing:4px}
+.foot-logo em{color:var(--red);font-style:normal}
+.foot-links{display:flex;gap:2rem}
+.foot-links a{font-family:var(--mono);font-size:.62rem;letter-spacing:2px;color:var(--chrome);text-decoration:none;text-transform:uppercase;transition:color .2s}
+.foot-links a:hover{color:var(--red)}
+.foot-copy{font-family:var(--mono);font-size:.57rem;color:#444;letter-spacing:1px}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(36px);transition:opacity .8s ease,transform .8s ease}
+.reveal.vis{opacity:1;transform:translateY(0)}
+
+@media(max-width:900px){
+  nav{padding:1rem 1.5rem}.nav-links,.nav-cta{display:none}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .stat:nth-child(2){border-right:none}
+  .stat:nth-child(3){border-top:1px solid #222}
+  .section{padding:4rem 1.5rem}
+  .tech-layout{grid-template-columns:1fr}
+  .wire-wrap{height:300px}
+  footer{flex-direction:column;text-align:center}
+  .foot-links{flex-wrap:wrap;justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">VELO<em>CE</em></div>
+  <ul class="nav-links">
+    <li><a href="#models">Models</a></li>
+    <li><a href="#tech">Technology</a></li>
+    <li><a href="#reviews">Reviews</a></li>
+  </ul>
+  <a href="#cta" class="nav-cta">Book a Drive</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="bg-canvas"></canvas>
+  <div class="hero-grid"></div>
+  <div class="scanline"></div>
+  <div class="hero-inner">
+    <p class="hero-tag">Performance Automobiles · Est. 2008</p>
+    <h1 class="hero-h1">VELO<span class="stroke">CE</span></h1>
+    <p class="hero-sub">Every road. Every revolution.</p>
+    <div class="hero-buttons">
+      <a href="#models" class="btn btn-red">Explore Models</a>
+      <a href="#tech" class="btn btn-outline">Our Technology</a>
+    </div>
+  </div>
+  <div class="hero-scroll">Scroll</div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat reveal"><span class="stat-val" data-to="340" data-dec="0">0</span><span class="stat-key">km/h Top Speed</span></div>
+  <div class="stat reveal"><span class="stat-val" data-to="2.4" data-dec="1">0</span><span class="stat-key">Sec 0–100</span></div>
+  <div class="stat reveal"><span class="stat-val" data-to="47" data-dec="0">0</span><span class="stat-key">Countries Shipped</span></div>
+  <div class="stat reveal"><span class="stat-val" data-to="12" data-dec="0">0</span><span class="stat-key">Design Awards</span></div>
+</div>
+
+<!-- MODELS -->
+<section id="models" class="section">
+  <div class="models-intro reveal">
+    <p class="eyebrow">Our Lineup</p>
+    <h2 class="sec-title">Built Different</h2>
+    <p>Three machines. One obsession — the perfect drive. Each tuned from the ground up for a distinct kind of driver: the city hunter, the canyon carver, the long-distance grand tourer.</p>
+  </div>
+  <div class="models-grid">
+
+    <!-- APEX RS -->
+    <div class="mcard reveal">
+      <div class="car-wrap">
+        <svg class="car3d" viewBox="0 0 320 130" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="cb1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#d0d0d0"/><stop offset="100%" stop-color="#444"/></linearGradient>
+            <linearGradient id="cr1" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e02828"/><stop offset="100%" stop-color="#7a1212"/></linearGradient>
+            <filter id="gs"><feDropShadow dx="0" dy="18" stdDeviation="12" flood-color="#e02828" flood-opacity=".28"/></filter>
+          </defs>
+          <g filter="url(#gs)">
+            <!-- body -->
+            <path d="M28 78 Q34 46 78 38 L155 32 Q205 30 238 46 L274 62 Q282 68 280 78 Z" fill="url(#cb1)"/>
+            <!-- cabin -->
+            <path d="M84 38 Q96 14 138 11 L192 11 Q222 15 238 38 Z" fill="#181818"/>
+            <!-- windshield -->
+            <path d="M94 38 Q106 20 138 16 L188 16 Q212 20 228 38 Z" fill="#1a2e44" opacity=".85"/>
+            <!-- accent stripe -->
+            <rect x="28" y="66" width="252" height="3" rx="1" fill="url(#cr1)"/>
+            <!-- sill -->
+            <rect x="28" y="78" width="252" height="7" rx="2" fill="#0a0a0a"/>
+            <!-- rear diffuser lines -->
+            <line x1="28" y1="72" x2="28" y2="85" stroke="#e02828" stroke-width="1.2" opacity=".5"/>
+            <line x1="34" y1="72" x2="34" y2="85" stroke="#e02828" stroke-width=".8" opacity=".3"/>
+            <!-- wheels -->
+            <circle cx="82" cy="85" r="20" fill="#141414" stroke="#2e2e2e" stroke-width="2"/>
+            <circle cx="82" cy="85" r="11" fill="#0d0d0d" stroke="#555" stroke-width="2.5"/>
+            <line x1="82" y1="74" x2="82" y2="96" stroke="#444" stroke-width="1.2"/>
+            <line x1="71" y1="85" x2="93" y2="85" stroke="#444" stroke-width="1.2"/>
+            <circle cx="82" cy="85" r="3.5" fill="#e02828"/>
+            <circle cx="228" cy="85" r="20" fill="#141414" stroke="#2e2e2e" stroke-width="2"/>
+            <circle cx="228" cy="85" r="11" fill="#0d0d0d" stroke="#555" stroke-width="2.5"/>
+            <line x1="228" y1="74" x2="228" y2="96" stroke="#444" stroke-width="1.2"/>
+            <line x1="217" y1="85" x2="239" y2="85" stroke="#444" stroke-width="1.2"/>
+            <circle cx="228" cy="85" r="3.5" fill="#e02828"/>
+            <!-- headlight -->
+            <ellipse cx="276" cy="63" rx="6" ry="4" fill="#fff" opacity=".9"/>
+            <ellipse cx="32" cy="70" rx="5" ry="3" fill="#e02828" opacity=".7"/>
+          </g>
+          <ellipse cx="155" cy="108" rx="130" ry="7" fill="rgba(0,0,0,.45)"/>
+        </svg>
+      </div>
+      <p class="mbadge">Sport Series</p>
+      <h3 class="mname">APEX RS</h3>
+      <p class="mdesc">A low-slung coupe engineered for precision. Every surface channels air into downforce — aerodynamics as sculpture, speed as art.</p>
+      <div class="mspecs">
+        <div><div class="ms-val">520</div><div class="ms-key">BHP</div></div>
+        <div><div class="ms-val">2.4s</div><div class="ms-key">0–100</div></div>
+        <div><div class="ms-val">340</div><div class="ms-key">km/h</div></div>
+      </div>
+    </div>
+
+    <!-- TERRA X -->
+    <div class="mcard reveal">
+      <div class="car-wrap">
+        <svg class="car3d" viewBox="0 0 320 130" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="cb2" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#888"/><stop offset="100%" stop-color="#1e1e1e"/></linearGradient>
+            <filter id="gs2"><feDropShadow dx="0" dy="18" stdDeviation="12" flood-color="#e02828" flood-opacity=".22"/></filter>
+          </defs>
+          <g filter="url(#gs2)">
+            <!-- tall SUV body -->
+            <path d="M22 84 Q26 40 68 32 L160 28 Q212 26 248 42 L280 58 Q290 65 288 84 Z" fill="url(#cb2)"/>
+            <!-- cabin -->
+            <path d="M70 32 Q80 6 132 4 L198 4 Q234 8 250 32 Z" fill="#181818"/>
+            <path d="M80 32 Q90 12 132 9 L196 9 Q226 13 240 32 Z" fill="#1a2e44" opacity=".78"/>
+            <!-- roof rack -->
+            <rect x="86" y="4" width="128" height="3" rx="1" fill="#2e2e2e"/>
+            <line x1="100" y1="4" x2="100" y2="7" stroke="#555" stroke-width="1.5"/>
+            <line x1="138" y1="4" x2="138" y2="7" stroke="#555" stroke-width="1.5"/>
+            <line x1="176" y1="4" x2="176" y2="7" stroke="#555" stroke-width="1.5"/>
+            <!-- stripe -->
+            <rect x="22" y="70" width="266" height="3" rx="1" fill="#e02828"/>
+            <!-- sill -->
+            <rect x="22" y="84" width="266" height="8" rx="2" fill="#0a0a0a"/>
+            <!-- side steps -->
+            <rect x="60" y="84" width="80" height="4" rx="1" fill="#1e1e1e"/>
+            <rect x="168" y="84" width="80" height="4" rx="1" fill="#1e1e1e"/>
+            <!-- wheels bigger -->
+            <circle cx="80" cy="92" r="22" fill="#141414" stroke="#2e2e2e" stroke-width="2"/>
+            <circle cx="80" cy="92" r="13" fill="#0d0d0d" stroke="#555" stroke-width="2.5"/>
+            <line x1="80" y1="79" x2="80" y2="105" stroke="#444" stroke-width="1.2"/>
+            <line x1="67" y1="92" x2="93" y2="92" stroke="#444" stroke-width="1.2"/>
+            <circle cx="80" cy="92" r="4" fill="#e02828"/>
+            <circle cx="232" cy="92" r="22" fill="#141414" stroke="#2e2e2e" stroke-width="2"/>
+            <circle cx="232" cy="92" r="13" fill="#0d0d0d" stroke="#555" stroke-width="2.5"/>
+            <line x1="232" y1="79" x2="232" y2="105" stroke="#444" stroke-width="1.2"/>
+            <line x1="219" y1="92" x2="245" y2="92" stroke="#444" stroke-width="1.2"/>
+            <circle cx="232" cy="92" r="4" fill="#e02828"/>
+            <ellipse cx="284" cy="62" rx="7" ry="5" fill="#fff" opacity=".9"/>
+            <ellipse cx="26" cy="75" rx="5" ry="3.5" fill="#e02828" opacity=".7"/>
+          </g>
+          <ellipse cx="155" cy="117" rx="138" ry="7" fill="rgba(0,0,0,.4)"/>
+        </svg>
+      </div>
+      <p class="mbadge">Terrain Series</p>
+      <h3 class="mname">TERRA X</h3>
+      <p class="mdesc">Raw capability wrapped in intent. Built for executives who refuse to choose between the boardroom and the backcountry.</p>
+      <div class="mspecs">
+        <div><div class="ms-val">385</div><div class="ms-key">BHP</div></div>
+        <div><div class="ms-val">4.8s</div><div class="ms-key">0–100</div></div>
+        <div><div class="ms-val">AWD</div><div class="ms-key">Drive</div></div>
+      </div>
+    </div>
+
+    <!-- LINEA GT -->
+    <div class="mcard reveal">
+      <div class="car-wrap">
+        <svg class="car3d" viewBox="0 0 320 130" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="cb3" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#e0e0e0"/><stop offset="100%" stop-color="#333"/></linearGradient>
+            <filter id="gs3"><feDropShadow dx="0" dy="18" stdDeviation="12" flood-color="#e02828" flood-opacity=".22"/></filter>
+          </defs>
+          <g filter="url(#gs3)">
+            <!-- long sedan body -->
+            <path d="M24 78 Q30 48 72 40 L162 33 Q218 31 250 46 L278 62 Q286 68 284 78 Z" fill="url(#cb3)"/>
+            <!-- cabin -->
+            <path d="M80 40 Q90 17 136 13 L192 13 Q222 18 236 40 Z" fill="#181818"/>
+            <path d="M88 40 Q98 22 136 17 L190 17 Q216 22 228 40 Z" fill="#1a2e44" opacity=".82"/>
+            <!-- long trunk crease -->
+            <path d="M236 40 L252 46" stroke="#999" stroke-width="1.2"/>
+            <path d="M252 46 L278 62" stroke="#777" stroke-width=".8"/>
+            <!-- chrome side trim -->
+            <path d="M30 62 Q80 58 155 58 Q220 58 255 62" stroke="#888" stroke-width="1.2" fill="none"/>
+            <!-- stripe -->
+            <rect x="24" y="68" width="260" height="3" rx="1" fill="#e02828"/>
+            <!-- sill -->
+            <rect x="24" y="78" width="260" height="7" rx="2" fill="#0a0a0a"/>
+            <!-- wheels -->
+            <circle cx="84" cy="85" r="19" fill="#141414" stroke="#2e2e2e" stroke-width="2"/>
+            <circle cx="84" cy="85" r="10" fill="#0d0d0d" stroke="#555" stroke-width="2.5"/>
+            <line x1="84" y1="75" x2="84" y2="95" stroke="#444" stroke-width="1.2"/>
+            <line x1="74" y1="85" x2="94" y2="85" stroke="#444" stroke-width="1.2"/>
+            <circle cx="84" cy="85" r="3.5" fill="#e02828"/>
+            <circle cx="228" cy="85" r="19" fill="#141414" stroke="#2e2e2e" stroke-width="2"/>
+            <circle cx="228" cy="85" r="10" fill="#0d0d0d" stroke="#555" stroke-width="2.5"/>
+            <line x1="228" y1="75" x2="228" y2="95" stroke="#444" stroke-width="1.2"/>
+            <line x1="218" y1="85" x2="238" y2="85" stroke="#444" stroke-width="1.2"/>
+            <circle cx="228" cy="85" r="3.5" fill="#e02828"/>
+            <ellipse cx="280" cy="63" rx="6" ry="4" fill="#fff" opacity=".9"/>
+            <ellipse cx="28" cy="69" rx="5" ry="3" fill="#e02828" opacity=".7"/>
+          </g>
+          <ellipse cx="155" cy="107" rx="128" ry="6.5" fill="rgba(0,0,0,.42)"/>
+        </svg>
+      </div>
+      <p class="mbadge">Luxury Series</p>
+      <h3 class="mname">LINEA GT</h3>
+      <p class="mdesc">A long-wheelbase grand tourer for those who measure journeys in pleasure, not miles. Silent cabin. Thunderous heart.</p>
+      <div class="mspecs">
+        <div><div class="ms-val">450</div><div class="ms-key">BHP</div></div>
+        <div><div class="ms-val">3.6s</div><div class="ms-key">0–100</div></div>
+        <div><div class="ms-val">RWD</div><div class="ms-key">Drive</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- TECH -->
+<section id="tech" class="section">
+  <div class="tech-layout">
+    <div class="wire-wrap reveal">
+      <canvas id="wire-canvas"></canvas>
+      <span class="wire-label wl-1">Structural Analysis</span>
+      <span class="wire-label wl-2">Real-time Simulation</span>
+    </div>
+    <div class="reveal">
+      <p class="eyebrow">Engineering</p>
+      <h2 class="sec-title" style="margin-bottom:2.2rem">Built from<br>first<br>principles</h2>
+      <div class="feats">
+        <div class="feat on" onclick="toggleFeat(this)">
+          <p class="feat-n">Powertrain</p>
+          <h3 class="feat-t">Twin-Turbo Architecture</h3>
+          <p class="feat-d">Sequential twin turbos eliminate lag entirely. Peak torque at 2,200 rpm, flat to the redline — power on demand, no hesitation.</p>
+        </div>
+        <div class="feat" onclick="toggleFeat(this)">
+          <p class="feat-n">Chassis</p>
+          <h3 class="feat-t">Carbon-Aluminum Monocoque</h3>
+          <p class="feat-d">Our hybrid cell is 40% lighter than steel while exceeding crash safety benchmarks. Rigid where you need it, compliant where you don't.</p>
+        </div>
+        <div class="feat" onclick="toggleFeat(this)">
+          <p class="feat-n">Aerodynamics</p>
+          <h3 class="feat-t">Active Ground Effect</h3>
+          <p class="feat-d">Electronically managed diffusers adjust angle in real time by speed and lateral G. At 200 km/h, downforce equals the vehicle's own weight.</p>
+        </div>
+        <div class="feat" onclick="toggleFeat(this)">
+          <p class="feat-n">Intelligence</p>
+          <h3 class="feat-t">Neural Drive Assist</h3>
+          <p class="feat-d">200 sensor inputs per second. The onboard AI predicts terrain and adjusts suspension, braking bias, and throttle maps before the driver reacts.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MARQUEE STRIP -->
+<div id="strip">
+  <div class="strip-track" id="marquee"></div>
+</div>
+
+<!-- REVIEWS -->
+<section id="reviews" class="section">
+  <div class="reveal">
+    <p class="eyebrow">Owner Reviews</p>
+    <h2 class="sec-title">Drivers don't lie</h2>
+  </div>
+  <div class="rev-grid">
+    <div class="rev-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="rev-q">"The APEX RS redefined what I thought performance felt like. Two corners in, I stopped thinking about the engine — I just drove. That's the point."</p>
+      <p class="rev-by">James Okonkwo</p>
+      <p class="rev-role">Racing instructor, Lagos</p>
+    </div>
+    <div class="rev-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="rev-q">"I took the TERRA X through the Aberdare range for a week. Mud, river crossings, escarpments. It came back better than my expectations."</p>
+      <p class="rev-by">Amara Njeru</p>
+      <p class="rev-role">Adventure photographer, Nairobi</p>
+    </div>
+    <div class="rev-card reveal">
+      <div class="stars">★★★★★</div>
+      <p class="rev-q">"Nairobi to Mombasa in the LINEA GT felt like a spa experience. Arrived rested — which matters when you have meetings the moment you step out."</p>
+      <p class="rev-by">Priya Sharma</p>
+      <p class="rev-role">CEO, Meridian Capital</p>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section id="cta">
+  <h2>YOUR NEXT MACHINE AWAITS</h2>
+  <p>Book a private test drive — no pressure, just performance.</p>
+  <a href="#" class="btn btn-wh">Book a Test Drive</a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="foot-logo">VELO<em>CE</em></div>
+  <div class="foot-links">
+    <a href="#">Models</a>
+    <a href="#">Dealers</a>
+    <a href="#">Careers</a>
+    <a href="#">Press</a>
+    <a href="#">Privacy</a>
+  </div>
+  <p class="foot-copy">© 2026 VELOCE AUTOMOTIVE · ALL RIGHTS RESERVED</p>
+</footer>
+
+<script>
+/* ─── HERO PARTICLE FIELD ─────────────────────────── */
+const hc=document.getElementById('bg-canvas'),hx=hc.getContext('2d');
+let W,H,pts=[];
+function resize(){W=hc.width=innerWidth;H=hc.height=innerHeight}
+resize();addEventListener('resize',()=>{resize();buildPts()});
+function buildPts(){
+  pts=[];
+  const n=Math.min(120,Math.floor(W*H/12000));
+  for(let i=0;i<n;i++)pts.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.3,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,a:Math.random()*.45+.1});
+}
+buildPts();
+let mx=W/2,my=H/2;
+addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+function drawPts(){
+  hx.clearRect(0,0,W,H);
+  // red radial glow follows cursor
+  const g=hx.createRadialGradient(mx,my,0,mx,my,380);
+  g.addColorStop(0,'rgba(224,40,40,.09)');g.addColorStop(1,'transparent');
+  hx.fillStyle=g;hx.fillRect(0,0,W,H);
+  pts.forEach(p=>{
+    p.x+=p.vx+(mx-W/2)*.00012;p.y+=p.vy+(my-H/2)*.00012;
+    if(p.x<0)p.x=W;if(p.x>W)p.x=0;
+    if(p.y<0)p.y=H;if(p.y>H)p.y=0;
+    hx.beginPath();hx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    hx.fillStyle=`rgba(200,200,200,${p.a})`;hx.fill();
+  });
+  // connect close pairs
+  for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+    const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);
+    if(d<110){hx.beginPath();hx.moveTo(pts[i].x,pts[i].y);hx.lineTo(pts[j].x,pts[j].y);
+    hx.strokeStyle=`rgba(224,40,40,${.13*(1-d/110)})`;hx.lineWidth=.5;hx.stroke();}
+  }
+  requestAnimationFrame(drawPts);
+}
+drawPts();
+
+/* ─── 3-D WIREFRAME CAR ───────────────────────────── */
+const wc=document.getElementById('wire-canvas'),wx=wc.getContext('2d');
+function resizeW(){wc.width=wc.offsetWidth;wc.height=wc.offsetHeight}
+resizeW();addEventListener('resize',resizeW);
+
+function project(x,y,z,cx,cy,fov=400,dist=5){
+  const s=fov/(dist+z);return{x:cx+x*s,y:cy+y*s,s};
+}
+function rotY(x,y,z,a){return{x:x*Math.cos(a)+z*Math.sin(a),y,z:-x*Math.sin(a)+z*Math.cos(a)}}
+function rotX(x,y,z,a){return{x,y:y*Math.cos(a)-z*Math.sin(a),z:y*Math.sin(a)+z*Math.cos(a)}}
+
+// Car vertices: lower body box + cabin box
+const verts=[
+  // lower box (0-7)
+  [-2.2,.45,-.75],[2.2,.45,-.75],[2.2,.45,.75],[-2.2,.45,.75],
+  [-2.2,0,-.75],[2.2,0,-.75],[2.2,0,.75],[-2.2,0,.75],
+  // cabin box (8-15)
+  [-.9,-.42,-.52],[.95,-.42,-.52],[.95,-.42,.52],[-.9,-.42,.52],
+  [-.9,0,-.58],[.95,0,-.58],[.95,0,.58],[-.9,0,.58],
+];
+const edges=[
+  [0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],
+  [0,4],[1,5],[2,6],[3,7],
+  [8,9],[9,10],[10,11],[11,8],[12,13],[13,14],[14,15],[15,12],
+  [8,12],[9,13],[10,14],[11,15],
+  [12,4],[13,5],[14,6],[15,7],
+];
+const wheelPos=[[-1.5,.45,-.75],[1.5,.45,-.75],[-1.5,.45,.75],[1.5,.45,.75]];
+
+let tick=0;
+function drawWire(){
+  wx.clearRect(0,0,wc.width,wc.height);
+  const cx=wc.width/2,cy=wc.height/2;
+  const ay=Math.sin(tick*.28)*.7, ax=Math.sin(tick*.18)*.12;
+  // transform verts
+  const p=verts.map(([x,y,z])=>{
+    let v=rotY(x,y,z,ay);v=rotX(v.x,v.y,v.z,ax);
+    return project(v.x,v.y,v.z,cx,cy);
+  });
+  // edges
+  wx.lineWidth=.9;
+  edges.forEach(([a,b])=>{
+    wx.beginPath();wx.moveTo(p[a].x,p[a].y);wx.lineTo(p[b].x,p[b].y);
+    wx.strokeStyle='rgba(224,40,40,.5)';wx.stroke();
+  });
+  // dots
+  p.forEach(pt=>{wx.beginPath();wx.arc(pt.x,pt.y,2,0,Math.PI*2);wx.fillStyle='#e02828';wx.fill()});
+  // wheels
+  wheelPos.forEach(([x,y,z])=>{
+    let v=rotY(x,y,z,ay);v=rotX(v.x,v.y,v.z,ax);
+    const pp=project(v.x,v.y,v.z,cx,cy);
+    const r=32*pp.s;
+    wx.beginPath();wx.arc(pp.x,pp.y,r,0,Math.PI*2);wx.strokeStyle='rgba(180,180,180,.2)';wx.lineWidth=1;wx.stroke();
+    wx.beginPath();wx.arc(pp.x,pp.y,r*.55,0,Math.PI*2);wx.strokeStyle='rgba(224,40,40,.35)';wx.stroke();
+    wx.beginPath();wx.arc(pp.x,pp.y,4,0,Math.PI*2);wx.fillStyle='#e02828';wx.fill();
+  });
+  // orbit rings
+  for(let i=0;i<8;i++){
+    const θ=tick*.35+i*Math.PI/4, r1=100, r2=140;
+    wx.beginPath();wx.moveTo(cx+Math.cos(θ)*r1,cy+Math.sin(θ)*r1);
+    wx.lineTo(cx+Math.cos(θ)*r2,cy+Math.sin(θ)*r2);
+    wx.strokeStyle='rgba(224,40,40,.12)';wx.lineWidth=1;wx.stroke();
+  }
+  tick+=.012;requestAnimationFrame(drawWire);
+}
+drawWire();
+
+/* ─── MARQUEE STRIP ───────────────────────────────── */
+const labels=['APEX RS','TERRA X','LINEA GT','0–100 in 2.4s','520 BHP','Active Aero','Twin Turbo','AWD System','Carbon Monocoque'];
+const m=document.getElementById('marquee');
+[...labels,...labels].forEach(t=>{
+  const d=document.createElement('div');d.className='strip-item';
+  // mini car silhouette SVG per strip item
+  d.innerHTML=`<svg viewBox="0 0 320 200" xmlns="http://www.w3.org/2000/svg">
+    <rect width="320" height="200" fill="#111"/>
+    <path d="M40 130 Q50 95 90 82 L165 74 Q215 72 248 88 L284 108 Q292 116 290 130 Z" fill="none" stroke="#e02828" stroke-width="1.5"/>
+    <path d="M96 82 Q108 55 148 50 L198 50 Q228 54 244 82 Z" fill="none" stroke="rgba(224,40,40,.5)" stroke-width="1"/>
+    <circle cx="96" cy="138" r="22" fill="none" stroke="#e02828" stroke-width="1.2"/>
+    <circle cx="232" cy="138" r="22" fill="none" stroke="#e02828" stroke-width="1.2"/>
+    <text x="160" y="175" fill="#555" font-family="'Space Mono',monospace" font-size="11" text-anchor="middle" letter-spacing="3">${t}</text>
+  </svg>
+  <span class="strip-caption">${t}</span>`;
+  m.appendChild(d);
+});
+
+/* ─── STAT COUNTERS ───────────────────────────────── */
+function countUp(el,to,dec,dur=1800){
+  const s=performance.now();
+  (function run(ts){
+    const prog=Math.min((ts-s)/dur,1),e=1-Math.pow(1-prog,3);
+    el.textContent=(e*to).toFixed(dec);
+    if(prog<1)requestAnimationFrame(run);
+  })(s);
+}
+const cIO=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target,to=parseFloat(el.dataset.to),dec=parseInt(el.dataset.dec);
+      countUp(el,to,dec);cIO.unobserve(el);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.stat-val[data-to]').forEach(el=>cIO.observe(el));
+
+/* ─── SCROLL REVEAL ───────────────────────────────── */
+const ro=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('vis')});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>ro.observe(el));
+
+/* ─── FEATURE ACCORDION ───────────────────────────── */
+function toggleFeat(el){
+  document.querySelectorAll('.feat').forEach(f=>f.classList.remove('on'));
+  el.classList.add('on');
+}
+</script>
+</body>
+</html>

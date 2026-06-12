@@ -164,7 +164,7 @@ function SharedFooter() {
           marginBottom: "1.75rem",
         }}
       >
-        A Church for Every Soul · Upper Hill, Nairobi
+        A Church for Every Soul · Maamani, Kitui
       </p>
       <div className="footer-links">
         {NAV_ITEMS.map(({ id, label }) => (
