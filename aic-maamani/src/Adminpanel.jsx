@@ -1701,13 +1701,13 @@ function MessagesInner({ toast }) {
         {loading ? <div className="empty">Loading…</div> : messages.length === 0 ? <div className="empty">No messages.</div> : (
           <table>
             <thead>
-              <tr><th>Name</th><th>Email</th><th>Subject</th><th>Date</th><th>Status</th><th></th></tr>
+              <tr><th>Name</th><th>Phone</th><th>Subject</th><th>Date</th><th>Status</th><th></th></tr>
             </thead>
             <tbody>
               {messages.map(m => (
                 <tr key={m.id} style={{ cursor: "pointer" }} onClick={() => setSelected(m)}>
                   <td><strong style={{ fontWeight: m.read ? 400 : 600 }}>{m.name}</strong></td>
-                  <td style={{ fontSize: "0.82rem" }}>{m.email || "—"}</td>
+                  <td style={{ fontSize: "0.82rem" }}>{m.phone || "—"}</td>
                   <td>{SUBJECT_LABELS[m.subject] || m.subject}</td>
                   <td style={{ fontSize: "0.75rem", whiteSpace: "nowrap" }}>{new Date(m.created_at).toLocaleDateString()}</td>
                   <td>{m.read ? <span className="badge badge-gray">Read</span> : <span className="badge badge-gold">Unread</span>}</td>

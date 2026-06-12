@@ -174,9 +174,9 @@ class ContactMessageCreate(BaseModel):
 
     @field_validator("message")
     @classmethod
-    def message_min_length(cls, v: str) -> str:
-        if len(v.strip()) < 20:
-            raise ValueError("Message must be at least 20 characters")
+    def message_not_empty(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Message cannot be empty")
         return v
 
 class ContactMessageOut(ContactMessageCreate):

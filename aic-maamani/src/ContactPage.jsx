@@ -8,9 +8,14 @@ import { fetchJson } from "./api";
 // #5F5E5A  mid gray secondary
 
 // ── Validation helpers ─────────────────────────────────────
+const PHONE_RE = /^[+\d][\d\s\-().]{6,}$/;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 function validate(fields) {
   const errors = {};
   if (!fields.name?.trim()) errors.name = "Name is required";
+  if (!fields.phone?.trim()) errors.phone = "Phone number is required";
+  else if (!PHONE_RE.test(fields.phone.trim())) errors.phone = "Please enter a valid phone number";
   if (!fields.subject) errors.subject = "Please select a subject";
   if (!fields.message?.trim()) errors.message = "Message is required";
   else if (fields.message.trim().length < 20) errors.message = "Please write at least 20 characters";
@@ -45,9 +50,10 @@ const inputBase = (hasError) => ({
 
 // ── Contact Form ───────────────────────────────────────────
 function ContactForm() {
-  const [fields, setFields] = useState({ name: "", subject: "", message: "" });
+  const [fields, setFields] = useState({ name: "", phone: "", subject: "", message: "" });
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState("idle"); // idle | sending | success | error
+  const [errorMsg, setErrorMsg] = useState("");
 
   const set = (k) => (e) => setFields(f => ({ ...f, [k]: e.target.value }));
 
@@ -57,14 +63,22 @@ function ContactForm() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setErrors({});
     setStatus("sending");
+    setErrorMsg("");
     try {
       await fetchJson("/api/contact", {
         method: "POST",
-        body: JSON.stringify(fields),
+        body: JSON.stringify({
+          name: fields.name.trim(),
+          email: null,
+          phone: fields.phone.trim(),
+          subject: fields.subject,
+          message: fields.message.trim(),
+        }),
       });
       setStatus("success");
     } catch (error) {
       setStatus("error");
+      setErrorMsg(error.message || "Failed to send message. Please try again.");
     }
   };
 
@@ -76,7 +90,7 @@ function ContactForm() {
         <p style={{ color: "#5F5E5A", fontSize: 15, lineHeight: 1.7, maxWidth: 360, margin: "0 auto 24px" }}>
           Thank you for reaching out. Someone from our team will get back to you within 1–2 business days.
         </p>
-        <button onClick={() => { setStatus("idle"); setFields({ name:"",subject:"",message:"" }); }}
+        <button onClick={() => { setStatus("idle"); setFields({ name: "", phone: "", subject: "", message: "" }); }}
           style={{ padding: "10px 28px", background: "#EF9F27", color: "#2C2C2A", border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14, cursor: "pointer", fontFamily: "inherit" }}>
           Send Another
         </button>
@@ -86,12 +100,20 @@ function ContactForm() {
 
   return (
     <form className="contact-form" onSubmit={handleSubmit} noValidate style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <Field label="Full Name *" error={errors.name}>
-        <input value={fields.name} onChange={set("name")} placeholder="Your name"
-          style={inputBase(errors.name)}
-          onFocus={e => e.target.style.borderColor = "#EF9F27"}
-          onBlur={e => e.target.style.borderColor = errors.name ? "#C0392B" : "#D8D7D4"} />
-      </Field>
+      <div className="form-row">
+        <Field label="Full Name *" error={errors.name}>
+          <input value={fields.name} onChange={set("name")} placeholder="Your name"
+            style={inputBase(errors.name)}
+            onFocus={e => e.target.style.borderColor = "#EF9F27"}
+            onBlur={e => e.target.style.borderColor = errors.name ? "#C0392B" : "#D8D7D4"} />
+        </Field>
+        <Field label="Phone Number *" error={errors.phone}>
+          <input type="tel" value={fields.phone} onChange={set("phone")} placeholder="+254 7XX XXX XXX"
+            style={inputBase(errors.phone)}
+            onFocus={e => e.target.style.borderColor = "#EF9F27"}
+            onBlur={e => e.target.style.borderColor = errors.phone ? "#C0392B" : "#D8D7D4"} />
+        </Field>
+      </div>
       <Field label="Subject *" error={errors.subject}>
         <select value={fields.subject} onChange={set("subject")}
           style={{ ...inputBase(errors.subject), appearance: "none", backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%235F5E5A' stroke-width='1.5' fill='none'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 14px center", paddingRight: 36, color: fields.subject ? "#2C2C2A" : "#9E9D99" }}
@@ -114,6 +136,11 @@ function ContactForm() {
           onFocus={e => e.target.style.borderColor = "#EF9F27"}
           onBlur={e => e.target.style.borderColor = errors.message ? "#C0392B" : "#D8D7D4"} />
       </Field>
+      {status === "error" && (
+        <div style={{ padding: "12px 16px", background: "#FDECEA", border: "1px solid #F5C6C2", borderRadius: 8, fontSize: 13, color: "#C0392B" }}>
+          {errorMsg}
+        </div>
+      )}
       <button type="submit" className="submit-btn" disabled={status === "sending"} style={{
         padding: "14px 32px", background: status === "sending" ? "#D8D7D4" : "#EF9F27",
         color: "#2C2C2A", border: "none", borderRadius: 8, fontWeight: 800,
@@ -132,34 +159,39 @@ function ContactForm() {
 // ── Prayer Request Form ────────────────────────────────────
 function PrayerForm() {
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [request, setRequest] = useState("");
   const [isPrivate, setIsPrivate] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | sending
+  const [sending, setSending] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.trim()) { setError("Email is required to submit a prayer request."); return; }
+    if (!phone.trim()) { setError("Phone number is required to submit a prayer request."); return; }
+    if (!PHONE_RE.test(phone.trim())) { setError("Please enter a valid phone number."); return; }
     if (!request.trim()) { setError("Please share your prayer request."); return; }
     setError("");
-    setStatus("sending");
+    setSending(true);
     try {
+      const message = isPrivate
+        ? `${request.trim()}\n\n[This prayer request is private — shared only with the pastoral team]`
+        : request.trim();
       await fetchJson("/api/contact", {
         method: "POST",
         body: JSON.stringify({
           name: name || "Anonymous",
-          email: email.trim(),
-          phone: null,
+          email: null,
+          phone: phone.trim(),
           subject: "prayer-request",
-          message: request.trim(),
+          message,
         }),
       });
       setSent(true);
     } catch (err) {
-      setStatus("idle");
       setError(err.message || "Failed to submit prayer request. Please try again.");
+    } finally {
+      setSending(false);
     }
   };
 
@@ -170,7 +202,7 @@ function PrayerForm() {
       <p style={{ color: "#5F5E5A", fontSize: 14, lineHeight: 1.7 }}>
         Your request has been received{isPrivate ? " and will be kept confidential" : ""}. Our prayer team will bring this before God.
       </p>
-      <button onClick={() => { setSent(false); setName(""); setEmail(""); setRequest(""); setIsPrivate(false); setError(""); }}
+      <button onClick={() => { setSent(false); setName(""); setPhone(""); setRequest(""); setIsPrivate(false); setError(""); }}
         style={{ marginTop: 20, padding: "9px 24px", background: "transparent", color: "#EF9F27", border: "1.5px solid #EF9F27", borderRadius: 8, fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
         Submit Another
       </button>
@@ -190,13 +222,13 @@ function PrayerForm() {
             onBlur={e => e.target.style.borderColor = "#D8D7D4"} />
         </div>
         <div>
-          <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: error && !email ? "#C0392B" : "#5F5E5A", display: "block", marginBottom: 5 }}>
-            Email *
+          <label style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: error && (!phone || !PHONE_RE.test(phone.trim())) ? "#C0392B" : "#5F5E5A", display: "block", marginBottom: 5 }}>
+            Phone *
           </label>
-          <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="your@email.com"
-            style={inputBase(error && !email)}
+          <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+254 7XX XXX XXX"
+            style={inputBase(error && (!phone || !PHONE_RE.test(phone.trim())))}
             onFocus={e => e.target.style.borderColor = "#EF9F27"}
-            onBlur={e => e.target.style.borderColor = (error && !email) ? "#C0392B" : "#D8D7D4"} />
+            onBlur={e => e.target.style.borderColor = (error && (!phone || !PHONE_RE.test(phone.trim()))) ? "#C0392B" : "#D8D7D4"} />
         </div>
       </div>
       <div>
@@ -228,13 +260,13 @@ function PrayerForm() {
           </div>
         </div>
       </label>
-      <button type="submit" disabled={status === "sending"} style={{
-        padding: "12px 24px", background: status === "sending" ? "#5F5E5A" : "#2C2C2A", color: "#F2F1EF",
+      <button type="submit" disabled={sending} style={{
+        padding: "12px 24px", background: sending ? "#5F5E5A" : "#2C2C2A", color: "#F2F1EF",
         border: "none", borderRadius: 8, fontWeight: 700, fontSize: 14,
-        cursor: status === "sending" ? "not-allowed" : "pointer", fontFamily: "inherit", letterSpacing: "0.02em",
-        opacity: status === "sending" ? 0.7 : 1, transition: "all 0.2s",
+        cursor: sending ? "not-allowed" : "pointer", fontFamily: "inherit", letterSpacing: "0.02em",
+        opacity: sending ? 0.7 : 1, transition: "all 0.2s",
       }}>
-        {status === "sending" ? "Submitting…" : "🙏 Submit Prayer Request"}
+        {sending ? "Submitting…" : "🙏 Submit Prayer Request"}
       </button>
     </form>
   );
@@ -382,7 +414,7 @@ export default function ContactPage() {
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: "#2C2C2A", marginBottom: 4 }}>Our Location</h2>
                 <p style={{ fontSize: 14, color: "#5F5E5A" }}>AIC Maamani Church · Mombasa Road, Nairobi · Parking available on-site</p>
               </div>
-              {/* Embedded Google Map — replace src with your actual embed URL */}
+              {/* Embedded Google Map */}
               <div style={{ height: 320, background: "#E8E7E5", position: "relative" }}>
                 <iframe
                   title="Church Location"
