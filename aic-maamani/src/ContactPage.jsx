@@ -9,7 +9,6 @@ import { fetchJson } from "./api";
 
 // ── Validation helpers ─────────────────────────────────────
 const PHONE_RE = /^[+\d][\d\s\-().]{6,}$/;
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function validate(fields) {
   const errors = {};
