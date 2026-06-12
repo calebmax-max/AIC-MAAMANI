@@ -17,7 +17,7 @@ function validate(fields) {
   else if (!PHONE_RE.test(fields.phone.trim())) errors.phone = "Please enter a valid phone number";
   if (!fields.subject) errors.subject = "Please select a subject";
   if (!fields.message?.trim()) errors.message = "Message is required";
-  else if (fields.message.trim().length < 20) errors.message = "Please write at least 20 characters";
+
   return errors;
 }
 
