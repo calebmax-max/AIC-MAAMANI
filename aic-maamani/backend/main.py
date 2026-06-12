@@ -100,4 +100,4 @@ def debug_db():
     # Mask password for safety
     import re
     safe_url = re.sub(r":([^@]+)@", ":***@", DATABASE_URL)
-    return {"database_url": safe_url}c
+    return {"database_url": safe_url}
