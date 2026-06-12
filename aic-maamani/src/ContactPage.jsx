@@ -411,13 +411,13 @@ export default function ContactPage() {
               <div className="map-info-pad" style={{ padding: "24px 28px 20px" }}>
                 <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#EF9F27", marginBottom: 6 }}>Find Us</div>
                 <h2 style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: "#2C2C2A", marginBottom: 4 }}>Our Location</h2>
-                <p style={{ fontSize: 14, color: "#5F5E5A" }}>AIC Maamani Church · Mombasa Road, Nairobi · Parking available on-site</p>
+                <p style={{ fontSize: 14, color: "#5F5E5A" }}>AIC Maamani Church · Along kavisuni road , near maamani primary· Parking available on-site</p>
               </div>
               {/* Embedded Google Map */}
               <div style={{ height: 320, background: "#E8E7E5", position: "relative" }}>
                 <iframe
                   title="Church Location"
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.808!2d36.821!3d-1.292!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMcKwMTcnMzEuMiJTIDM2wrA0OScxNS42IkU!5e0!3m2!1sen!2ske!4v1234567890"
+                  src="https://www.google.com/maps?q=-1.456738,37.978932&z=16&output=embed"
                   width="100%" height="100%" style={{ border: 0 }} allowFullScreen loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
                 />
@@ -429,7 +429,7 @@ export default function ContactPage() {
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#F2F1EF", marginBottom: 2 }}>AIC Maamani</div>
                   <div style={{ fontSize: 12, color: "#9E9D99" }}>Mombasa Road, Nairobi, Kenya</div>
-                  <a href="https://maps.google.com" target="_blank" rel="noreferrer"
+                  <a href="https://maps.app.goo.gl/M5pRaCS5ce9vSF6dA" target="_blank" rel="noreferrer"
                     style={{ display: "inline-block", marginTop: 8, fontSize: 11, fontWeight: 700, color: "#EF9F27", textDecoration: "none", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                     Get Directions →
                   </a>
