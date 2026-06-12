@@ -428,7 +428,7 @@ export default function ContactPage() {
                   boxShadow: "0 4px 20px rgba(0,0,0,0.25)",
                 }}>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "#F2F1EF", marginBottom: 2 }}>AIC Maamani</div>
-                  <div style={{ fontSize: 12, color: "#9E9D99" }}>AIC Maamani Church · Along kavisuni road , near maamani primary·
+                  <div style={{ fontSize: 12, color: "#9E9D99" }}>Along Kavisuni road, near Maamani primary</div>
                   <a href="https://maps.app.goo.gl/M5pRaCS5ce9vSF6dA" target="_blank" rel="noreferrer"
                     style={{ display: "inline-block", marginTop: 8, fontSize: 11, fontWeight: 700, color: "#EF9F27", textDecoration: "none", letterSpacing: "0.06em", textTransform: "uppercase" }}>
                     Get Directions →
