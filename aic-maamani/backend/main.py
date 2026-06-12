@@ -6,7 +6,9 @@ BACKEND_DIR = Path(__file__).resolve().parent
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
-from fastapi import FastAPI
+import traceback
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -68,6 +70,14 @@ app.include_router(gallery_router,   prefix="/api/gallery",  tags=["Gallery"])
 app.include_router(contact_router,   prefix="/api/contact",  tags=["Contact"])
 app.include_router(about_router,     prefix="/api/about",    tags=["About"])
 app.include_router(admin_router)
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={"detail": str(exc), "traceback": traceback.format_exc()},
+    )
 
 
 @app.on_event("startup")
