@@ -25,13 +25,6 @@ function resolveTeamPhoto(src) {
 }
 
 // ── Shared helpers ──────────────────────────────────────
-function resolveUrl(src) {
-  if (!src) return "";
-  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
-  const base = (process.env.REACT_APP_API_BASE_URL || window.location.origin).replace(/\/$/, "");
-  return `${base}${src}`;
-}
-
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');`;
 
 const globalStyle = `
