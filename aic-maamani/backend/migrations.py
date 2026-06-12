@@ -34,6 +34,10 @@ def ensure_media_columns() -> None:
     if "video_url" not in gallery_video_columns:
         required.append(("gallery_videos", "video_url", "TEXT"))
 
+    contact_columns = _existing_columns("contact_messages")
+    if "phone" not in contact_columns:
+        required.append(("contact_messages", "phone", "VARCHAR(255)"))
+
     if not required:
         return
 
