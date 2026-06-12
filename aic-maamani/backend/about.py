@@ -176,6 +176,12 @@ def get_team_members(db: Session = Depends(get_db)):
     return db.query(TeamMember).order_by(TeamMember.order.asc(), TeamMember.id.asc()).all()
 
 
+@router.post("/team/upload-photo", dependencies=[Depends(require_admin)])
+async def upload_team_photo(photo_file: UploadFile = File(...)):
+    url = await save_upload(photo_file, "about")
+    return {"url": url}
+
+
 @router.post("/team", response_model=TeamMemberOut, status_code=201, dependencies=[Depends(require_admin)])
 def create_team_member(payload: TeamMemberCreate, db: Session = Depends(get_db)):
     member = TeamMember(**payload.model_dump())

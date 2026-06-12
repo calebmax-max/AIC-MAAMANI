@@ -1907,25 +1907,26 @@ function TeamPanel({ toast }) {
       const photoFile = form._photoFile;
       let photoUrl = form.photo || "";
 
-      // If a new file was picked, upload it first via FormData
+      // If a new file was picked, upload it first to get a URL
       if (photoFile) {
-        const fd = buildFormData({
-          name: form.name,
-          role: form.role || "",
-          bio: form.bio || "",
-          order: Number(form.order),
-          photo_file: photoFile,
-        });
-        if (modal === "new") {
-          await apiFetch("/about/team", { method: "POST", body: fd });
-        } else {
-          await apiFetch(`/about/team/${form.id}`, { method: "PUT", body: fd });
-        }
+        const fd = new FormData();
+        fd.append("photo_file", photoFile);
+        const result = await apiFetch("/about/team/upload-photo", { method: "POST", body: fd });
+        photoUrl = result.url || "";
+      }
+
+      // Always send JSON with the resolved photo URL
+      const payload = {
+        name: form.name,
+        role: form.role || "",
+        bio: form.bio || "",
+        photo: photoUrl,
+        order: Number(form.order),
+      };
+      if (modal === "new") {
+        await apiFetch("/about/team", { method: "POST", body: JSON.stringify(payload) });
       } else {
-        // No new file — send JSON as before
-        const payload = { name: form.name, role: form.role || "", bio: form.bio || "", photo: photoUrl, order: Number(form.order) };
-        if (modal === "new") { await apiFetch("/about/team", { method: "POST", body: JSON.stringify(payload) }); }
-        else { await apiFetch(`/about/team/${form.id}`, { method: "PUT", body: JSON.stringify(payload) }); }
+        await apiFetch(`/about/team/${form.id}`, { method: "PUT", body: JSON.stringify(payload) });
       }
       toast(modal === "new" ? "Member added" : "Member updated");
       setModal(null);
@@ -2044,6 +2045,7 @@ function PastorPhotoCard({ toast }) {
       setCurrentPhoto(resolveUrl(data?.photo || ""));
       setPreviewPhoto(resolveUrl(data?.photo || ""));
       setSelectedFile(null);
+      window.dispatchEvent(new CustomEvent("pastor-photo-updated"));
       toast("Pastor photo updated");
     } catch (e) {
       toast(e.message || "Unable to update pastor photo");
@@ -2060,6 +2062,7 @@ function PastorPhotoCard({ toast }) {
       setCurrentPhoto("");
       setPreviewPhoto("");
       setSelectedFile(null);
+      window.dispatchEvent(new CustomEvent("pastor-photo-updated"));
       toast("Pastor photo cleared");
     } catch (e) {
       toast(e.message || "Unable to clear pastor photo");

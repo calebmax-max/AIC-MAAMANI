@@ -16,7 +16,22 @@ const C = {
 
 
 
+// ── Resolve backend-relative photo URLs ────────────────
+const _API_BASE = (process.env.REACT_APP_API_BASE_URL || window.location.origin).replace(/\/$/, "");
+function resolveTeamPhoto(src) {
+  if (!src) return "";
+  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
+  return `${_API_BASE}${src}`;
+}
+
 // ── Shared helpers ──────────────────────────────────────
+function resolveUrl(src) {
+  if (!src) return "";
+  if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
+  const base = (process.env.REACT_APP_API_BASE_URL || window.location.origin).replace(/\/$/, "");
+  return `${base}${src}`;
+}
+
 const fonts = `@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap');`;
 
 const globalStyle = `
@@ -381,10 +396,12 @@ function MeetPastor() {
           <img
             src={pastorImageSrc}
             alt="Pr. Daniel Mutinda"
+            onError={e => { e.currentTarget.src = "https://placehold.co/360x460/F2F1EF/2C2C2A?text=Add+Pastor+Photo"; }}
             style={{
               width:"100%",
               aspectRatio:"3/4",
               objectFit:"cover",
+              objectPosition:"center 15%",
               border:`2px solid ${C.copper}`,
               display:"block",
               background:C.stone
@@ -448,7 +465,7 @@ function TeamCard({ member, delay }) {
     >
       {/* avatar area */}
       <div style={{
-        height: member.photo ? "180px" : "0px",
+        height: member.photo ? "300px" : "0px",
         background: hovered ? C.charcoal : C.stone,
         display: member.photo ? "flex" : "none",
         alignItems:"center", justifyContent:"center",
@@ -457,12 +474,13 @@ function TeamCard({ member, delay }) {
       }}>
         {member.photo && (
           <img
-            src={member.photo}
+            src={resolveTeamPhoto(member.photo)}
             alt={member.name}
             style={{
               width:"100%",
               height:"100%",
               objectFit:"cover",
+              objectPosition:"center 15%",
               display:"block",
             }}
           />
