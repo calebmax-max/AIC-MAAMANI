@@ -643,13 +643,13 @@ export default function SermonsPage() {
     let mounted = true;
     const load = async () => {
       try {
-        const [series, sermons] = await Promise.all([
-          fetchJson("/api/sermons/series"),
+        const [seriesResult, sermons] = await Promise.all([
+          fetchJson("/api/sermons/series").catch(() => []),
           fetchJson("/api/sermons"),
         ]);
         if (!mounted) return;
-        if (Array.isArray(series)) {
-          setSeriesData(series.map(item => ({ id: item.id, title: item.title, cover: item.cover_url || "", count: item.count || 0, description: item.description || "" })));
+        if (Array.isArray(seriesResult)) {
+          setSeriesData(seriesResult.map(item => ({ id: item.id, title: item.title, cover: item.cover_url || "", count: item.count || 0, description: item.description || "" })));
         }
         if (Array.isArray(sermons)) {
             const mappedSermons = sermons.map(item => ({ id: item.id, title: item.title, speaker: item.speaker, date: item.date, duration: item.duration || "—", scripture: item.scripture || "", topic: item.topic || "", series: item.series_id || "", thumbnail: item.thumbnail || "", videoUrl: item.video_url || null, audioUrl: item.audio_url || null, documentUrl: item.document_url || null, documentText: item.document_text || "", hasNotes: Boolean(item.has_notes), featured: Boolean(item.featured) }));
