@@ -4,47 +4,75 @@ import { fetchJson, API_BASE } from "./api";
 export const DEFAULT_PASTOR_IMAGE =
   "https://placehold.co/360x460/F2F1EF/2C2C2A?text=Add+Pastor+Photo";
 
+// ── Module-level cache ──────────────────────────────────
+let _cachedSrc = null;          // null = not yet fetched
+let _listeners = new Set();     // all mounted hook instances
+
+function notifyListeners(src) {
+  _cachedSrc = src;
+  _listeners.forEach(fn => fn(src));
+}
+
 function resolveUrl(src) {
   if (!src) return "";
   if (/^(?:https?:)?\/\//i.test(src) || src.startsWith("data:")) return src;
   return `${API_BASE}${src}`;
 }
 
-// Append a cache-buster so the browser always loads the new image after upload
 function bustCache(url) {
   if (!url || url.startsWith("https://placehold.co")) return url;
   const sep = url.includes("?") ? "&" : "?";
   return `${url}${sep}v=${Date.now()}`;
 }
 
-export function usePastorImage() {
-  const [src, setSrc] = useState(DEFAULT_PASTOR_IMAGE);
+let _fetching = false;
 
-  const refresh = useCallback(() => {
-    let mounted = true;
-    fetchJson("/api/about/pastor/photo")
-      .then((data) => {
-        if (!mounted) return;
-        const resolved = resolveUrl(data?.photo);
-        setSrc(resolved ? bustCache(resolved) : DEFAULT_PASTOR_IMAGE);
-      })
-      .catch(() => {
-        if (mounted) setSrc(DEFAULT_PASTOR_IMAGE);
-      });
-    return () => { mounted = false; };
-  }, []);
+function fetchPastorImage() {
+  if (_fetching) return;
+  _fetching = true;
+  fetchJson("/api/about/pastor/photo")
+    .then((data) => {
+      const resolved = resolveUrl(data?.photo);
+      notifyListeners(resolved ? bustCache(resolved) : DEFAULT_PASTOR_IMAGE);
+    })
+    .catch(() => {
+      notifyListeners(DEFAULT_PASTOR_IMAGE);
+    })
+    .finally(() => { _fetching = false; });
+}
+
+export function usePastorImage() {
+  // If already cached, start with the real image — no flash
+  const [src, setSrc] = useState(_cachedSrc ?? DEFAULT_PASTOR_IMAGE);
 
   useEffect(() => {
-    // Initial load
-    const cleanup = refresh();
+    _listeners.add(setSrc);
 
-    // Re-fetch whenever admin panel saves a new photo
-    window.addEventListener("pastor-photo-updated", refresh);
-    return () => {
-      cleanup?.();
-      window.removeEventListener("pastor-photo-updated", refresh);
+    // Only fetch if nothing is cached yet
+    if (_cachedSrc === null) {
+      fetchPastorImage();
+    } else {
+      // Already have it — sync immediately
+      setSrc(_cachedSrc);
+    }
+
+    // Re-fetch on admin upload
+    const onUpdate = () => {
+      _cachedSrc = null;   // invalidate cache
+      fetchPastorImage();
     };
-  }, [refresh]);
+    window.addEventListener("pastor-photo-updated", onUpdate);
+
+    return () => {
+      _listeners.delete(setSrc);
+      window.removeEventListener("pastor-photo-updated", onUpdate);
+    };
+  }, []);
+
+  const refresh = useCallback(() => {
+    _cachedSrc = null;
+    fetchPastorImage();
+  }, []);
 
   return { pastorImageSrc: src, refreshPastorImage: refresh };
 }
