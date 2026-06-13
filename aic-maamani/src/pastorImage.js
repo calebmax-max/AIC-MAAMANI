@@ -4,12 +4,16 @@ import { fetchJson, API_BASE } from "./api";
 export const DEFAULT_PASTOR_IMAGE =
   "https://placehold.co/360x460/F2F1EF/2C2C2A?text=Add+Pastor+Photo";
 
+const STORAGE_KEY = "pastor_image_src";
+
 // ── Module-level cache ──────────────────────────────────
-let _cachedSrc = null;          // null = not yet fetched
-let _listeners = new Set();     // all mounted hook instances
+let _cachedSrc = localStorage.getItem(STORAGE_KEY) || null;
+let _listeners = new Set();
+let _fetching = false;
 
 function notifyListeners(src) {
   _cachedSrc = src;
+  try { localStorage.setItem(STORAGE_KEY, src); } catch (_) {}
   _listeners.forEach(fn => fn(src));
 }
 
@@ -24,8 +28,6 @@ function bustCache(url) {
   const sep = url.includes("?") ? "&" : "?";
   return `${url}${sep}v=${Date.now()}`;
 }
-
-let _fetching = false;
 
 function fetchPastorImage() {
   if (_fetching) return;
@@ -42,23 +44,19 @@ function fetchPastorImage() {
 }
 
 export function usePastorImage() {
-  // If already cached, start with the real image — no flash
+  // On first render: use localStorage value if available, else placeholder
   const [src, setSrc] = useState(_cachedSrc ?? DEFAULT_PASTOR_IMAGE);
 
   useEffect(() => {
     _listeners.add(setSrc);
 
-    // Only fetch if nothing is cached yet
-    if (_cachedSrc === null) {
-      fetchPastorImage();
-    } else {
-      // Already have it — sync immediately
-      setSrc(_cachedSrc);
-    }
+    // Always re-fetch in background to stay fresh,
+    // but the stored URL renders immediately so there's no flash
+    fetchPastorImage();
 
-    // Re-fetch on admin upload
     const onUpdate = () => {
-      _cachedSrc = null;   // invalidate cache
+      _cachedSrc = null;
+      try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
       fetchPastorImage();
     };
     window.addEventListener("pastor-photo-updated", onUpdate);
@@ -71,6 +69,7 @@ export function usePastorImage() {
 
   const refresh = useCallback(() => {
     _cachedSrc = null;
+    try { localStorage.removeItem(STORAGE_KEY); } catch (_) {}
     fetchPastorImage();
   }, []);
 
